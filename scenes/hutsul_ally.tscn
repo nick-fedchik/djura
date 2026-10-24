@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://hutsul_ally_001"]
+
+[ext_resource type="Script" path="res://scripts/hutsul_ally.gd" id="1_hutsul"]
+[ext_resource type="PackedScene" path="res://scenes/speech_bubble.tscn" id="2_bubble"]
+
+[node name="HutsulAlly" type="Node2D"]
+script = ExtResource("1_hutsul")
+
+[node name="SpeechBubble" parent="." instance=ExtResource("2_bubble")]
+position = Vector2(0, -24)
