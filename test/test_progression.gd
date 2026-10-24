@@ -65,6 +65,29 @@ func _initialize() -> void:
 		if e.enemy_type == FolkloreEnemy.EnemyType.CHORT: chorts += 1
 	if vidmas * 2 > chorts:
 		return _fail("додаткові вороги не мають порушувати рідкість відьом")
+	# 2б) полегшення для слабкого гравця: на одного ворога менше, новий NPC рівня та відьма лишаються
+	mgr.difficulty_k = D.coefficient(3, 0.0)
+	for e in mgr.enemies_node.get_children():
+		mgr.enemies_node.remove_child(e); e.free()
+	mgr.level = 3
+	mgr._spawn_folklore_enemies()
+	var relief_n: int = mgr.enemies_node.get_child_count()
+	var has_moskal := false
+	var has_vidma := false
+	for e in mgr.enemies_node.get_children():
+		if e.enemy_type == FolkloreEnemy.EnemyType.MOSKAL: has_moskal = true
+		if e.enemy_type == FolkloreEnemy.EnemyType.VIDMA: has_vidma = true
+	print("Рівень 3, слабкий гравець (k=%.2f): %d ворогів (базово %d)" % [mgr.difficulty_k, relief_n, base_n])
+	if relief_n != base_n - 1 or not has_moskal or not has_vidma:
+		return _fail("слабкий гравець має отримати на одного ворога менше, не втрачаючи нового NPC рівня")
+	# 2в) стеля одночасних ворогів
+	mgr.difficulty_k = D.K_MAX
+	for e in mgr.enemies_node.get_children():
+		mgr.enemies_node.remove_child(e); e.free()
+	mgr.level = 5
+	mgr._spawn_folklore_enemies()
+	if mgr.enemies_node.get_child_count() > D.MAX_ALIVE_ENEMIES:
+		return _fail("ворогів більше за стелю MAX_ALIVE_ENEMIES")
 	# 3) Мавка: з'являється лише з рівня 5 і після успіхів; чари лякають ворога
 	mgr.difficulty_k = 1.0
 	for lvl in [4, 5]:
@@ -91,5 +114,43 @@ func _initialize() -> void:
 		if e.is_scared: scared_after += 1
 	if not cast_ok or scared_after != scared_before + 1:
 		return _fail("чари Мавки мають налякати одного ворога")
+	# 3б) план 20 рівнів кампанії: кожен рівень вводить нового NPC, жоден NPC не вводиться двічі, є 20 рівнів, ескалація далі
+	var plan_seen := {}
+	for lvl in range(1, D.CAMPAIGN_LEVELS + 1):
+		if not D.NPC_INTRO.has(lvl) or D.NPC_INTRO[lvl].is_empty():
+			return _fail("рівень %d кампанії не вводить нового NPC у плані" % lvl)
+		for n in D.NPC_INTRO[lvl]:
+			if plan_seen.has(n):
+				return _fail("NPC %s вводиться двічі (рівні %d і %d)" % [n, plan_seen[n], lvl])
+			plan_seen[n] = lvl
+	if D.NPC_INTRO.size() != D.CAMPAIGN_LEVELS:
+		return _fail("план має охоплювати рівно %d рівнів кампанії" % D.CAMPAIGN_LEVELS)
+	var planned_levels: Array = []
+	for lvl in D.NPC_INTRO.keys():
+		for n in D.NPC_INTRO[lvl]:
+			if n in D.NPC_PLANNED:
+				planned_levels.append(lvl)
+	print("План кампанії: %d рівнів, нових NPC %d; ще не реалізовано (рівні): %s" % [D.NPC_INTRO.size(), plan_seen.size(), planned_levels])
+	# 4) адаптація увімкнена: «середній» гравець у першій серії отримує склад не далі ніж на одного ворога від бази
+	mgr.adaptive_enabled = true
+	var fresh_model = load("res://scripts/player_model.gd").new()
+	fresh_model.setup("11-14", "casual", 5)
+	mgr.player_model = fresh_model
+	for lvl in range(1, 6):
+		mgr.adaptive_enabled = false
+		mgr.difficulty_k = 1.0
+		for e in mgr.enemies_node.get_children():
+			mgr.enemies_node.remove_child(e); e.free()
+		mgr.level = lvl
+		mgr._spawn_folklore_enemies()
+		var baseline: int = mgr.enemies_node.get_child_count()
+		mgr.adaptive_enabled = true
+		for e in mgr.enemies_node.get_children():
+			mgr.enemies_node.remove_child(e); e.free()
+		mgr.difficulty_k = fresh_model.recommend(lvl, load("res://scripts/level_difficulty.gd").offset(lvl))
+		mgr._spawn_folklore_enemies()
+		var adapted: int = mgr.enemies_node.get_child_count()
+		if absi(adapted - baseline) > 1:
+			return _fail("рівень %d: адаптація змінила склад більш ніж на одного ворога (%d → %d)" % [lvl, baseline, adapted])
 	print("[OK] кожен рівень вводить нового NPC; складність і Мавка працюють")
 	quit(0)

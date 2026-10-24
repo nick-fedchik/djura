@@ -30,9 +30,20 @@ var bombs_collected_on_level: int = 0
 var hutsul_spawned_this_level: bool = false
 var hutsul_waves_spawned: int = 0
 var qirimli_spawned_this_level: bool = false
-# Складність і якість проходження (scripts/difficulty.gd, SHR-001 I-7)
+# Складність і якість проходження (scripts/difficulty.gd, scripts/telemetry_engine.gd, SHR-001 I-7)
 const _Difficulty = preload("res://scripts/difficulty.gd")
 const _MavkaAlly = preload("res://scripts/mavka_ally.gd")
+const _PlayerModel = preload("res://scripts/player_model.gd")
+const _Telemetry = preload("res://scripts/telemetry.gd")
+const _LevelDifficulty = preload("res://scripts/level_difficulty.gd")
+const PROFILE_PATH: String = "user://player_profile.json"
+var adaptive_enabled: bool = true      # false: детермінована база difficulty.coefficient (для наборів тестів складу рівнів)
+var player_model = null
+var telemetry = null
+var level_offset: float = 0.0
+var level_in_progress: bool = false
+const _TelemetryEngine = preload("res://scripts/telemetry_engine.gd")
+var telemetry_engine: TelemetryEngine = null
 var difficulty_k: float = 1.0
 var prev_quality: float = 0.5
 var level_started_ms: int = 0
@@ -89,6 +100,10 @@ var snd_level_clear = preload("res://assets/audio/level_clear.wav")
 var snd_hopak_music = preload("res://assets/audio/hopak_music.wav")
 
 func _ready() -> void:
+	telemetry_engine = _TelemetryEngine.new()
+	telemetry_engine.name = "TelemetryEngine"
+	add_child(telemetry_engine)
+	telemetry_engine.ollama_advice_received.connect(_on_ollama_advice_received)
 	hud.update_score(score)
 	hud.update_highscore(high_score)
 	if player:
@@ -96,12 +111,22 @@ func _ready() -> void:
 		player.combat_move_performed.connect(_on_player_combat_move_performed)
 	player.reset_to_normal_state(Vector2(480, 494))
 	_setup_audio()
+	_init_adaptation()
 	_setup_level()
 	_refresh_bottom_combat_hint()
 	if story_cards and story_cards.has_story_for_level(level):
 		story_cards.show_story_for_level(level)
 		await story_cards.story_finished
 	hud.announce_level(level, 2.4)
+
+func _process(delta: float) -> void:
+	if telemetry_engine and not is_transitioning_level:
+		telemetry_engine.sample_frame(delta, player, enemies_node)
+
+func _on_ollama_advice_received(advice: Dictionary) -> void:
+	var mamay_tip := String(advice.get("mamay_tip", ""))
+	if mamay_tip.length() > 0 and hud and not is_transitioning_level:
+		hud.show_message("КОЗАК МАМАЙ (AI): «%s»" % mamay_tip, 3.6, Color(0.45, 0.96, 1.0))
 
 func _refresh_bottom_combat_hint() -> void:
 	if not hud:
@@ -121,6 +146,11 @@ func _queue_combat_hint_front(move_id: String) -> void:
 	_refresh_bottom_combat_hint()
 
 func _on_player_combat_move_performed(move_id: String) -> void:
+	if telemetry_engine:
+		if move_id == "hopak_kick":
+			telemetry_engine.record_kick()
+		else:
+			telemetry_engine.record_punch()
 	if not pending_combat_moves.has(move_id):
 		return
 	completed_combat_moves[move_id] = true
@@ -318,8 +348,15 @@ func _setup_level() -> void:
 		mavka_ally.queue_free()
 	mavka_ally = null
 	mavka_spawned_this_level = false
-	difficulty_k = _Difficulty.coefficient(level, prev_quality)
+	var stage_in_series := ((level - 1) % _Difficulty.SERIES_LENGTH) + 1
+	level_offset = _LevelDifficulty.offset(stage_in_series)
+	if adaptive_enabled and player_model != null:
+		difficulty_k = player_model.recommend(level, level_offset)
+	else:
+		difficulty_k = _Difficulty.coefficient(level, prev_quality)
 	level_started_ms = Time.get_ticks_msec()
+	if telemetry_engine:
+		telemetry_engine.begin_level_tracking(level)
 	hits_this_level = 0
 	max_lit_streak_level = 1
 	bombs_collected_on_level = 0
@@ -333,6 +370,9 @@ func _setup_level() -> void:
 	# Spawn folklore enemies according to level theme & age 8+ clarity
 	_spawn_folklore_enemies()
 	level_enemy_count_start = enemies_node.get_child_count() if enemies_node else 0
+	level_in_progress = true
+	if telemetry != null:
+		telemetry.log_event("level_start", {"level": level, "k": difficulty_k, "enemies": level_enemy_count_start, "target": player_model.target_success() if player_model != null else 0.0})
 	
 	lit_streak = 1
 	_spawn_bomb_grid()
@@ -563,16 +603,19 @@ func _spawn_folklore_enemies() -> void:
 		FolkloreEnemy.MoskalRank.TSAR_GENERAL
 	]
 	if extras < 0:
-		# Полегшення для слабкого гравця: прибрати один дубль (чортика, потім москаля, потім вогника); новий NPC рівня й відьма лишаються
+		# Полегшення для слабкого гравця: прибрати до |extras| дублів (чортика, потім москаля, потім вогника); новий NPC рівня й відьма лишаються
+		var to_remove := -extras
 		for kind in [FolkloreEnemy.EnemyType.CHORT, FolkloreEnemy.EnemyType.MOSKAL, FolkloreEnemy.EnemyType.VOGNYK]:
-			var same: Array = []
-			for e in enemies_node.get_children():
-				if e.enemy_type == kind:
-					same.append(e)
-			if same.size() >= 2:
+			while to_remove > 0:
+				var same: Array = []
+				for e in enemies_node.get_children():
+					if e.enemy_type == kind:
+						same.append(e)
+				if same.size() < 2:
+					break
 				enemies_node.remove_child(same[-1])
 				same[-1].free()
-				break
+				to_remove -= 1
 	else:
 		extras = mini(extras, maxi(0, _Difficulty.MAX_ALIVE_ENEMIES - enemies_node.get_child_count()))
 		for i in extras:
@@ -670,6 +713,8 @@ func _on_enemy_dropped_stolen_artifact(drop_pos: Vector2) -> void:
 	hud.show_message("АРТЕФАКТ ВИБИТО З РУК ЗЛОДІЯ! ЛОВИ ЙОГО!", 2.2, Color(1.0, 0.92, 0.25))
 
 func _on_artifact_stolen_by_enemy(_item: Node2D, _enemy: Node2D) -> void:
+	if telemetry_engine:
+		telemetry_engine.record_artifact_stolen()
 	if player:
 		player.say("Ах ти злодюжка! Віддай козацький скарб!", 2.2)
 	hud.show_message("⚠️ ЗЛОДІЙ ПЕРЕХОПИВ АРТЕФАКТ! ВДАР ЙОГО, ЩОБ ВІДІБРАТИ!", 2.8, Color(1.0, 0.45, 0.25))
@@ -695,6 +740,8 @@ func _spawn_vakula_horseshoe() -> void:
 	hud.show_message("КОВАЛЬ ВАКУЛА НАДІСЛАВ ЗОЛОТУ ПІДКІВКУ!", 2.4, Color(1.0, 0.85, 0.2))
 
 func _on_horseshoe_collected(shoe: VakulaHorseshoeItem) -> void:
+	if telemetry_engine:
+		telemetry_engine.record_artifact_collected()
 	player.activate_vakula_shoes(10.0)
 	hud.show_message("ЧАРІВНІ ПІДКІВКИ ВАКУЛИ! ПРОСТРИБУВАННЯ КРІЗЬ БАЛКИ!", 2.8, Color(1.0, 0.92, 0.25))
 	score += 1500
@@ -704,6 +751,8 @@ func _on_horseshoe_collected(shoe: VakulaHorseshoeItem) -> void:
 	hud.update_score(score)
 
 func _on_flower_collected(flower: FernFlowerItem) -> void:
+	if telemetry_engine:
+		telemetry_engine.record_artifact_collected()
 	player.activate_charakterite(8.0)
 	hud.show_message("ЧАРИ ХАРАКТЕРНИКА! РОЗІЖЕНИ НЕЧИСТЬ!", 2.5, Color(0.2, 1.0, 0.45))
 	score += 1000
@@ -718,19 +767,54 @@ func _on_flower_collected(flower: FernFlowerItem) -> void:
 
 func _on_player_hit_by_enemy(_enemy: FolkloreEnemy) -> void:
 	hits_this_level += 1
+	if telemetry != null:
+		telemetry.log_event("hit", {"level": level, "hits": hits_this_level})
 
-# Телеметрія для калібрування складності (T-016): один рядок JSON на рівень у user://telemetry.jsonl.
-# У headless-режимі (тести) не пишеться.
-func _log_level_telemetry(time_s: float, quality: float, bonus: int) -> void:
-	if DisplayServer.get_name() == "headless":
+# Профіль, модель гравця й телеметрія (SHR-003, SWR-002). Вік і досвід задаються батьками: параметри запуску
+# `--age=8-10|11-14|15+` і `--exp=novice|casual|experienced` або збережений профіль; модель сама виправляє хибний апріор за 2–3 рівні.
+func _init_adaptation() -> void:
+	player_model = _PlayerModel.new()
+	var age := "11-14"
+	var exp_level := "casual"
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--age="):
+			age = a.substr(6)
+		elif a.begins_with("--exp="):
+			exp_level = a.substr(6)
+	var loaded := false
+	if not _Telemetry.is_headless() and FileAccess.file_exists(PROFILE_PATH):
+		var f := FileAccess.open(PROFILE_PATH, FileAccess.READ)
+		if f:
+			var parsed = JSON.parse_string(f.get_as_text())
+			f.close()
+			if parsed is Dictionary:
+				player_model.from_dict(parsed)
+				loaded = true
+	telemetry = _Telemetry.new(player_model.player_id if loaded else "")
+	if not loaded:
+		player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id)
+	telemetry.log_event("session_start", {"age_band": player_model.age_band, "experience": player_model.experience,
+		"mu": player_model.mu, "sigma": sqrt(player_model.sigma2)})
+
+func _save_profile() -> void:
+	if player_model == null or _Telemetry.is_headless():
 		return
-	var f := FileAccess.open("user://telemetry.jsonl", FileAccess.READ_WRITE if FileAccess.file_exists("user://telemetry.jsonl") else FileAccess.WRITE)
-	if f == null:
-		return
-	f.seek_end()
-	f.store_line(JSON.stringify({"level": level, "k": snappedf(difficulty_k, 0.01), "time_s": snappedf(time_s, 0.1), "hits": hits_this_level,
-		"max_lit_streak": max_lit_streak_level, "quality": snappedf(quality, 0.01), "quality_smoothed": snappedf(prev_quality, 0.01), "bonus": bonus,
-		"enemies_start": level_enemy_count_start}))
+	var f := FileAccess.open(PROFILE_PATH, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(player_model.to_dict()))
+		f.close()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST and telemetry != null:
+		if level_in_progress and not is_transitioning_level:
+			var elapsed := float(Time.get_ticks_msec() - level_started_ms) / 1000.0
+			if adaptive_enabled and player_model != null:
+				var obs: Dictionary = player_model.observe_abandon(elapsed)
+				telemetry.log_event("abandon", {"level": level, "time_s": elapsed, "hits": hits_this_level, "mu": obs["mu"], "reward": obs["reward"], "completed": false})
+			else:
+				telemetry.log_event("abandon", {"level": level, "time_s": elapsed, "hits": hits_this_level, "completed": false})
+		telemetry.log_event("session_end", {"level": level})
+		_save_profile()
 
 # Вороги (чортики, москалі) повертаються через час, обернено пропорційний K (частота; K ≈ 1: без повернення)
 func _schedule_enemy_respawn(kind: FolkloreEnemy.EnemyType) -> void:
@@ -750,6 +834,10 @@ func _schedule_enemy_respawn(kind: FolkloreEnemy.EnemyType) -> void:
 	)
 
 func _on_enemy_defeated(enemy: FolkloreEnemy, points: int) -> void:
+	if telemetry_engine:
+		telemetry_engine.record_enemy_defeated()
+	if telemetry != null:
+		telemetry.log_event("enemy_defeated", {"level": level, "enemy": enemy.get_enemy_type_name(), "points": points})
 	_schedule_enemy_respawn(enemy.enemy_type)
 	score += points
 	if score > high_score:
@@ -790,6 +878,10 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 		return
 	
 	bombs_collected_on_level += 1
+	if telemetry_engine:
+		telemetry_engine.record_bomb_picked(was_lit)
+	if telemetry != null:
+		telemetry.log_event("bomb", {"level": level, "lit": was_lit, "streak": lit_streak})
 	
 	var bonus := 0
 	var bomb_pos := bomb.global_position
@@ -868,7 +960,19 @@ func _on_level_complete() -> void:
 	var level_quality: float = _Difficulty.quality(clear_time_s, hits_this_level, max_lit_streak_level)
 	prev_quality = _Difficulty.smooth_quality(prev_quality, level_quality)
 	var clear_bonus: int = _Difficulty.bonus_points(clear_time_s, hits_this_level, level_quality)
-	_log_level_telemetry(clear_time_s, level_quality, clear_bonus)
+	level_in_progress = false
+	if adaptive_enabled and player_model != null:
+		var obs: Dictionary = player_model.observe(level_quality, hits_this_level, clear_time_s, true)
+		if telemetry != null:
+			telemetry.log_event("level_end", {"level": level, "k": difficulty_k, "time_s": clear_time_s, "hits": hits_this_level, "streak": max_lit_streak_level,
+				"quality": level_quality, "bonus": clear_bonus, "enemies": level_enemy_count_start, "mu": obs["mu"], "sigma": obs["sigma"], "p_pred": obs["p_pred"],
+				"reward": obs["reward"], "arm": obs["arm"], "frustration": obs["frustration"], "boredom": obs["boredom"], "completed": true})
+		_save_profile()
+	elif telemetry != null:
+		telemetry.log_event("level_end", {"level": level, "k": difficulty_k, "time_s": clear_time_s, "hits": hits_this_level, "streak": max_lit_streak_level,
+			"quality": level_quality, "bonus": clear_bonus, "enemies": level_enemy_count_start, "completed": true})
+	if telemetry_engine:
+		telemetry_engine.complete_level_episode(level, difficulty_k, clear_time_s, hits_this_level, max_lit_streak_level, level_quality, clear_bonus, level_enemy_count_start)
 	score += clear_bonus
 	if score > high_score:
 		high_score = score

@@ -14,6 +14,7 @@ func _physics_process(delta: float) -> bool:
 	if frame_count == 2:
 		print("--- Running Test for Level 1 and Level 2 ---")
 		assert(mgr != null, "GameManager must exist")
+		mgr.adaptive_enabled = false # цей набір перевіряє правила складу рівнів на детермінованій базі; адаптація: test_adaptive_model, test_progression
 		assert(mgr.level == 1, "Initial level must be 1")
 		
 		print("[OK] Level 1 initialized: %d platforms, %d enemies" % [

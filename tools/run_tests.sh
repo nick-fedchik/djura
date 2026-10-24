@@ -18,6 +18,14 @@ for t in test/test_*.gd; do
 		failed+=("$name")
 	fi
 done
+if command -v python3 >/dev/null 2>&1 && [ -f tools/test_tools.py ]; then
+	if python3 tools/test_tools.py >/dev/null 2>&1; then
+		echo "PASS  test_tools (python)"
+	else
+		echo "FAIL  test_tools (python)"
+		failed+=("test_tools")
+	fi
+fi
 if [ ${#failed[@]} -gt 0 ]; then
 	echo "Провалено: ${failed[*]}"
 	exit 1
