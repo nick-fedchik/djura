@@ -8,14 +8,17 @@ signal stolen_artifact_dropped(drop_pos: Vector2)
 
 enum EnemyType { CHORT, VIDMA, VOGNYK, MOSKAL }
 
-# 6-рівнева історична та фольклорна ієрархія ворожих NPC фракції Загарбників («Від Шиша до Воєводи»):
+# Історично-фольклорна ієрархія ворожих NPC фракції Загарбників («Від Шиша до Воєводи» + Ординсько-Монгольські найманці Московії):
 enum MoskalRank {
-	SHYSH,        # Ранг 1: «Шиш» — лісовий/болотяний нишпорка-мародер у латаній сірячині й лаптях (полює за артефактами)
-	STRELETS,     # Ранг 2: «Стрілець» — рядовий піхотинець у червоному каптані з бердишем і самоваром
-	DYAK,         # Ранг 3: «Приказний Дяк» — сутулий писарчук у довгих рукавах до землі з сувоєм указу і чорнильницею
-	OPRYCHNYK,    # Ранг 4: «Опричник / Боярський Син» — у чорному каптані й панцирі-бехтерці (1 щит) з мітлою і шестопером
-	VOYEVODA,     # Ранг 5: «Пихатий Воєвода» — товстун у парчовій шубі та високій соболиній шапці з барабаном/перначем (1 щит)
-	TSAR_GENERAL  # Ранг 6: «Генерал-Каратель на Цар-Мортирі» — у пудреній перуці й треуголці верхи на чавунній мортирі (2 щити)
+	SHYSH,         # Ранг 1: «Шиш» — лісовий/болотяний нишпорка-мародер у латаній сірячині й лаптях (полює за артефактами)
+	STRELETS,      # Ранг 2: «Стрілець» — рядовий піхотинець у червоному каптані з бердишем і самоваром
+	DYAK,          # Ранг 3: «Приказний Дяк» — сутулий писарчук у довгих рукавах до землі з сувоєм указу і чорнильницею
+	OPRYCHNYK,     # Ранг 4: «Опричник / Боярський Син» — у чорному каптані й панцирі-бехтерці (1 щит) з мітлою і шестопером
+	VOYEVODA,      # Ранг 5: «Пихатий Воєвода» — товстун у парчовій шубі та високій соболиній шапці з барабаном/перначем (1 щит)
+	TSAR_GENERAL,  # Ранг 6: «Генерал-Каратель на Цар-Мортирі» — у пудреній перуці й треуголці верхи на чавунній мортирі (2 щити)
+	MONGOL_NUKER,  # Найманець Орди 1: «Нӧкер-Конокрад з Арканом» у малахаї з лисячим хвостом та степовому халаті
+	MONGOL_SHAMAN, # Найманець Орди 2: «Шаман Чорного Вітру з Бубном» у плащі з воронячого пір'я й рогатій шапці
+	MONGOL_NOYON   # Найманець Орди 3: «Панцерний Нойон / Тайша» у ламелярному панцирі-хуяг та золоченому шоломі (1 щит)
 }
 
 @export var enemy_type: EnemyType = EnemyType.CHORT
@@ -47,7 +50,7 @@ var snd_poof = preload("res://assets/audio/chort_poof.wav")
 
 static func get_moskal_rank_armor(rank: MoskalRank) -> int:
 	match rank:
-		MoskalRank.OPRYCHNYK, MoskalRank.VOYEVODA:
+		MoskalRank.OPRYCHNYK, MoskalRank.VOYEVODA, MoskalRank.MONGOL_NOYON:
 			return 1
 		MoskalRank.TSAR_GENERAL:
 			return 2
@@ -60,10 +63,16 @@ static func get_moskal_rank_reward(rank: MoskalRank) -> int:
 			return 550
 		MoskalRank.STRELETS:
 			return 600
+		MoskalRank.MONGOL_NUKER:
+			return 650
 		MoskalRank.DYAK:
 			return 700
+		MoskalRank.MONGOL_SHAMAN:
+			return 800
 		MoskalRank.OPRYCHNYK:
 			return 850
+		MoskalRank.MONGOL_NOYON:
+			return 950
 		MoskalRank.VOYEVODA:
 			return 1000
 		MoskalRank.TSAR_GENERAL:
@@ -85,6 +94,12 @@ static func get_moskal_rank_title(rank: MoskalRank) -> String:
 			return "ВОЄВОДА"
 		MoskalRank.TSAR_GENERAL:
 			return "ГЕНЕРАЛ"
+		MoskalRank.MONGOL_NUKER:
+			return "ОРДИНСЬКИЙ НӦКЕР"
+		MoskalRank.MONGOL_SHAMAN:
+			return "ШАМАН БУРАНУ"
+		MoskalRank.MONGOL_NOYON:
+			return "ТАЙША-НОЙОН"
 		_:
 			return "СТРІЛЕЦЬ"
 
@@ -234,6 +249,14 @@ func _process(delta: float) -> void:
 						rank_mult = 0.64 # Пихатий товстун-воєвода, що б'є в тулумбас і підганяє посіпак
 					MoskalRank.TSAR_GENERAL:
 						rank_mult = 0.70 # Генерал-каратель котиться на чавунній «Цар-гарматі»
+					MoskalRank.MONGOL_NUKER:
+						rank_mult = 0.96 # Степовий ординський найманець з арканом — стрімкий зигзаг
+						if not is_scared:
+							position.y += cos(time_passed * 5.0) * 18.0 * delta
+					MoskalRank.MONGOL_SHAMAN:
+						rank_mult = 0.78 # Шаман чорного бурану з бубном
+					MoskalRank.MONGOL_NOYON:
+						rank_mult = 0.82 # Панцерний тайша-нойон у ламелярному хуягу
 				var speed := (base_speed * rank_mult if not is_scared else (base_speed * 1.55)) * fatigue_mult
 				position += velocity.normalized() * speed * delta
 	
@@ -719,8 +742,85 @@ func _draw_moskal() -> void:
 			_draw_moskal_voyevoda()
 		MoskalRank.TSAR_GENERAL:
 			_draw_moskal_tsar_general()
+		MoskalRank.MONGOL_NUKER, MoskalRank.MONGOL_SHAMAN, MoskalRank.MONGOL_NOYON:
+			_draw_moskal_mongol()
 		_:
 			_draw_moskal_strelets()
+
+# ОРДИНСЬКО-МОНГОЛЬСЬКІ НАЙМАНЦІ НА СЛУЖБІ МОСКОВСЬКОГО ЦАРЯ (Нӧкер / Шаман Бурану / Панцерний Тайша-Нойон)
+func _draw_moskal_mongol() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var waddle := 0.0 if is_resting else sin(time_passed * 12.5 * fatigue_mult) * 2.2
+	var bob := sin(time_passed * 7.0) * 1.1 if is_resting else absf(sin(time_passed * 12.5 * fatigue_mult)) * 2.4
+	var is_shaman := (moskal_rank == MoskalRank.MONGOL_SHAMAN)
+	var is_noyon := (moskal_rank == MoskalRank.MONGOL_NOYON)
+	
+	# 0. Східний сагайдак за плечима або чорно-пір'яний плащ шамана
+	if is_shaman and not is_scared:
+		var wind_r := 16.0 + fmod(time_passed * 24.0, 14.0)
+		draw_arc(Vector2.ZERO, wind_r, 0.0, TAU, 14, Color(0.55, 0.42, 0.75, 0.30), 1.8)
+	
+	# 1. Стьобаний степовий халат-деел або ламелярний панцир-хуяг (для Нойона)
+	var c_robe := Color(0.68, 0.42, 0.16) if not is_shaman else Color(0.28, 0.22, 0.36)
+	if is_noyon:
+		c_robe = Color(0.76, 0.18, 0.16)
+	if is_scared:
+		c_robe = Color(0.35, 0.38, 0.58)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(-8.8 * fwd, -4.5 + waddle),
+		Vector2(8.8 * fwd, -4.5 + waddle),
+		Vector2(12.8 * fwd, 14.8 - bob),
+		Vector2(-11.5 * fwd, 14.8 - bob)
+	]), c_robe)
+	# Косий запах халата та широкий шовковий пояс
+	draw_line(Vector2(-4.0 * fwd, -4.5 + waddle), Vector2(5.5 * fwd, 14.5 - bob), Color(0.95, 0.78, 0.22), 1.8)
+	draw_line(Vector2(-9.5 * fwd, 5.0 + waddle), Vector2(9.8 * fwd, 5.0 + waddle), Color(0.88, 0.68, 0.18), 2.6)
+	
+	if is_noyon and armor > 0:
+		# Ламелярний пластинчастий панцир-хуяг поверх халата
+		draw_rect(Rect2(Vector2(-7.0, -3.2 + waddle), Vector2(14.0, 11.5)), Color(0.78, 0.66, 0.28))
+		for row in range(3):
+			var ry := -1.0 + float(row) * 3.8 + waddle
+			draw_line(Vector2(-6.8, ry), Vector2(6.8, ry), Color(0.45, 0.34, 0.12), 1.4)
+	
+	_draw_moskal_legs(fwd, 14.2, 1.15)
+	
+	# 2. Зброя в руках: волосяний аркан (Нӧкер), великий бубон (Шаман) або крива шабля й бунчук (Нойон)
+	var hand_p := Vector2(10.2 * fwd, 0.5 + waddle)
+	draw_line(Vector2(5.5 * fwd, -2.0 + waddle), hand_p, c_robe, 3.6)
+	if is_shaman:
+		# Великий розмальований шаманський бубон
+		_draw_oval(hand_p + Vector2(3.5 * fwd, -2.0), 5.5, 6.2, Color(0.88, 0.76, 0.54))
+		draw_arc(hand_p + Vector2(3.5 * fwd, -2.0), 5.5, 0.0, TAU, 10, Color(0.52, 0.24, 0.14), 1.8)
+		draw_circle(hand_p + Vector2(3.5 * fwd, -2.0), 2.0, Color(0.85, 0.20, 0.20))
+	elif is_noyon:
+		# Крива ординська шабля-елд із золотим ефесом
+		draw_arc(hand_p + Vector2(3.0 * fwd, -6.5), 9.0, -1.2 if fwd > 0 else PI - 1.2, 0.6 if fwd > 0 else PI + 0.6, 8, Color(0.88, 0.92, 0.98), 2.8)
+	else:
+		# Закручена петля степового аркана над головою!
+		var lasso_c := hand_p + Vector2(3.5 * fwd, -10.5 + sin(time_passed * 16.0) * 1.5)
+		draw_line(hand_p, lasso_c, Color(0.82, 0.70, 0.42), 1.8)
+		_draw_oval(lasso_c, 6.2, 2.8, Color(0.82, 0.70, 0.42, 0.45))
+	
+	# 3. Голова з характерними довгими вусами підковою донизу та гостроверхим малахаєм із лисячим хвостом
+	var head_c := Vector2(0.5 * fwd, -8.2 + waddle)
+	_draw_oval(head_c, 6.8, 6.0, Color(0.92, 0.76, 0.58))
+	# Довгі чорні вуса підковою донизу
+	draw_line(head_c + Vector2(0.5 * fwd, 1.5), head_c + Vector2(-4.5 * fwd, 7.5), Color(0.14, 0.12, 0.10), 2.0)
+	draw_line(head_c + Vector2(2.5 * fwd, 1.5), head_c + Vector2(6.5 * fwd, 7.5), Color(0.14, 0.12, 0.10), 2.0)
+	
+	_draw_moskal_eyes(head_c, fwd, "ОХ, ЮРТА!" if is_noyon else "УРГА!")
+	
+	# 4. Хутряний малахай з лисячим хвостом і червоною китицею (або рогата шапка шамана / золочений шолом Нойона)
+	_draw_oval(head_c + Vector2(0.0, -6.0), 7.6, 2.8, Color(0.48, 0.28, 0.14))
+	draw_colored_polygon(PackedVector2Array([
+		head_c + Vector2(-5.8, -6.5),
+		head_c + Vector2(5.8, -6.5),
+		head_c + Vector2(0.0, -18.5)
+	]), Color(0.92, 0.74, 0.18) if is_noyon else Color(0.78, 0.22, 0.18))
+	draw_circle(head_c + Vector2(0.0, -18.8), 2.2, Color(0.95, 0.18, 0.18)) # Червона китиця малахая
+	# Пухнастий рудий лисячий хвіст позаду шапки!
+	draw_line(head_c + Vector2(-5.5 * fwd, -6.0), head_c + Vector2(-13.5 * fwd, -2.0 + sin(time_passed * 12.0) * 2.0), Color(0.85, 0.42, 0.15), 3.6)
 
 # РАНГ 1: «ШИШ» (Лісовий/болотяний мародер-нишпорка у драній сірячині й лаптях)
 func _draw_moskal_shysh() -> void:

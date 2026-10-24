@@ -6,6 +6,18 @@ const _LevelRoot = preload("res://scripts/level_root.gd")
 signal arrow_shot(arrow_pos: Vector2, arrow_dir: Vector2)
 signal falcon_launched(falcon: Node2D)
 
+# 6-рівнева історична ієрархія союзних NPC Побратимів-Киримли:
+enum QirimliRank {
+	CHORA,        # Ранг 1: Чора (юний зброєносець і розвідник з арканом — ровесник Джури)
+	YIGIT,        # Ранг 2: Їгіт-Стрілець із Соколом (базовий)
+	MURZA,        # Ранг 3: Мурза-Капикулу у срібній кольчузі-юшмані
+	TOGANCHI,     # Ранг 4: Тоганчі-Баши (ханський сокільник і музика з даулом)
+	TUGAY_BEY,    # Ранг 5: Перекопський Тугай-Бей з золотим луком і Королівським Беркутом
+	QALGA_SULTAN  # Ранг 6: Калга-Султан / Хан Іслям III Ґерай зі щитом Золотої Тарак-Тамги
+}
+
+@export var qirimli_rank: QirimliRank = QirimliRank.YIGIT
+
 const MOVE_SPEED: float = 148.0
 const JUMP_VELOCITY: float = -475.0
 const GRAVITY: float = 860.0
@@ -254,6 +266,11 @@ func _draw() -> void:
 	# Контактна тінь на мурі
 	if on_ground:
 		_draw_oval(Vector2(0.0, 21.5), 9.5, 2.8, Color(0.0, 0.0, 0.05, 0.35))
+	
+	# Золотий щит Тарак-Тамги для високих рангів (Тугай-Бей / Калга-Султан / Мурза)
+	if qirimli_rank in [QirimliRank.MURZA, QirimliRank.TUGAY_BEY, QirimliRank.QALGA_SULTAN]:
+		draw_circle(Vector2(0.0, 2.0 + bob), 18.0, Color(0.20, 0.85, 0.98, 0.16))
+		draw_arc(Vector2(0.0, 2.0 + bob), 18.0, 0.0, TAU, 14, Color(1.0, 0.86, 0.22, 0.35), 1.5)
 	
 	# 1. Стрункі ноги у темно-синіх шароварах та м'яких шкіряних чоботях (ічіги / чєріки) — біг та стрибки!
 	var is_moving := absf(velocity.x) > 15.0

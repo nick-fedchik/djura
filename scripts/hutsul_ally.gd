@@ -7,6 +7,19 @@ signal bartka_melee_hit(enemy: Node2D)
 signal bartka_thrown(bartka_pos: Vector2, target_pos: Vector2)
 signal exited_scene
 
+# Ієрархія союзних NPC Карпатських Гуцулів + Побратимів-Литвинів («Погоня»):
+enum HutsulRank {
+	LEGIN,          # Ранг 1: Легінь-Полониник із флоярою
+	OPRYSHOK,       # Ранг 2: Гуцул-Опришок з мосяжною барткою (базовий)
+	BOKORASH,       # Ранг 3: Керманич-Бокораш із гаком-цапіною
+	TREMBITAR,      # Ранг 4: Трембітар Полонини
+	MOLFAR,         # Ранг 5: Карпатський Мольфар-Градівник
+	DOVBUSH,        # Ранг 6: Отаман Олекса Довбуш / Іван Сила з Золотою Громовою Барткою
+	LITVIN_POHONIA  # Побратим-Литвин ВКЛ / Білої Русі з щитом «Погоня» та гусарськими крилами
+}
+
+@export var hutsul_rank: HutsulRank = HutsulRank.OPRYSHOK
+
 const MOVE_SPEED: float = 155.0
 const JUMP_VELOCITY: float = -485.0
 const GRAVITY: float = 860.0
@@ -306,6 +319,18 @@ func _draw() -> void:
 	# Контактна тінь під ногами
 	if on_ground:
 		_draw_oval(Vector2(0.0, 21.5), 9.5, 2.8, Color(0.0, 0.0, 0.05, 0.35))
+	
+	# Спеціальна атрибутика вищих чинів Гуцулів (Олекса Довбуш / Мольфар) або Побратима-Литвина з «Погонею»:
+	if hutsul_rank == HutsulRank.LITVIN_POHONIA:
+		# Крила литвинського гусара за спиною та червоний лицарський щит «Погоня»!
+		draw_arc(Vector2(-7.5 * fwd, -6.0 + bob), 13.0, PI * 0.65, PI * 1.35, 8, Color(0.95, 0.96, 1.0, 0.90), 2.6)
+		var sh_c := Vector2(-6.5 * fwd, 3.0 + bob)
+		_draw_oval(sh_c, 6.2, 7.2, Color(0.86, 0.14, 0.18))
+		draw_arc(sh_c, 6.2, 0.0, TAU, 10, Color(0.98, 0.85, 0.22), 1.5)
+		draw_line(sh_c + Vector2(-2.5, 1.5), sh_c + Vector2(2.5, -2.5), Color.WHITE, 2.0) # Срібний вершник «Погоні»
+	elif hutsul_rank == HutsulRank.DOVBUSH or hutsul_rank == HutsulRank.MOLFAR:
+		# Золота громова аура Олекси Довбуша та Карпатського Мольфара
+		draw_circle(Vector2(0.0, 2.0 + bob), 18.5, Color(1.0, 0.88, 0.22, 0.18))
 	
 	# 1. Динамічні ноги у червоних сукняних гачах та шкіряних постолах (біг і стрибки як у Джури!)
 	var stride_l := 0.0 if is_resting else (run_anim * 6.5 if on_ground else -4.0)

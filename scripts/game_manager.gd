@@ -40,6 +40,7 @@ var hits_this_level: int = 0
 var max_lit_streak_level: int = 1
 var mavka_spawned_this_level: bool = false
 var mavka_ally: Node2D = null
+var level_enemy_count_start: int = 0
 var qirimli_ally: Node2D = null
 var hutsul_ally: Node2D = null
 var hutsul_allies: Array[Node2D] = []
@@ -331,6 +332,7 @@ func _setup_level() -> void:
 	
 	# Spawn folklore enemies according to level theme & age 8+ clarity
 	_spawn_folklore_enemies()
+	level_enemy_count_start = enemies_node.get_child_count() if enemies_node else 0
 	
 	lit_streak = 1
 	_spawn_bomb_grid()
@@ -353,7 +355,7 @@ func _check_progressive_ally_arrival() -> void:
 	
 	# 1. Перший Карпатський Гуцул з барткою прибуває після перших успіхів Джури (2+ ядра або комбо >= 2)
 	if not hutsul_spawned_this_level and enemy_count >= 1 and _Difficulty.ally_available("HUTSUL", level):
-		if bombs_collected_on_level >= _Difficulty.ally_threshold(2, difficulty_k) or lit_streak >= 2:
+		if bombs_collected_on_level >= _Difficulty.ally_threshold(2, difficulty_k, prev_quality) or lit_streak >= 2:
 			_spawn_hutsul_ally()
 			hud.show_message("ПІДМОГА З КАРПАТ! ГУЦУЛ З БАРТКОЮ ВСТУПАЄ В БІЙ!", 2.8, Color(1.0, 0.86, 0.25))
 	
@@ -365,7 +367,7 @@ func _check_progressive_ally_arrival() -> void:
 	
 	# 3. Побратим Киримли з Луком і Соколом прибуває далі по ходу прогресу (4+ ядра або комбо >= 3, рівні 3..5)
 	if not qirimli_spawned_this_level and _Difficulty.ally_available("QIRIMLI", level) and enemy_count >= 3:
-		if bombs_collected_on_level >= _Difficulty.ally_threshold(4, difficulty_k) or lit_streak >= 3:
+		if bombs_collected_on_level >= _Difficulty.ally_threshold(4, difficulty_k, prev_quality) or lit_streak >= 3:
 			_spawn_qirimli_ally()
 			hud.show_message("ПІДМОГА КИРИМЛИ! СТЕПОВИЙ ЛУЧНИК І СОКІЛ ПРИКРИВАЮТЬ ДЖУРУ!", 3.0, Color(0.28, 1.0, 0.56))
 	
@@ -377,7 +379,7 @@ func _check_progressive_ally_arrival() -> void:
 	
 	# 5. Мавка (новий союзник рівня 5): лісова чарівниця лякає ворогів чарами
 	if not mavka_spawned_this_level and _Difficulty.ally_available("MAVKA", level) and enemy_count >= 3:
-		if bombs_collected_on_level >= _Difficulty.ally_threshold(3, difficulty_k):
+		if bombs_collected_on_level >= _Difficulty.ally_threshold(3, difficulty_k, prev_quality):
 			_spawn_mavka_ally()
 			hud.show_message("МАВКА ПРИЙШЛА НА ДОПОМОГУ! ЇЇ ЧАРИ ЛЯКАЮТЬ ВОРОГІВ!", 3.0, Color(0.6, 1.0, 0.85))
 
@@ -504,22 +506,38 @@ func _on_vakula_shoes_state_changed(is_active: bool) -> void:
 		if plat is BombJackPlatform:
 			plat.is_one_way = is_active
 
+const LEVEL_LORE_20: Dictionary = {
+	1: "РІВЕНЬ 1 (ЗАПОРОЗЬКА СІЧ): «СТРИБАЙ, ДЖУРО! ЗБЕРИ 24 ЯДРА Й ШИРЯЙ НА КИРЕЇ МАМАЯ!»",
+	2: "РІВЕНЬ 2 (ДИКАНСЬКИЙ ХУТІР): «КОВАЛЬ ВАКУЛА ДАРУЄ ЗОЛОТІ ПІДКІВКИ! ЗАПАЛИ ЧУМАЦЬКИЙ ШЛЯХ!»",
+	3: "РІВЕНЬ 3 (КАМ'ЯНЕЦЬКА ТВЕРДИНЯ): «КИРИМЛИ ТА ГУЦУЛ ПРИКРИВАЮТЬ ДЖУРУ ПРОТИ ШИШІВ І СТРІЛЬЦІВ!»",
+	4: "РІВЕНЬ 4 (ГЕТЬМАНСЬКИЙ БАТУРИН): «ЗАХИСТИМО БАРОКОВИЙ ПАЛАЦ І СКАРБНИЦЮ ВІД ЗАГАРБНИКІВ!»",
+	5: "РІВЕНЬ 5 (ПЕРЕКОПСЬКИЙ ВАЛ — БРАМА ОР-КАПУ): «ОР-КАПУ НЕПРИСТУПНИЙ! ЗІБ'ЄМО ПИХУ З ВОЄВОДИ!»",
+	6: "РІВЕНЬ 6 (ХАНСЬКИЙ БАХЧИСАРАЙ): «ТУГАЙ-БЕЙ ТА СОКОЛИ ЗАХИЩАЮТЬ ХАН-САРАЙ ВІД МОСКАЛІВ І ОРДИ!»",
+	7: "РІВЕНЬ 7 (КОНОТОПСЬКА ПЕРЕПРАВА): «КОЗАКИ, КИРИМЛИ, ГУЦУЛИ Й ЛИТВИНИ ТОПЛЯТЬ ОПРИЧНИКІВ І ТАЙШІВ!»",
+	8: "РІВЕНЬ 8 (СТАРОДАВНІЙ ПОЛОЦЬК І ПУЩА): «ПОБРАТИМИ-ЛИТВИНИ З ПОГОНЕЮ І ВСЕСЛАВ ЧАРОДІЙ З НАМИ!»",
+	9: "РІВЕНЬ 9 (ЧОРНОГОРА — СКЕЛІ ДОВБУША): «ОЛЕКСА ДОВБУШ І МОЛЬФАР РОЗГАНЯЮТЬ ШАМАНІВ ЧОРНОГО ВІТРУ!»",
+	10: "РІВЕНЬ 10 (ЗОЛОТІ ВОРОТА КИЄВА): «ГЕНЕРАЛЬНИЙ БІЙ ЧОТИРЬОХ НАРОДІВ ПРОТИ ЦАР-МОРТИРИ!»",
+	11: "РІВЕНЬ 11 (ОЛЕШКІВСЬКА СІЧ): «КОШОВИЙ СІРКО Й СОКІЛЬНИКИ КРИМУ БОРОНЯТЬ ДНІПРОВСЬКІ ПЛАВНІ!»",
+	12: "РІВЕНЬ 12 (ЗАМКОВА ГОРА І ТРОКИ): «КРИЛАТІ ГУСАРИ ВКЛ ЗДІЙМАЮТЬ ВИХОР СВОБОДИ!»",
+	13: "РІВЕНЬ 13 (ХОЛОДНИЙ ЯР): «ПІД ДУБОМ ЗАЛІЗНЯКА ЗВУЧИТЬ КОБЗА — ВОЄВОДИ Й НОЙОНИ ТІКАЮТЬ!»",
+	14: "РІВЕНЬ 14 (АККЕРМАНСЬКА ФОРТЕЦЯ): «МУРЗА У СРІБНІЙ КОЛЬЧУЗІ Й ДЖУРА ДОЛАЮТЬ БАСАВРЮКА!»",
+	15: "РІВЕНЬ 15 (ПІДЗЕМЕЛЛЯ ХОТИНА): «ОСВЯЧЕНА КРЕЙДА ТА МОЛЬФАР ЗУПИНЯЮТЬ ПОГЛЯД ВІЯ!»",
+	16: "РІВЕНЬ 16 (ЗАДУНАЙСЬКА СІЧ): «КОЗАЦЬКІ ЧАЙКИ ТА ЧОРА-КИРИМЛИ ВІДБИВАЮТЬ ШТУРМ НА ДУНАЇ!»",
+	17: "РІВЕНЬ 17 (ПУЩА КАСТУСЯ КАЛИНОВСЬКОГО): «ЗА НАШУ І ВАШУ СВОБОДУ! ЛИТВИНИ Й ДЖУРА ГРОМЛЯТЬ КАРАТЕЛІВ!»",
+	18: "РІВЕНЬ 18 (ВЕРХОВИНА Й ПИСАНИЙ КАМІНЬ): «ІВАН СИЛА ТА ТРЕМБІТИ КАРПАТ СКИДАЮТЬ ЗАГАРБНИКІВ!»",
+	19: "РІВЕНЬ 19 (ГЕЗЛЬОВ ТА ХАН-ДЖАМІ): «КАЛГА-СУЛТАН І ДЖУРА ТОПЛЯТЬ КОЛІСНИЦЮ ТЕМНИКА В МОРІ!»",
+	20: "РІВЕНЬ 20 (ТАРАСОВА ГОРА У КАНЕВІ): «СОБОР ЧОТИРЬОХ НАРОДІВ! І НА ОНОВЛЕНІЙ ЗЕМЛІ ВРАГА НЕ БУДЕ!»"
+}
+
 func _show_level_lore_tip() -> void:
 	var current_lvl := level
 	await get_tree().create_timer(2.4).timeout
 	if is_transitioning_level or level != current_lvl:
 		return
 	
-	if level == 1:
-		hud.show_message("КОЗАК МАМАЙ: «СТРИБАЙ, ДЖУРО! ЗБЕРИ ВСІ 24 ЯДРА ТА ШИРЯЙ НА КИРЕЇ!»", 4.0, Color(0.35, 0.95, 1.0))
-	elif level == 2:
-		hud.show_message("КОВАЛЬ ВАКУЛА: «ОБЕРЕЖНО В НЕБІ! ЗБЕРИ 24 ЯДРА Й ЗАПАЛИ ЧУМАЦЬКИЙ ШЛЯХ!»", 4.0, Color(1.0, 0.85, 0.25))
-	elif level == 3:
-		hud.show_message("КИРИМЛИ: «ДЖУРО, БРАТЕ! ТРИМАЙМО КАМ'ЯНЕЦЬ ПРОТИ ЦАРСЬКИХ СТРІЛЬЦІВ!»", 4.0, Color(0.25, 1.0, 0.50))
-	elif level == 4:
-		hud.show_message("ГЕТЬМАН МАЗЕПА: «ДЖУРО ТА КИРИМЛИ! ЗАХИСТІТЬ БАТУРИН ТА АРСЕНАЛ!»", 4.0, Color(1.0, 0.75, 0.30))
-	elif level == 5:
-		hud.show_message("КИРИМЛИ ТА ДЖУРА: «ОР-КАПУ НЕПРИСТУПНИЙ! РОЗІЖЕНІМО ЗАГАРБНИКІВ!»", 4.0, Color(0.35, 1.0, 0.60))
+	var campaign_idx := ((level - 1) % 20) + 1
+	var msg: String = LEVEL_LORE_20.get(campaign_idx, LEVEL_LORE_20[1])
+	hud.show_message(msg, 4.2, Color(0.35, 0.96, 0.72))
 
 # Склад рівня + коефіцієнт складності: додаткові вороги вже введених типів і швидкість (difficulty.gd)
 func _spawn_folklore_enemies() -> void:
@@ -536,15 +554,31 @@ func _spawn_folklore_enemies() -> void:
 	var extras: int = _Difficulty.extra_enemies(enemies_node.get_child_count(), difficulty_k)
 	var extra_ranks: Array[FolkloreEnemy.MoskalRank] = [
 		FolkloreEnemy.MoskalRank.STRELETS,
+		FolkloreEnemy.MoskalRank.MONGOL_NUKER,
 		FolkloreEnemy.MoskalRank.DYAK,
 		FolkloreEnemy.MoskalRank.OPRYCHNYK,
+		FolkloreEnemy.MoskalRank.MONGOL_SHAMAN,
+		FolkloreEnemy.MoskalRank.MONGOL_NOYON,
 		FolkloreEnemy.MoskalRank.VOYEVODA,
 		FolkloreEnemy.MoskalRank.TSAR_GENERAL
 	]
-	for i in extras:
-		var etype: FolkloreEnemy.EnemyType = present[i % present.size()]
-		var erank: FolkloreEnemy.MoskalRank = extra_ranks[i % extra_ranks.size()]
-		_create_enemy(extra_spots[i % extra_spots.size()], etype, erank)
+	if extras < 0:
+		# Полегшення для слабкого гравця: прибрати один дубль (чортика, потім москаля, потім вогника); новий NPC рівня й відьма лишаються
+		for kind in [FolkloreEnemy.EnemyType.CHORT, FolkloreEnemy.EnemyType.MOSKAL, FolkloreEnemy.EnemyType.VOGNYK]:
+			var same: Array = []
+			for e in enemies_node.get_children():
+				if e.enemy_type == kind:
+					same.append(e)
+			if same.size() >= 2:
+				enemies_node.remove_child(same[-1])
+				same[-1].free()
+				break
+	else:
+		extras = mini(extras, maxi(0, _Difficulty.MAX_ALIVE_ENEMIES - enemies_node.get_child_count()))
+		for i in extras:
+			var etype: FolkloreEnemy.EnemyType = present[i % present.size()]
+			var erank: FolkloreEnemy.MoskalRank = extra_ranks[i % extra_ranks.size()]
+			_create_enemy(extra_spots[i % extra_spots.size()], etype, erank)
 	var speed_mult: float = _Difficulty.speed_multiplier(difficulty_k)
 	for e in enemies_node.get_children():
 		e.base_speed *= speed_mult
@@ -685,7 +719,38 @@ func _on_flower_collected(flower: FernFlowerItem) -> void:
 func _on_player_hit_by_enemy(_enemy: FolkloreEnemy) -> void:
 	hits_this_level += 1
 
+# Телеметрія для калібрування складності (T-016): один рядок JSON на рівень у user://telemetry.jsonl.
+# У headless-режимі (тести) не пишеться.
+func _log_level_telemetry(time_s: float, quality: float, bonus: int) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var f := FileAccess.open("user://telemetry.jsonl", FileAccess.READ_WRITE if FileAccess.file_exists("user://telemetry.jsonl") else FileAccess.WRITE)
+	if f == null:
+		return
+	f.seek_end()
+	f.store_line(JSON.stringify({"level": level, "k": snappedf(difficulty_k, 0.01), "time_s": snappedf(time_s, 0.1), "hits": hits_this_level,
+		"max_lit_streak": max_lit_streak_level, "quality": snappedf(quality, 0.01), "quality_smoothed": snappedf(prev_quality, 0.01), "bonus": bonus,
+		"enemies_start": level_enemy_count_start}))
+
+# Вороги (чортики, москалі) повертаються через час, обернено пропорційний K (частота; K ≈ 1: без повернення)
+func _schedule_enemy_respawn(kind: FolkloreEnemy.EnemyType) -> void:
+	if kind != FolkloreEnemy.EnemyType.CHORT and kind != FolkloreEnemy.EnemyType.MOSKAL:
+		return
+	var delay: float = _Difficulty.respawn_delay(difficulty_k)
+	if delay < 0.0 or is_transitioning_level:
+		return
+	var for_level := level
+	get_tree().create_timer(delay).timeout.connect(func():
+		if is_transitioning_level or level != for_level or not enemies_node:
+			return
+		if enemies_node.get_child_count() >= _Difficulty.MAX_ALIVE_ENEMIES:
+			return
+		var spots := [Vector2(120, 135), Vector2(840, 135), Vector2(480, 215)]
+		_create_enemy(spots[randi() % spots.size()], kind)
+	)
+
 func _on_enemy_defeated(enemy: FolkloreEnemy, points: int) -> void:
+	_schedule_enemy_respawn(enemy.enemy_type)
 	score += points
 	if score > high_score:
 		high_score = score
@@ -800,8 +865,10 @@ func _on_level_complete() -> void:
 	
 	# Якість проходження → бонус і коефіцієнт складності наступного рівня (difficulty.gd, SHR-001 I-7)
 	var clear_time_s := float(Time.get_ticks_msec() - level_started_ms) / 1000.0
-	prev_quality = _Difficulty.quality(clear_time_s, hits_this_level, max_lit_streak_level)
-	var clear_bonus: int = _Difficulty.bonus_points(clear_time_s, hits_this_level, prev_quality)
+	var level_quality: float = _Difficulty.quality(clear_time_s, hits_this_level, max_lit_streak_level)
+	prev_quality = _Difficulty.smooth_quality(prev_quality, level_quality)
+	var clear_bonus: int = _Difficulty.bonus_points(clear_time_s, hits_this_level, level_quality)
+	_log_level_telemetry(clear_time_s, level_quality, clear_bonus)
 	score += clear_bonus
 	if score > high_score:
 		high_score = score
@@ -843,7 +910,7 @@ func _on_level_complete() -> void:
 	await get_tree().create_timer(0.15).timeout
 	
 	# 4.5. Бонус за швидке й якісне проходження
-	hud.show_message("БОНУС ЗА ПРОХОДЖЕННЯ +%d (ЯКІСТЬ %d%%, %d с)" % [clear_bonus, int(round(prev_quality * 100.0)), int(round(clear_time_s))], 2.4, Color(0.55, 1.0, 0.65))
+	hud.show_message("БОНУС ЗА ПРОХОДЖЕННЯ +%d (ЯКІСТЬ %d%%, %d с)" % [clear_bonus, int(round(level_quality * 100.0)), int(round(clear_time_s))], 2.4, Color(0.55, 1.0, 0.65))
 	
 	# 5. Reset Dzhura to clean normal state at starting position before spawning next level
 	var prev_lvl := level
