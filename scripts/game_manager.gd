@@ -534,8 +534,17 @@ func _spawn_folklore_enemies() -> void:
 		present.append(FolkloreEnemy.EnemyType.CHORT)
 	var extra_spots: Array[Vector2] = [Vector2(120, 135), Vector2(840, 135), Vector2(480, 215), Vector2(300, 335), Vector2(660, 335)]
 	var extras: int = _Difficulty.extra_enemies(enemies_node.get_child_count(), difficulty_k)
+	var extra_ranks: Array[FolkloreEnemy.MoskalRank] = [
+		FolkloreEnemy.MoskalRank.STRELETS,
+		FolkloreEnemy.MoskalRank.DYAK,
+		FolkloreEnemy.MoskalRank.OPRYCHNYK,
+		FolkloreEnemy.MoskalRank.VOYEVODA,
+		FolkloreEnemy.MoskalRank.TSAR_GENERAL
+	]
 	for i in extras:
-		_create_enemy(extra_spots[i % extra_spots.size()], present[i % present.size()])
+		var etype: FolkloreEnemy.EnemyType = present[i % present.size()]
+		var erank: FolkloreEnemy.MoskalRank = extra_ranks[i % extra_ranks.size()]
+		_create_enemy(extra_spots[i % extra_spots.size()], etype, erank)
 	var speed_mult: float = _Difficulty.speed_multiplier(difficulty_k)
 	for e in enemies_node.get_children():
 		e.base_speed *= speed_mult
@@ -545,6 +554,7 @@ func _spawn_base_enemies() -> void:
 		return
 	
 	var stage := ((level - 1) % _Difficulty.SERIES_LENGTH) + 1  # позиція в серії; з рівня 6 серія повторюється складніше
+	var series := _Difficulty.series_index(level)
 	if stage == 1:
 		# РІВЕНЬ 1 (Січ 16:9): 2 малі чортики на верхніх терасах
 		var spawn_configs = [
@@ -563,49 +573,56 @@ func _spawn_base_enemies() -> void:
 		for cfg in spawn_configs:
 			_create_enemy(cfg["pos"], cfg["type"])
 	elif stage == 3:
-		# РІВЕНЬ 3 (Кам'янецька Твердиня): 1 Царський стрілець (Москаль) + 2 Чортики + Відьма
+		# РІВЕНЬ 3 (Кам'янецька Твердиня): «Шиш» (у серії 1) або «Стрілець» + 2 Чортики + Відьма
+		var rank_s3 := FolkloreEnemy.MoskalRank.SHYSH if series == 1 else FolkloreEnemy.MoskalRank.STRELETS
 		var spawn_configs = [
-			{"pos": Vector2(340, 400), "type": FolkloreEnemy.EnemyType.MOSKAL},
+			{"pos": Vector2(340, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": rank_s3},
 			{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA}
 		]
 		for cfg in spawn_configs:
-			_create_enemy(cfg["pos"], cfg["type"])
+			_create_enemy(cfg["pos"], cfg["type"], cfg.get("rank", FolkloreEnemy.MoskalRank.STRELETS))
 	elif stage == 4:
-		# РІВЕНЬ 4 (Гетьманський Батурин): 2 Царські стрільці (Москалі) + Відьма + Чортик + Вогник (новий ворог рівня: Вогник)
+		# РІВЕНЬ 4 (Гетьманський Батурин): «Шиш» + «Стрілець» (або «Приказний Дяк» у серії 2+) + Відьма + Чортик + Вогник
+		var rank_4b := FolkloreEnemy.MoskalRank.STRELETS if series == 1 else FolkloreEnemy.MoskalRank.DYAK
 		var spawn_configs = [
-			{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL},
-			{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL},
+			{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
+			{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": rank_4b},
 			{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 			{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK}
 		]
 		for cfg in spawn_configs:
-			_create_enemy(cfg["pos"], cfg["type"])
+			_create_enemy(cfg["pos"], cfg["type"], cfg.get("rank", FolkloreEnemy.MoskalRank.STRELETS))
 	else:
-		# РІВЕНЬ 5+ (Перекопський Вал та Бахчисарай): 3 Москалі + 2 Чортики + Відьма + Вогник
+		# РІВЕНЬ 5+ (Перекопський Вал та Бахчисарай): 3 чини загарбників («Шиш» / «Приказний Дяк» / «Опричник» або «Воєвода» й «Генерал»)
+		var rank_5b := FolkloreEnemy.MoskalRank.DYAK if series == 1 else FolkloreEnemy.MoskalRank.OPRYCHNYK
+		var rank_5c := FolkloreEnemy.MoskalRank.VOYEVODA if series == 1 else FolkloreEnemy.MoskalRank.TSAR_GENERAL
 		var spawn_configs = [
-			{"pos": Vector2(220, 400), "type": FolkloreEnemy.EnemyType.MOSKAL},
-			{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.MOSKAL},
-			{"pos": Vector2(740, 400), "type": FolkloreEnemy.EnemyType.MOSKAL},
+			{"pos": Vector2(220, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
+			{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": rank_5b},
+			{"pos": Vector2(740, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": rank_5c},
 			{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 			{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 			{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK}
 		]
 		for cfg in spawn_configs:
-			_create_enemy(cfg["pos"], cfg["type"])
+			_create_enemy(cfg["pos"], cfg["type"], cfg.get("rank", FolkloreEnemy.MoskalRank.STRELETS))
 
-func _create_enemy(pos: Vector2, type: FolkloreEnemy.EnemyType) -> void:
+func _create_enemy(pos: Vector2, type: FolkloreEnemy.EnemyType, rank: FolkloreEnemy.MoskalRank = FolkloreEnemy.MoskalRank.STRELETS) -> void:
 	var enemy = enemy_scene.instantiate() as FolkloreEnemy
 	enemy.position = pos
 	enemy.enemy_type = type
+	enemy.moskal_rank = rank
 	enemy.defeated.connect(_on_enemy_defeated)
 	enemy.hit_player.connect(_on_player_hit_by_enemy)
 	enemy.stolen_artifact_dropped.connect(_on_enemy_dropped_stolen_artifact)
 	enemies_node.add_child(enemy)
+	if type == FolkloreEnemy.EnemyType.MOSKAL:
+		enemy.set_moskal_rank(rank)
 
 func _on_enemy_dropped_stolen_artifact(drop_pos: Vector2) -> void:
 	if not items_node:

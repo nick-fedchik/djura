@@ -398,6 +398,10 @@ func _check_strike_hitbox() -> void:
 				var push_x := signf(hit_local.x) if absf(hit_local.x) > 4.0 else punch_facing
 				# Successful punch or kick hit on enemy!
 				if enemy.enemy_type == FolkloreEnemy.EnemyType.MOSKAL:
+					if enemy.absorb_strike():
+						enemy.velocity.x = push_x * 165.0
+						_play_sfx(snd_bonk, 0.90) # Збили панцир/шапку з Опричника, Воєводи чи Генерала!
+						continue
 					enemy.make_scared(9.0)
 					enemy.velocity.x = push_x * (320.0 if is_kick else 270.0)
 					if is_sweep_kick:

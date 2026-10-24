@@ -322,6 +322,29 @@ func _physics_process(delta: float) -> bool:
 		assert(rest_enemy.has_stolen_artifact == false and mgr.items_node.get_child_count() >= 1, "Striking/scaring buffed enemy must knock stolen artifact back onto arena")
 		print("[OK] Logitech Gamepad Hints, NPC Fatigue/Rest, Anatomical 14-16yo Dzhura & Enemy Artifact Interception verified!")
 
+		# 7. Test 6-Tier Muscovite NPC Hierarchy (SHYSH -> STRELETS -> DYAK -> OPRYCHNYK -> VOYEVODA -> TSAR_GENERAL)
+		print("Testing 6-tier Muscovite NPC hierarchy (from Shysh to Voyevoda & Tsar General)...")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.SHYSH) == 0, "Shysh must have 0 armor")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.STRELETS) == 0, "Strelets must have 0 armor")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.DYAK) == 0, "Dyak must have 0 armor")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.OPRYCHNYK) == 1, "Oprichnik must have 1 armor shield")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.VOYEVODA) == 1, "Voyevoda must have 1 armor shield")
+		assert(FolkloreEnemy.get_moskal_rank_armor(FolkloreEnemy.MoskalRank.TSAR_GENERAL) == 2, "Tsar General must have 2 armor shields")
+		assert(FolkloreEnemy.get_moskal_rank_reward(FolkloreEnemy.MoskalRank.SHYSH) < FolkloreEnemy.get_moskal_rank_reward(FolkloreEnemy.MoskalRank.VOYEVODA), "Higher rank must grant higher glory reward")
+		for r in [
+			FolkloreEnemy.MoskalRank.SHYSH,
+			FolkloreEnemy.MoskalRank.STRELETS,
+			FolkloreEnemy.MoskalRank.DYAK,
+			FolkloreEnemy.MoskalRank.OPRYCHNYK,
+			FolkloreEnemy.MoskalRank.VOYEVODA,
+			FolkloreEnemy.MoskalRank.TSAR_GENERAL
+		]:
+			rest_enemy.enemy_type = FolkloreEnemy.EnemyType.MOSKAL
+			rest_enemy.set_moskal_rank(r)
+			assert(rest_enemy.moskal_rank == r, "set_moskal_rank must set rank")
+			assert(rest_enemy.armor == FolkloreEnemy.get_moskal_rank_armor(r), "set_moskal_rank must configure rank armor")
+		print("[OK] All 6 Muscovite NPC ranks (SHYSH, STRELETS, DYAK, OPRYCHNYK, VOYEVODA, TSAR_GENERAL) verified!")
+
 		# Test 2K 16:9 Widescreen Viewport
 		var v_size = root.get_viewport().get_visible_rect().size
 		print("[OK] 2K 16:9 Viewport resolution: %s (Aspect: %.4f)" % [v_size, v_size.x / v_size.y])
