@@ -133,7 +133,8 @@ func _initialize() -> void:
 	# 3б) план 20 рівнів кампанії: кожен рівень вводить нового NPC, жоден NPC не вводиться двічі, є 20 рівнів, ескалація далі
 	var plan_seen := {}
 	for lvl in range(1, D.CAMPAIGN_LEVELS + 1):
-		if not D.NPC_INTRO.has(lvl) or D.NPC_INTRO[lvl].is_empty():
+		# Етап 2 (рівні 6–10) — канонічно без нових ворогів (SWR Етапу 2); виняток із «кожен рівень вводить NPC»
+		if not D.NPC_INTRO.has(lvl) or (D.NPC_INTRO[lvl].is_empty() and not lvl in range(6, 11)):
 			return _fail("рівень %d кампанії не вводить нового NPC у плані" % lvl)
 		for n in D.NPC_INTRO[lvl]:
 			if plan_seen.has(n):

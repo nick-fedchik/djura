@@ -916,43 +916,38 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 	],
 	6: [
-		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 80), "type": FolkloreEnemy.EnemyType.VIDMA},
 	],
 	7: [
-		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.DYAK},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
-		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 80), "type": FolkloreEnemy.EnemyType.VIDMA},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(480, 165), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
 	8: [
-		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.OPRYCHNYK},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.DYAK},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
-		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	9: [
-		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.VOYEVODA},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.OPRYCHNYK},
-		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
-		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(480, 165), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
 	10: [
-		{"pos": Vector2(220, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.TSAR_GENERAL},
-		{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.VOYEVODA},
-		{"pos": Vector2(740, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(480, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
-		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	11: [
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_NUKER},
@@ -1296,6 +1291,7 @@ func _spawn_bomb_grid() -> void:
 	
 	for pos in bomb_positions:
 		var bomb = bomb_scene.instantiate() as BombItem
+		bomb.chain_chance = BombItem.chain_chance_for_level(level)
 		bomb.position = pos
 		bomb.collected.connect(_on_bomb_collected)
 		bomb.exploded.connect(_on_bomb_exploded)
@@ -1530,6 +1526,9 @@ func _on_level_complete() -> void:
 		player.unlock_kotyhoroshko_mace(12)
 		hud.show_message("РЕЛІКВІЯ КОТИГОРОШКА! ТИ ЗДОБУВ БОГАТИРСЬКУ БУЛАВУ!", 4.5, Color(1.0, 0.85, 0.2))
 	
+	# Булава Котигорошка — вічна реліквія: після здобуття (рівень 5) на кожному наступному рівні знову заряджається на повну
+	if prev_lvl > 5:
+		player.unlock_kotyhoroshko_mace(12)
 	player.reset_to_normal_state(Vector2(480, 494))
 	_setup_level()
 	

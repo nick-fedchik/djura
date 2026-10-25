@@ -11,6 +11,8 @@ func _count_types(level_id: int) -> Dictionary:
 		counts[cfg["type"]] = int(counts.get(cfg["type"], 0)) + 1
 	return counts
 
+const D = preload("res://scripts/difficulty.gd")
+
 func _check_stage1_compositions() -> void:
 	var T = FolkloreEnemy.EnemyType
 	# Рівень 1: виключно Вогник, жодного іншого ворога
@@ -35,6 +37,29 @@ func _check_stage1_compositions() -> void:
 	assert(c5.get(T.VOGNYK, 0) >= 1 and c5.get(T.CHORT, 0) >= 1, "Level 5 must keep Vognyks and Chorts alongside Vidma")
 	assert(c5.size() == 3, "Level 5 must have no enemy types beyond Vognyk/Chort/Vidma")
 	print("[OK] Stage 1 LEVEL_COMPOSITIONS invariants (levels 1-5) verified!")
+
+	# Етап 2 (рівні 6–10): лише Вогники й Чортики, без москалів; Солоха-реванш лише на рівні 10
+	var want := {6: [2, 2, 0], 7: [2, 3, 0], 8: [2, 2, 0], 9: [2, 3, 0], 10: [2, 3, 1]}
+	for lvl in want:
+		var c := _count_types(lvl)
+		assert(c.get(T.VOGNYK, 0) == want[lvl][0], "Level %d: Vognyk count" % lvl)
+		assert(c.get(T.CHORT, 0) == want[lvl][1], "Level %d: Chort count" % lvl)
+		assert(c.get(T.VIDMA, 0) == want[lvl][2], "Level %d: Vidma count" % lvl)
+		assert(c.get(T.MOSKAL, 0) == 0, "Level %d: no Moskals in Stage 2" % lvl)
+	# Киримли-союзник розблокований з рівня 7
+	assert(not D.ally_available("QIRIMLI", 6) and D.ally_available("QIRIMLI", 7), "Qirimli unlocks at level 7")
+	# Ланцюгова реакція ядер: 20% на рівнях 1–2, 50% далі
+	assert(is_equal_approx(BombItem.chain_chance_for_level(1), 0.20) and is_equal_approx(BombItem.chain_chance_for_level(2), 0.20), "Chain chance 0.20 on levels 1-2")
+	assert(is_equal_approx(BombItem.chain_chance_for_level(3), 0.50), "Chain chance 0.50 from level 3")
+	# Булава — вічна реліквія: після рівня 5 відновлюється до 12 на кожному рівні
+	var p = JackPlayer.new()
+	p.unlock_kotyhoroshko_mace(12)
+	p.mace_durability = 0
+	p.has_mace = false
+	p.unlock_kotyhoroshko_mace(12)
+	assert(p.has_mace and p.mace_durability == 12, "Mace recharges to 12")
+	p.free()
+	print("[OK] Stage 2 compositions, Qirimli unlock, chain chance, mace recharge verified!")
 
 func _init() -> void:
 	var main_scene = load("res://scenes/main.tscn")
@@ -148,15 +173,20 @@ func _physics_process(delta: float) -> bool:
 		assert(mgr.player.mace_durability == 12, "Mace initial durability must be 12")
 		print("[OK] Kotyhoroshko Mace unlock verified!")
 		
-		# Test Level 6 (Stage 2: Crimea - Qirimli Yigit ally arrival)
-		print("Simulating transition to Level 6 (Stage 2: Crimea)...")
+		# Level 6 (Sivash): Киримли ще не прибуває; Level 7 (Ор-Капу): союзник розблокований
+		print("Simulating transition to Level 6/7 (Stage 2: Crimea)...")
 		mgr.level = 6
 		mgr._setup_level()
-		assert(mgr.level == 6, "Level should now be 6")
-		assert(mgr.qirimli_ally == null, "Level 6 Qirimli ally waits for progressive arrival")
 		mgr.bombs_collected_on_level = 4
 		mgr._check_progressive_ally_arrival()
-		assert(mgr.qirimli_ally != null, "Level 6 must progressively spawn Qirimli ally")
+		assert(mgr.qirimli_ally == null, "Level 6: Qirimli ally is not unlocked yet")
+		mgr.level = 7
+		mgr._setup_level()
+		assert(mgr.level == 7, "Level should now be 7")
+		assert(mgr.qirimli_ally == null, "Level 7 Qirimli ally waits for progressive arrival")
+		mgr.bombs_collected_on_level = 4
+		mgr._check_progressive_ally_arrival()
+		assert(mgr.qirimli_ally != null, "Level 7 must progressively spawn Qirimli ally")
 		assert(is_equal_approx(mgr.qirimli_ally.MOVE_SPEED, 148.0), "Qirimli MOVE_SPEED must be 148.0")
 		
 		# Test Qirimli one-time Steppe Falcon launch against Unclean Forces
@@ -166,7 +196,7 @@ func _physics_process(delta: float) -> bool:
 		assert(mgr.qirimli_ally.has_launched_falcon == true, "has_launched_falcon must be true after launch")
 		var second_launch: bool = mgr.qirimli_ally.launch_falcon()
 		assert(second_launch == false, "Second falcon launch on same level must be blocked (one-time invariant)")
-		print("[OK] Level 6 Crimea: Qirimli ally & Steppe Falcon launch verified!")
+		print("[OK] Level 7 Crimea: Qirimli ally & Steppe Falcon launch verified!")
 		
 		# Test Level 11 (Stage 3: Carpathians - Hutsul with Bartka arrival)
 		print("Simulating transition to Level 11 (Stage 3: Carpathians)...")

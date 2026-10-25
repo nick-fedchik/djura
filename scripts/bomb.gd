@@ -11,8 +11,15 @@ const CRITICAL_FUSE_THRESHOLD: float = 2.2
 const EXPLOSION_DURATION: float = 0.45
 const FIZZLE_DURATION: float = 0.65
 const FIZZLE_CHANCE: float = 0.20
+const CHAIN_CHANCE: float = 0.50
+const CHAIN_CHANCE_EARLY: float = 0.20 # рівні 1–2: м'якша ланцюгова реакція для дітей 8–10
+
+# Шанс ланцюгового підпалу сусідніх ядер залежно від рівня
+static func chain_chance_for_level(level: int) -> float:
+	return CHAIN_CHANCE_EARLY if level <= 2 else CHAIN_CHANCE
 
 var fuse_timer: float = 7.0
+var chain_chance: float = CHAIN_CHANCE
 var is_exploding: bool = false
 var explosion_anim_time: float = 0.0
 var is_fizzling: bool = false
@@ -68,13 +75,13 @@ func explode() -> void:
 	explosion_anim_time = 0.0
 	exploded.emit(self)
 	
-	# Ланцюгова реакція: підпал сусідніх холодних бомб із шансом 50%
+	# Ланцюгова реакція: підпал сусідніх холодних бомб із шансом 50% (на рівнях 1–2 — 20%, щоб не було лавини для дітей 8–10)
 	var tree := get_tree()
 	if tree != null:
 		for other in tree.get_nodes_in_group("bombs"):
 			if other is BombItem and other != self and not other.is_lit and not other.is_exploding and not other.is_queued_for_deletion():
 				if global_position.distance_to(other.global_position) <= 72.0:
-					if randf() < 0.50:
+					if randf() < chain_chance:
 						other.ignite()
 
 func _process(delta: float) -> void:
