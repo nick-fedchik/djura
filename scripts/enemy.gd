@@ -130,8 +130,12 @@ func npc_id() -> String:
 		EnemyType.VIDMA: return "VIDMA"
 		EnemyType.VOGNYK:
 			var parent = get_parent()
-			if parent and parent.get_parent() and parent.get_parent().get("level") == 4:
-				return "VOGNYK_SPARK"
+			if parent and parent.get_parent():
+				var lvl = parent.get_parent().get("level")
+				if lvl == 2:
+					return "VOGNYK_SPARK"
+				elif lvl == 4:
+					return "VOGNYK_EMBER"
 			return "VOGNYK"
 		EnemyType.ZLYDNI: return "ZLYDNI"
 		EnemyType.BASAVRIUK: return "BASAVRIUK"

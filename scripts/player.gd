@@ -9,6 +9,8 @@ signal hopak_started
 signal hopak_finished
 signal vakula_shoes_state_changed(is_active: bool)
 signal combat_move_performed(move_id: String)
+signal mace_durability_changed(current: int, max_durability: int)
+signal mace_broke()
 
 const SPEED: float = 240.0
 const JUMP_VELOCITY: float = -620.0
@@ -96,6 +98,23 @@ var punch_facing: float = 1.0
 var strike_combo_step: int = 0
 var strike_combo_reset_timer: float = 0.0
 var strike_effects: Array[Dictionary] = []
+
+# Арка зброї: Спадщина Котигорошка та ресурсна Булава
+var has_mace: bool = false
+var mace_durability: int = 0
+var max_mace_durability: int = 12
+var strike_level_boost: float = 1.0
+
+func set_strike_level(lvl: int) -> void:
+	strike_level_boost = 1.0 + clampf(float(lvl - 1) * 0.15, 0.0, 1.0)
+
+func unlock_kotyhoroshko_mace(durability: int = 12) -> void:
+	has_mace = true
+	mace_durability = durability
+	max_mace_durability = durability
+	mace_durability_changed.emit(mace_durability, max_mace_durability)
+	say("Булава предка Котигорошка зі мною! Тримайтеся, нечестивці!", 2.8)
+	_play_sfx(snd_magic_flower, 1.2)
 
 func unlock_champion_skill(skill: ChampionSkill) -> void:
 	if not unlocked_skills.has(skill):
@@ -405,16 +424,18 @@ func _perform_champion_punch() -> void:
 	queue_redraw()
 
 func _check_strike_hitbox() -> void:
-	var strike_reach := 72.0
+	var strike_reach := 72.0 * strike_level_boost
 	var is_split_kick := (punch_active_skill == ChampionSkill.HOPAK_SHCHUPAK_SPLIT)
 	var is_sweep_kick := (punch_active_skill == ChampionSkill.HOPAK_POVZUNETS_SWEEP)
 	var is_kick := is_split_kick or is_sweep_kick or (punch_active_skill == ChampionSkill.HOPAK_TYNOK_KICK)
-	if punch_active_skill == ChampionSkill.UNDISPUTED_TRIO:
-		strike_reach = 98.0
+	if has_mace:
+		strike_reach = 115.0
+	elif punch_active_skill == ChampionSkill.UNDISPUTED_TRIO:
+		strike_reach = 98.0 * strike_level_boost
 	elif is_split_kick:
-		strike_reach = 84.0
+		strike_reach = 84.0 * strike_level_boost
 	elif is_kick:
-		strike_reach = 78.0
+		strike_reach = 78.0 * strike_level_boost
 	
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	if enemies.is_empty():
@@ -430,29 +451,53 @@ func _check_strike_hitbox() -> void:
 			var in_front := is_split_kick or (signf(enemy.global_position.x - global_position.x) == punch_facing)
 			if dist <= strike_reach and (in_front or dist < 34.0):
 				var hit_local: Vector2 = enemy.global_position - global_position
-				_spawn_strike_effect(hit_local, Color(1.0, 0.92, 0.22), is_kick, true)
 				var push_x := signf(hit_local.x) if absf(hit_local.x) > 4.0 else punch_facing
-				# Successful punch or kick hit on enemy!
+				
+				# Удари Булавою Котигорошка: нищівна міць та витрата ресурсу
+				if has_mace:
+					_spawn_strike_effect(hit_local, Color(1.0, 0.85, 0.15), false, true)
+					_play_sfx(snd_bonk, 0.75)
+					if enemy.enemy_type == FolkloreEnemy.EnemyType.CHORT:
+						enemy._play_poof()
+						enemy.defeated.emit(enemy, 1000)
+						enemy.queue_free()
+					else:
+						enemy.armor_hp = 0
+						enemy.make_scared(12.0)
+						enemy.velocity = Vector2(push_x * 450.0, -250.0)
+					
+					mace_durability -= 1
+					mace_durability_changed.emit(mace_durability, max_mace_durability)
+					if mace_durability <= 0:
+						has_mace = false
+						mace_durability = 0
+						mace_broke.emit()
+						say("Булава розлетілася на друзки! Далі йду в рукопашну!", 2.6)
+						_play_sfx(snd_bonk, 0.55)
+					continue
+				
+				# Удари Бойового Гопака голими руками й ногами (з ростом рівня зростає сила)
+				_spawn_strike_effect(hit_local, Color(1.0, 0.92, 0.22), is_kick, true)
 				if enemy.enemy_type == FolkloreEnemy.EnemyType.MOSKAL:
 					if enemy.absorb_strike():
-						enemy.velocity.x = push_x * 165.0
+						enemy.velocity.x = push_x * 165.0 * strike_level_boost
 						_play_sfx(snd_bonk, 0.90) # Збили панцир/шапку з Опричника, Воєводи чи Генерала!
 						continue
 					enemy.make_scared(9.0)
-					enemy.velocity.x = push_x * (320.0 if is_kick else 270.0)
+					enemy.velocity.x = push_x * (320.0 if is_kick else 270.0) * strike_level_boost
 					if is_sweep_kick:
 						enemy.position.y -= 18.0
 					_play_sfx(snd_bonk, 1.25)
 				elif enemy.enemy_type == FolkloreEnemy.EnemyType.CHORT:
 					enemy._play_poof()
-					enemy.defeated.emit(enemy, 600 if is_kick else 500)
+					enemy.defeated.emit(enemy, int(float(600 if is_kick else 500) * strike_level_boost))
 					enemy.queue_free()
 				else:
 					if enemy.absorb_strike():
 						_play_sfx(snd_bonk, 0.85) # щит відьми-інженера поглинув удар
 						continue
 					enemy.make_scared(7.5)
-					enemy.velocity = Vector2(push_x * 280.0, -220.0 if is_sweep_kick else -120.0)
+					enemy.velocity = Vector2(push_x * 280.0 * strike_level_boost, (-220.0 if is_sweep_kick else -120.0) * strike_level_boost)
 					_play_sfx(snd_bonk, 1.15)
 
 func celebrate_victory(duration: float = 4.10) -> void:

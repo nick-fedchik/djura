@@ -37,23 +37,13 @@ func _physics_process(delta: float) -> bool:
 			mgr.platforms_node.get_child_count(),
 			mgr.enemies_node.get_child_count()
 		])
-		assert(mgr.enemies_node.get_child_count() == 3, "Level 2 must have 3 enemies (2 Chorts, 1 Vidma engineer)")
-		
-		var has_chort := false
-		var has_vidma := false
+		assert(mgr.enemies_node.get_child_count() == 2, "Level 2 must have 2 Vognyks")
 		for e in mgr.enemies_node.get_children():
-			if e.enemy_type == FolkloreEnemy.EnemyType.CHORT:
-				has_chort = true
-			elif e.enemy_type == FolkloreEnemy.EnemyType.VIDMA:
-				has_vidma = true
+			assert(e.enemy_type == FolkloreEnemy.EnemyType.VOGNYK, "Level 2 enemies must be Vognyks")
+		print("[OK] Level 2 enemy composition verified: 2 Vognyks!")
 		
-		assert(has_chort, "Level 2 must have Chort")
-		assert(has_vidma, "Level 2 must have Vidma")
-		assert(not mgr.enemies_node.get_children().any(func(e): return e.enemy_type == FolkloreEnemy.EnemyType.VOGNYK), "Vognyk is introduced at level 4 (SHR-001 I-1)")
-		print("[OK] Level 2 enemy composition verified: 2 Chorts, 1 Vidma!")
-		
-		# Simulate level 2 completion to test Level 3 transition (Kamianets Fortress)
-		print("Simulating transition to Level 3 (Kamianets Fortress)...")
+		# Simulate level 2 completion to test Level 3 transition (Sich - Chorts enter!)
+		print("Simulating transition to Level 3...")
 		mgr.level = 3
 		mgr._setup_level()
 		
@@ -63,70 +53,100 @@ func _physics_process(delta: float) -> bool:
 			mgr.bombs_node.get_child_count(),
 			mgr.enemies_node.get_child_count()
 		])
-		assert(mgr.platforms_node.get_child_count() == 8, "Level 3 must have 8 fortress platforms")
 		assert(mgr.bombs_node.get_child_count() == 24, "Level 3 must have 24 bombs")
-		assert(mgr.enemies_node.get_child_count() == 4, "Level 3 must have 4 enemies")
+		assert(mgr.enemies_node.get_child_count() == 3, "Level 3 must have 3 enemies (1 Vognyk + 2 Chorts)")
+		var chort_count_lvl3 := 0
+		var vognyk_count_lvl3 := 0
+		for e in mgr.enemies_node.get_children():
+			if e.enemy_type == FolkloreEnemy.EnemyType.CHORT:
+				chort_count_lvl3 += 1
+			elif e.enemy_type == FolkloreEnemy.EnemyType.VOGNYK:
+				vognyk_count_lvl3 += 1
+		assert(chort_count_lvl3 == 2, "Level 3 must have 2 Chorts")
+		assert(vognyk_count_lvl3 == 1, "Level 3 must have 1 Vognyk")
 		
-		# Verify progressive ally arrival on Level 3 (not at t=0, only after Dzhura's first successes, -30% balanced count)
-		assert(mgr.hutsul_ally == null, "Allies must not spawn immediately at t=0 before Dzhura's first successes")
-		assert(mgr.qirimli_ally == null, "Qirimli must not spawn immediately at t=0 before Dzhura's first successes")
-		mgr.bombs_collected_on_level = 2
-		mgr._check_progressive_ally_arrival()
-		assert(mgr.hutsul_ally != null, "Level 3 must progressively spawn Hutsul ally after 2 bombs collected")
-		assert(mgr.hutsul_allies.size() == 1, "Wave 1 must spawn 1 Carpathian Hutsul (-30% balanced count)")
+		# Stage 1 (Sich) invariant: NO external allies arrive on levels 1-5!
 		mgr.bombs_collected_on_level = 6
 		mgr._check_progressive_ally_arrival()
-		assert(mgr.hutsul_allies.size() == 2, "Wave 2 must spawn a 2nd Carpathian Hutsul ally on Level 3+")
-		assert(mgr.qirimli_ally != null, "Level 3 must progressively spawn Qirimli ally after 4+ bombs collected")
-		assert(is_equal_approx(mgr.hutsul_ally.MOVE_SPEED, 155.0), "Hutsul MOVE_SPEED must be 20% slower (155.0)")
-		assert(is_equal_approx(mgr.qirimli_ally.MOVE_SPEED, 148.0), "Qirimli MOVE_SPEED must be 20% slower (148.0)")
-		for h in mgr.hutsul_allies:
-			h.celebrate_victory()
-			assert(h.is_celebrating_victory == true, "All Hutsul allies must perform their Arkan victory dance")
-		var has_moskal_lvl3 := false
-		for e in mgr.enemies_node.get_children():
-			if e.enemy_type == FolkloreEnemy.EnemyType.MOSKAL:
-				has_moskal_lvl3 = true
-		assert(has_moskal_lvl3, "Level 3 must feature Moskal strelets enemy")
-		print("[OK] Level 3 progressive arrival of Hutsul & Qirimli allies and Moskal strelets verified!")
+		assert(mgr.hutsul_ally == null, "Stage 1 must NOT spawn Hutsul ally")
+		assert(mgr.qirimli_ally == null, "Stage 1 must NOT spawn Qirimli ally")
+		print("[OK] Level 3 Stage 1 Sich autonomy verified: 1 Vognyk, 2 Chorts, 0 external allies!")
 		
-		# Test Level 4 (Baturyn Hetmanate)
-		print("Simulating transition to Level 4 (Baturyn Hetmanate)...")
+		# Test Level 4 (Sich - More Vognyks & Chorts)
+		print("Simulating transition to Level 4...")
 		mgr.level = 4
 		mgr._setup_level()
 		assert(mgr.level == 4, "Level should now be 4")
-		assert(mgr.platforms_node.get_child_count() == 7, "Level 4 must have 7 palace platforms")
 		assert(mgr.bombs_node.get_child_count() == 24, "Level 4 must have 24 bombs")
-		assert(mgr.qirimli_ally == null, "Level 4 Qirimli ally waits for progressive arrival")
-		mgr.bombs_collected_on_level = 4
-		mgr._check_progressive_ally_arrival()
-		assert(mgr.hutsul_ally != null and mgr.qirimli_ally != null, "Level 4 must progressively spawn both allies")
-		var moskal_count_lvl4 := 0
+		assert(mgr.enemies_node.get_child_count() == 4, "Level 4 must have 4 enemies (2 Vognyks + 2 Chorts)")
+		var chort_count_lvl4 := 0
+		var vognyk_count_lvl4 := 0
 		for e in mgr.enemies_node.get_children():
-			if e.enemy_type == FolkloreEnemy.EnemyType.MOSKAL:
-				moskal_count_lvl4 += 1
-		assert(moskal_count_lvl4 >= 2, "Level 4 must feature at least 2 Moskal enemies")
+			if e.enemy_type == FolkloreEnemy.EnemyType.CHORT:
+				chort_count_lvl4 += 1
+			elif e.enemy_type == FolkloreEnemy.EnemyType.VOGNYK:
+				vognyk_count_lvl4 += 1
+		assert(chort_count_lvl4 == 2, "Level 4 must have 2 Chorts")
+		assert(vognyk_count_lvl4 == 2, "Level 4 must have 2 Vognyks")
 		assert(mgr.story_cards.has_story_for_level(4), "Level 4 must have story cards")
-		print("[OK] Level 4 Baturyn Hetmanate verified: Progressive allies, 2 Moskals, Story Cards!")
+		print("[OK] Level 4 Stage 1 verified: 2 Vognyks, 2 Chorts, Story Cards!")
 		
-		# Test Level 5 (Perekop & Bakhchysarai)
-		print("Simulating transition to Level 5 (Perekop & Bakhchysarai)...")
+		# Test Level 5 (Sich Climax - Vidma Solokha Boss!)
+		print("Simulating transition to Level 5 (Sich Climax)...")
 		mgr.level = 5
 		mgr._setup_level()
 		assert(mgr.level == 5, "Level should now be 5")
-		assert(mgr.platforms_node.get_child_count() == 8, "Level 5 must have 8 rampart platforms")
 		assert(mgr.bombs_node.get_child_count() == 24, "Level 5 must have 24 bombs")
+		assert(mgr.enemies_node.get_child_count() == 5, "Level 5 must have 5 enemies (2 Vognyks, 2 Chorts, 1 Vidma)")
+		var vidma_count_lvl5 := 0
+		for e in mgr.enemies_node.get_children():
+			if e.enemy_type == FolkloreEnemy.EnemyType.VIDMA:
+				vidma_count_lvl5 += 1
+		assert(vidma_count_lvl5 == 1, "Level 5 must feature Vidma boss")
+		assert(mgr.story_cards.has_story_for_level(5), "Level 5 must have story cards")
+		print("[OK] Level 5 Sich climax verified: Vidma boss present!")
+		
+		# Test Kotyhoroshko Mace unlock after Stage 1
+		print("Testing Kotyhoroshko Mace unlock after Stage 1...")
+		mgr.player.unlock_kotyhoroshko_mace(12)
+		assert(mgr.player.has_mace == true, "Player must have Kotyhoroshko Mace unlocked")
+		assert(mgr.player.mace_durability == 12, "Mace initial durability must be 12")
+		print("[OK] Kotyhoroshko Mace unlock verified!")
+		
+		# Test Level 6 (Stage 2: Crimea - Qirimli Yigit ally arrival)
+		print("Simulating transition to Level 6 (Stage 2: Crimea)...")
+		mgr.level = 6
+		mgr._setup_level()
+		assert(mgr.level == 6, "Level should now be 6")
+		assert(mgr.qirimli_ally == null, "Level 6 Qirimli ally waits for progressive arrival")
 		mgr.bombs_collected_on_level = 4
 		mgr._check_progressive_ally_arrival()
-		assert(mgr.qirimli_ally != null, "Level 5 must progressively spawn Qirimli ally")
-		assert(mgr.hutsul_ally != null, "Level 5 must progressively spawn Carpathian Hutsul ally with Bartka")
+		assert(mgr.qirimli_ally != null, "Level 6 must progressively spawn Qirimli ally")
+		assert(is_equal_approx(mgr.qirimli_ally.MOVE_SPEED, 148.0), "Qirimli MOVE_SPEED must be 148.0")
 		
-		# Test autonomous jumping of both allies (just like Dzhura)
+		# Test Qirimli one-time Steppe Falcon launch against Unclean Forces
+		assert(mgr.qirimli_ally.has_launched_falcon == false, "Falcon must not be launched before trigger")
+		var first_launch: bool = mgr.qirimli_ally.launch_falcon()
+		assert(first_launch == true, "First falcon launch must succeed")
+		assert(mgr.qirimli_ally.has_launched_falcon == true, "has_launched_falcon must be true after launch")
+		var second_launch: bool = mgr.qirimli_ally.launch_falcon()
+		assert(second_launch == false, "Second falcon launch on same level must be blocked (one-time invariant)")
+		print("[OK] Level 6 Crimea: Qirimli ally & Steppe Falcon launch verified!")
+		
+		# Test Level 11 (Stage 3: Carpathians - Hutsul with Bartka arrival)
+		print("Simulating transition to Level 11 (Stage 3: Carpathians)...")
+		mgr.level = 11
+		mgr._setup_level()
+		assert(mgr.level == 11, "Level should now be 11")
+		assert(mgr.hutsul_ally == null, "Hutsul ally waits for progressive arrival")
+		mgr.bombs_collected_on_level = 2
+		mgr._check_progressive_ally_arrival()
+		assert(mgr.hutsul_ally != null, "Level 11 must progressively spawn Hutsul ally")
+		assert(is_equal_approx(mgr.hutsul_ally.MOVE_SPEED, 155.0), "Hutsul MOVE_SPEED must be 155.0")
+		
+		# Test autonomous jumping of allies
 		mgr.hutsul_ally._perform_jump()
 		assert(mgr.hutsul_ally.velocity.y < 0.0, "Hutsul ally must jump upward autonomously")
-		mgr.qirimli_ally._perform_jump()
-		assert(mgr.qirimli_ally.velocity.y < 0.0, "Qirimli ally must jump upward autonomously")
-		print("[OK] Autonomous platformer movement and jumping for Hutsul & Qirimli allies verified!")
 		
 		# Test Carpathian Hutsul melee Bartka whacking + one-time Bartka throw & scene exit
 		var test_enemy = mgr.enemies_node.get_child(0) as FolkloreEnemy
@@ -139,26 +159,9 @@ func _physics_process(delta: float) -> bool:
 		assert(mgr.hutsul_ally.is_exiting_scene == true, "Hutsul must start exiting scene after throwing Bartka")
 		var second_bartka_throw: bool = mgr.hutsul_ally.throw_bartka_once()
 		assert(second_bartka_throw == false, "Second Bartka throw must be blocked (one-time throw invariant)")
-		print("[OK] Carpathian Hutsul melee Bartka strike, one-time Bartka throw, and scene exit verified!")
+		print("[OK] Level 11 Carpathians: Hutsul Bartka mechanics verified!")
 		
-		# Test Qirimli one-time Steppe Falcon launch against Unclean Forces
-		assert(mgr.qirimli_ally.has_launched_falcon == false, "Falcon must not be launched before trigger")
-		var first_launch: bool = mgr.qirimli_ally.launch_falcon()
-		assert(first_launch == true, "First falcon launch must succeed")
-		assert(mgr.qirimli_ally.has_launched_falcon == true, "has_launched_falcon must be true after launch")
-		var second_launch: bool = mgr.qirimli_ally.launch_falcon()
-		assert(second_launch == false, "Second falcon launch on same level must be blocked (one-time invariant)")
-		print("[OK] Qirimli one-time Steppe Falcon launch against Unclean Forces verified!")
-		
-		var moskal_count_lvl5 := 0
-		for e in mgr.enemies_node.get_children():
-			if e.enemy_type == FolkloreEnemy.EnemyType.MOSKAL:
-				moskal_count_lvl5 += 1
-		assert(moskal_count_lvl5 >= 3, "Level 5 must feature 3 Moskal enemies")
-		assert(mgr.story_cards.has_story_for_level(5), "Level 5 must have story cards")
-		print("[OK] Level 5 Perekop & Bakhchysarai verified: Qirimli ally, 3 Moskals, Story Cards!")
-		
-		# Test story cards for level 3 (Qirimli ally)
+		# Test story cards for level 3
 		print("Testing Story Cards for Level 3...")
 		assert(mgr.story_cards.has_story_for_level(3), "Level 3 must have story cards")
 		mgr.story_cards.show_story_for_level(3)
@@ -166,7 +169,7 @@ func _physics_process(delta: float) -> bool:
 		assert(mgr.story_cards.slides.size() == 3, "Level 3 must have 3 story slides")
 		mgr.story_cards._finish_story()
 		assert(not mgr.story_cards.is_active, "StoryCards must close after finish")
-		print("[OK] Level 3 Story Cards (Qirimli & Kamianets) verified!")
+		print("[OK] Level 3 Story Cards verified!")
 		
 		# Test bomb collection completion on Level 3 (verifying bugfix for stuck level)
 		print("Testing bomb collection & completion on Level 3...")

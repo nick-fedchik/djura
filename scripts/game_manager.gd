@@ -671,6 +671,8 @@ func _setup_level() -> void:
 		telemetry.log_event("level_start", {"level": level, "k": difficulty_k, "enemies": level_enemy_count_start, "target": player_model.target_success() if player_model != null else 0.0})
 	
 	lit_streak = 1
+	if player and player.has_method("set_strike_level"):
+		player.set_strike_level(level)
 	_spawn_bomb_grid()
 	
 	# Friendly folklore lore tips for players
@@ -683,8 +685,8 @@ func _setup_level() -> void:
 	)
 	
 func _check_progressive_ally_arrival() -> void:
-	# На рівнях 1 та 2 союзники не прибувають: діють лише Джура та Вогник
-	if level <= 2:
+	# На рівнях 1–5 (Етап 1: Запорозька Січ) союзники не прибувають: діє виключно Джура
+	if level <= 5:
 		return
 	var enemy_count := enemies_node.get_child_count() if enemies_node else 0
 	
@@ -784,6 +786,9 @@ func _get_valid_hutsul_count() -> int:
 	return cnt
 
 func _ensure_hutsul_victory_dancers() -> void:
+	# На Етапі 1 (рівні 1–5) або до відкриття Гуцула танцюристи не з'являються
+	if not _Difficulty.ally_available("HUTSUL", level):
+		return
 	# Очищуємо недійсні посилання
 	var valid_list: Array[Node2D] = []
 	for h in hutsul_allies:
@@ -800,7 +805,7 @@ func _ensure_hutsul_victory_dancers() -> void:
 		dancer.on_ground = true
 
 func _spawn_qirimli_ally() -> void:
-	if level < 2 or qirimli_spawned_this_level:
+	if not _Difficulty.ally_available("QIRIMLI", level) or qirimli_spawned_this_level:
 		return
 	qirimli_spawned_this_level = true
 	var ally = qirimli_scene.instantiate()
@@ -888,36 +893,30 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 200), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	2: [
-		{"pos": Vector2(200, 210), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(760, 210), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
+		{"pos": Vector2(300, 210), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 210), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	3: [
-		{"pos": Vector2(340, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
+		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 	],
 	4: [
-		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
-		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	5: [
-		{"pos": Vector2(220, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
-		{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
-		{"pos": Vector2(740, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
+		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
+		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
-		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	6: [
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
-		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.STRELETS},
+		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.SHYSH},
 		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 80), "type": FolkloreEnemy.EnemyType.VIDMA},
@@ -1526,6 +1525,9 @@ func _on_level_complete() -> void:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.UNDISPUTED_TRIO)
 		_queue_combat_hint_front("undisputed_trio")
 		hud.show_message("ТИ АБСОЛЮТНИЙ ЧЕМПІОН! ЗОЛОТІ ПОЯСИ ТРЬОХ ЛЕГЕНД УКРАЇНИ!", 4.2, Color(1.0, 0.95, 0.35))
+	elif prev_lvl == 5:
+		player.unlock_kotyhoroshko_mace(12)
+		hud.show_message("РЕЛІКВІЯ КОТИГОРОШКА! ТИ ЗДОБУВ БОГАТИРСЬКУ БУЛАВУ!", 4.5, Color(1.0, 0.85, 0.2))
 	
 	player.reset_to_normal_state(Vector2(480, 494))
 	_setup_level()

@@ -15,8 +15,8 @@ func _initialize() -> void:
 	print("--- Прогресія NPC та складності ---")
 	# 1) кожен із 20 рівнів кампанії вводить нового NPC; таблиця D.NPC_INTRO збігається з реальним складом,
 	# і не більше одного нового ТИПУ ворога на рівень (чини рахуємо як нових NPC: e.npc_id())
-	var seen := {"CHORT": true}
-	var seen_types := {FolkloreEnemy.EnemyType.CHORT: true}
+	var seen := {}
+	var seen_types := {}
 	for level in range(1, D.CAMPAIGN_LEVELS + 1):
 		mgr.difficulty_k = 1.0
 		for e in mgr.enemies_node.get_children():
@@ -83,20 +83,18 @@ func _initialize() -> void:
 		if e.enemy_type == FolkloreEnemy.EnemyType.CHORT: chorts += 1
 	if vidmas * 2 > chorts:
 		return _fail("додаткові вороги не мають порушувати рідкість відьом")
-	# 2б) полегшення для слабкого гравця: на одного ворога менше, новий NPC рівня та відьма лишаються
+	# 2б) полегшення для слабкого гравця: на одного ворога менше, новий NPC рівня лишається
 	mgr.difficulty_k = D.coefficient(3, 0.0)
 	for e in mgr.enemies_node.get_children():
 		mgr.enemies_node.remove_child(e); e.free()
 	mgr.level = 3
 	mgr._spawn_folklore_enemies()
 	var relief_n: int = mgr.enemies_node.get_child_count()
-	var has_moskal := false
-	var has_vidma := false
+	var has_chort := false
 	for e in mgr.enemies_node.get_children():
-		if e.enemy_type == FolkloreEnemy.EnemyType.MOSKAL: has_moskal = true
-		if e.enemy_type == FolkloreEnemy.EnemyType.VIDMA: has_vidma = true
+		if e.enemy_type == FolkloreEnemy.EnemyType.CHORT: has_chort = true
 	print("Рівень 3, слабкий гравець (k=%.2f): %d ворогів (базово %d)" % [mgr.difficulty_k, relief_n, base_n])
-	if relief_n != base_n - 1 or not has_moskal or not has_vidma:
+	if relief_n != base_n - 1 or not has_chort:
 		return _fail("слабкий гравець має отримати на одного ворога менше, не втрачаючи нового NPC рівня")
 	# 2в) стеля одночасних ворогів
 	mgr.difficulty_k = D.K_MAX
@@ -106,9 +104,9 @@ func _initialize() -> void:
 	mgr._spawn_folklore_enemies()
 	if mgr.enemies_node.get_child_count() > D.MAX_ALIVE_ENEMIES:
 		return _fail("ворогів більше за стелю MAX_ALIVE_ENEMIES")
-	# 3) Мавка: з'являється лише з рівня 5 і після успіхів; чари лякають ворога
+	# 3) Мавка: з'являється лише з рівня 12 і після успіхів; чари лякають ворога
 	mgr.difficulty_k = 1.0
-	for lvl in [4, 5]:
+	for lvl in [11, 12]:
 		mgr.level = lvl
 		mgr.mavka_spawned_this_level = false
 		mgr.mavka_ally = null
@@ -118,10 +116,10 @@ func _initialize() -> void:
 		mgr.bombs_collected_on_level = 5
 		mgr._check_progressive_ally_arrival()
 		var has: bool = mgr.mavka_ally != null
-		if lvl == 4 and has:
-			return _fail("Мавка не має з'являтися до рівня 5")
-		if lvl == 5 and not has:
-			return _fail("Мавка має з'явитися на рівні 5")
+		if lvl == 11 and has:
+			return _fail("Мавка не має з'являтися до рівня 12")
+		if lvl == 12 and not has:
+			return _fail("Мавка має з'явитися на рівні 12")
 	await process_frame
 	var scared_before := 0
 	for e in mgr.enemies_node.get_children():

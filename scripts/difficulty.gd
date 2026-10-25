@@ -22,18 +22,18 @@ const NEUTRAL_QUALITY: float = 0.5    # якість «до першого рі�
 # Рівні 1–5 реалізовано й перевіряється складом гри; рівні 6–20 — план (чини москалів і найманці Орди існують у коді,
 # але ще не розставлені за цим планом; NPC_PLANNED ще не реалізовано). Див. LEVEL_PROGRESSION_STORY_8PLUS.md.
 const NPC_INTRO: Dictionary = {
-	1: ["HUTSUL", "VOGNYK"],
-	2: ["VIDMA"],
-	3: ["MOSKAL", "QIRIMLI"],
-	4: ["VOGNYK_SPARK"],
-	5: ["MAVKA"],
-	6: ["MOSKAL_SHYSH"],
+	1: ["VOGNYK"],
+	2: ["VOGNYK_SPARK"],
+	3: ["CHORT"],
+	4: ["VOGNYK_EMBER"],
+	5: ["VIDMA"],
+	6: ["MOSKAL_SHYSH", "QIRIMLI"],
 	7: ["MOSKAL_DYAK"],
 	8: ["MOSKAL_OPRYCHNYK"],
 	9: ["MOSKAL_VOYEVODA"],
 	10: ["MOSKAL_TSAR_GENERAL"],
-	11: ["MONGOL_NUKER"],
-	12: ["MONGOL_SHAMAN"],
+	11: ["HUTSUL", "MONGOL_NUKER"],
+	12: ["MAVKA", "MONGOL_SHAMAN"],
 	13: ["ZLYDNI"],
 	14: ["BASAVRIUK"],
 	15: ["DOMOVYK"],
@@ -64,7 +64,7 @@ static func ally_first_level(kind: String) -> int:
 	for lvl in NPC_INTRO.keys():
 		if kind in NPC_INTRO[lvl]:
 			return lvl
-	return 1
+	return 999
 
 static func ally_available(kind: String, level: int) -> bool:
 	return level >= ally_first_level(kind)
