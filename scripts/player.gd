@@ -1322,6 +1322,10 @@ func _draw() -> void:
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 13.5 * height_factor, 4.5 * height_factor, Color(0.0, 0.0, 0.05, 0.38 * height_factor))
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 8.2 * height_factor, 2.5 * height_factor, Color(0.0, 0.0, 0.05, 0.58 * height_factor))
 	
+	# If using high-fidelity 3D Meshy AnimatedSprite2D, delegate character body rendering to sprite!
+	if animated_sprite != null and animated_sprite.visible:
+		return
+	
 	# --- 2. 3D DOUBLE-SIDED BILLOWING KYREYA (Cossack Parkour Wing-Cape) ---
 	var wave := sin(cape_wave) * 4.0
 	var outer_blue := Color(0.10, 0.22, 0.65)

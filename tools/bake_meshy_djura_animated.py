@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+"""
+Bakes high-quality 2D animated sprite sheet from assets/models/djura_meshy.glb
+using skeletal rigging in Blender to produce real running, jumping, and martial Hopak animations.
+"""
+
+import os
+import sys
+import math
+import subprocess
+
+def run():
+    blend_script = """
+import bpy, math, os, sys
+
+bpy.ops.wm.read_factory_settings(use_empty=True)
+glb_path = "/home/mfedchyk/Godot/djura-1/assets/models/djura_meshy.glb"
+bpy.ops.import_scene.gltf(filepath=glb_path)
+
+m = bpy.data.objects.get("Mesh_0")
+if not m:
+    raise RuntimeError("Mesh_0 not found in djura_meshy.glb")
+
+# Clean existing armatures/modifiers if any
+for mod in list(m.modifiers):
+    m.modifiers.remove(mod)
+
+# Create custom armature
+bpy.ops.object.armature_add(enter_editmode=True, location=(0,0,0))
+arm_obj = bpy.context.active_object
+arm_data = arm_obj.data
+bpy.ops.armature.select_all(action='SELECT')
+bpy.ops.armature.delete()
+
+root = arm_data.edit_bones.new('Root')
+root.head = (0, 0, 0.0)
+root.tail = (0, 0, 0.22)
+
+spine = arm_data.edit_bones.new('Spine')
+spine.head = (0, 0, 0.22)
+spine.tail = (0, 0, 0.55)
+spine.parent = root
+
+head = arm_data.edit_bones.new('Head')
+head.head = (0, 0, 0.55)
+head.tail = (0, 0, 0.95)
+head.parent = spine
+
+arm_l = arm_data.edit_bones.new('Arm.L')
+arm_l.head = (0.15, 0, 0.45)
+arm_l.tail = (0.28, 0, 0.15)
+arm_l.parent = spine
+
+forearm_l = arm_data.edit_bones.new('ForeArm.L')
+forearm_l.head = (0.28, 0, 0.15)
+forearm_l.tail = (0.42, 0, -0.15)
+forearm_l.parent = arm_l
+
+arm_r = arm_data.edit_bones.new('Arm.R')
+arm_r.head = (-0.15, 0, 0.45)
+arm_r.tail = (-0.28, 0, 0.15)
+arm_r.parent = spine
+
+forearm_r = arm_data.edit_bones.new('ForeArm.R')
+forearm_r.head = (-0.28, 0, 0.15)
+forearm_r.tail = (-0.42, 0, -0.15)
+forearm_r.parent = arm_r
+
+thigh_l = arm_data.edit_bones.new('Thigh.L')
+thigh_l.head = (0.10, 0, 0.0)
+thigh_l.tail = (0.10, 0, -0.42)
+thigh_l.parent = root
+
+shin_l = arm_data.edit_bones.new('Shin.L')
+shin_l.head = (0.10, 0, -0.42)
+shin_l.tail = (0.10, 0, -0.95)
+shin_l.parent = thigh_l
+
+thigh_r = arm_data.edit_bones.new('Thigh.R')
+thigh_r.head = (-0.10, 0, 0.0)
+thigh_r.tail = (-0.10, 0, -0.42)
+thigh_r.parent = root
+
+shin_r = arm_data.edit_bones.new('Shin.R')
+shin_r.head = (-0.10, 0, -0.42)
+shin_r.tail = (-0.10, 0, -0.95)
+shin_r.parent = thigh_r
+
+bpy.ops.object.mode_set(mode='OBJECT')
+
+m.parent = arm_obj
+mod = m.modifiers.new(name='Armature', type='ARMATURE')
+mod.object = arm_obj
+
+bone_names = ['Root', 'Spine', 'Head', 'Arm.L', 'ForeArm.L', 'Arm.R', 'ForeArm.R', 'Thigh.L', 'Shin.L', 'Thigh.R', 'Shin.R']
+vgroups = {name: m.vertex_groups.new(name=name) for name in bone_names}
+
+for v in m.data.vertices:
+    x, y, z = v.co.x, v.co.y, v.co.z
+    idx = v.index
+    if z < -0.42:
+        if x >= 0:
+            vgroups['Shin.L'].add([idx], 1.0, 'REPLACE')
+        else:
+            vgroups['Shin.R'].add([idx], 1.0, 'REPLACE')
+    elif z < 0.0:
+        if x >= 0:
+            vgroups['Thigh.L'].add([idx], 1.0, 'REPLACE')
+        else:
+            vgroups['Thigh.R'].add([idx], 1.0, 'REPLACE')
+    elif z >= 0.55:
+        vgroups['Head'].add([idx], 1.0, 'REPLACE')
+    else:
+        if abs(x) > 0.15:
+            if x > 0:
+                if z < 0.15:
+                    vgroups['ForeArm.L'].add([idx], 1.0, 'REPLACE')
+                else:
+                    vgroups['Arm.L'].add([idx], 1.0, 'REPLACE')
+            else:
+                if z < 0.15:
+                    vgroups['ForeArm.R'].add([idx], 1.0, 'REPLACE')
+                else:
+                    vgroups['Arm.R'].add([idx], 1.0, 'REPLACE')
+        elif z < 0.22:
+            vgroups['Root'].add([idx], 1.0, 'REPLACE')
+        else:
+            vgroups['Spine'].add([idx], 1.0, 'REPLACE')
+
+# Setup camera and lights
+scene = bpy.context.scene
+scene.render.engine = 'BLENDER_EEVEE'
+scene.render.resolution_x = 128
+scene.render.resolution_y = 128
+scene.render.film_transparent = True
+scene.render.image_settings.file_format = 'PNG'
+
+cam_data = bpy.data.cameras.new(name='SpriteCam')
+cam_data.type = 'ORTHO'
+cam_data.ortho_scale = 2.15
+cam = bpy.data.objects.new(name='SpriteCam', object_data=cam_data)
+scene.collection.objects.link(cam)
+scene.camera = cam
+cam.location = (0, -3.5, 0.0)
+cam.rotation_euler = (math.radians(90), 0, 0)
+
+sun_data = bpy.data.lights.new(name='KeySun', type='SUN')
+sun_data.energy = 4.5
+sun = bpy.data.objects.new(name='KeySun', object_data=sun_data)
+scene.collection.objects.link(sun)
+sun.rotation_euler = (math.radians(45), math.radians(25), math.radians(35))
+
+fill_data = bpy.data.lights.new(name='FillSun', type='SUN')
+fill_data.energy = 2.2
+fill = bpy.data.objects.new(name='FillSun', object_data=fill_data)
+scene.collection.objects.link(fill)
+fill.rotation_euler = (math.radians(45), math.radians(-40), math.radians(-110))
+
+tmp_dir = "/home/mfedchyk/Godot/djura-1/build/render_tmp/djura_animated"
+os.makedirs(tmp_dir, exist_ok=True)
+
+bpy.ops.object.mode_set(mode='POSE')
+pb = arm_obj.pose.bones
+for b in pb:
+    b.rotation_mode = 'XYZ'
+
+def reset_pose():
+    for b in pb:
+        b.rotation_euler = (0, 0, 0)
+        b.location = (0, 0, 0)
+    arm_obj.rotation_euler = (0, 0, 0)
+    arm_obj.location = (0, 0, 0)
+
+# ANIMATION DEFINITIONS
+anims = {
+    "idle": [
+        # Frame 0: Natural breathing resting stance
+        {"yaw": -35, "spine": 0, "arm_l": 8, "arm_r": -8, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0},
+        # Frame 1: Inhale, slight chest rise
+        {"yaw": -35, "spine": -3, "arm_l": 12, "arm_r": -12, "thigh_l": 2, "shin_l": 0, "thigh_r": -2, "shin_r": 0, "z": 0.015},
+        # Frame 2: Top of breath, proud posture
+        {"yaw": -35, "spine": -4, "arm_l": 14, "arm_r": -14, "thigh_l": 3, "shin_l": 0, "thigh_r": -3, "shin_r": 0, "z": 0.025},
+        # Frame 3: Exhale relaxing
+        {"yaw": -35, "spine": -1, "arm_l": 10, "arm_r": -10, "thigh_l": 1, "shin_l": 0, "thigh_r": -1, "shin_r": 0, "z": 0.01},
+    ],
+    "run": [
+        # Frame 0: Left leg forward stride, right arm forward
+        {"yaw": -65, "spine": 12, "arm_l": 35, "arm_r": -40, "thigh_l": -45, "shin_l": 40, "thigh_r": 40, "shin_r": 30, "z": 0.0},
+        # Frame 1: Left foot contact, knees compressed
+        {"yaw": -65, "spine": 10, "arm_l": 20, "arm_r": -25, "thigh_l": -25, "shin_l": 20, "thigh_r": 25, "shin_r": 45, "z": -0.03},
+        # Frame 2: Push-off and passing position
+        {"yaw": -65, "spine": 12, "arm_l": -10, "arm_r": 10, "thigh_l": 15, "shin_l": 30, "thigh_r": -15, "shin_r": 20, "z": 0.02},
+        # Frame 3: Right leg forward stride, left arm forward
+        {"yaw": -65, "spine": 12, "arm_l": -40, "arm_r": 35, "thigh_l": 40, "shin_l": 30, "thigh_r": -45, "shin_r": 40, "z": 0.0},
+        # Frame 4: Right foot contact, knees compressed
+        {"yaw": -65, "spine": 10, "arm_l": -25, "arm_r": 20, "thigh_l": 25, "shin_l": 45, "thigh_r": -25, "shin_r": 20, "z": -0.03},
+        # Frame 5: Push-off and passing position
+        {"yaw": -65, "spine": 12, "arm_l": 10, "arm_r": -10, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 30, "z": 0.02},
+    ],
+    "jump": [
+        # Frame 0: Crouch before takeoff
+        {"yaw": -45, "spine": 15, "arm_l": 20, "arm_r": 20, "thigh_l": -30, "shin_l": 50, "thigh_r": -30, "shin_r": 50, "z": -0.05},
+        # Frame 1: Upward spring & tuck
+        {"yaw": -45, "spine": -8, "arm_l": -60, "arm_r": -60, "thigh_l": -50, "shin_l": 60, "thigh_r": -40, "shin_r": 45, "z": 0.06},
+        # Frame 2: Apex heroic flight
+        {"yaw": -45, "spine": -4, "arm_l": -45, "arm_r": -45, "thigh_l": -35, "shin_l": 40, "thigh_r": -25, "shin_r": 30, "z": 0.08},
+        # Frame 3: Preparation for landing
+        {"yaw": -45, "spine": 5, "arm_l": -20, "arm_r": -20, "thigh_l": -10, "shin_l": 15, "thigh_r": -10, "shin_r": 15, "z": 0.02},
+    ],
+    "glide": [
+        # Billowing horizontal flight pose
+        {"yaw": -55, "spine": 25, "arm_l": -75, "arm_r": -75, "thigh_l": 25, "shin_l": 15, "thigh_r": 30, "shin_r": 20, "z": 0.04},
+        {"yaw": -55, "spine": 22, "arm_l": -80, "arm_r": -80, "thigh_l": 28, "shin_l": 18, "thigh_r": 26, "shin_r": 16, "z": 0.05},
+        {"yaw": -55, "spine": 25, "arm_l": -75, "arm_r": -75, "thigh_l": 25, "shin_l": 15, "thigh_r": 30, "shin_r": 20, "z": 0.04},
+        {"yaw": -55, "spine": 28, "arm_l": -70, "arm_r": -70, "thigh_l": 22, "shin_l": 12, "thigh_r": 32, "shin_r": 22, "z": 0.03},
+    ],
+    "hopak_kick": [
+        # Frame 0: Martial prep chamber
+        {"yaw": -50, "spine": 10, "arm_l": -30, "arm_r": -30, "thigh_l": 10, "shin_l": 20, "thigh_r": -50, "shin_r": 70, "z": -0.02},
+        # Frame 1: Full High Martial Tynok / Shchupak Kick extended forward!
+        {"yaw": -65, "spine": -15, "arm_l": 40, "arm_r": -50, "thigh_l": 25, "shin_l": 30, "thigh_r": -85, "shin_r": 5, "z": 0.06},
+        # Frame 2: Powerful impact extension hold!
+        {"yaw": -65, "spine": -18, "arm_l": 45, "arm_r": -55, "thigh_l": 28, "shin_l": 32, "thigh_r": -90, "shin_r": 0, "z": 0.08},
+        # Frame 3: Landing back into Cossack guard
+        {"yaw": -50, "spine": 5, "arm_l": -20, "arm_r": -25, "thigh_l": 5, "shin_l": 10, "thigh_r": -30, "shin_r": 40, "z": 0.0},
+    ],
+    "bonk": [
+        # Frame 0: Head snaps back
+        {"yaw": -25, "spine": -22, "arm_l": -50, "arm_r": 50, "thigh_l": 10, "shin_l": 10, "thigh_r": -10, "shin_r": 10, "z": -0.03},
+        # Frame 1: Dizzy lean left
+        {"yaw": -35, "spine": 15, "arm_l": 40, "arm_r": -40, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 20, "z": -0.04},
+        # Frame 2: Dizzy lean right
+        {"yaw": -15, "spine": -10, "arm_l": -30, "arm_r": 30, "thigh_l": 15, "shin_l": 20, "thigh_r": -15, "shin_r": 20, "z": -0.02},
+        # Frame 3: Shake head recovery
+        {"yaw": -30, "spine": 0, "arm_l": 10, "arm_r": -10, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": 0.0},
+    ],
+    "victory": [
+        # Frame 0: Arms rising with joy
+        {"yaw": -15, "spine": -5, "arm_l": -60, "arm_r": -60, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.02},
+        # Frame 1: Both arms raised high in champion victory!
+        {"yaw": -10, "spine": -10, "arm_l": -130, "arm_r": -130, "thigh_l": -5, "shin_l": 5, "thigh_r": 5, "shin_r": 5, "z": 0.05},
+        # Frame 2: Chest out triumphant smile
+        {"yaw": -10, "spine": -12, "arm_l": -140, "arm_r": -140, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.06},
+        # Frame 3: Joyful cheer
+        {"yaw": -15, "spine": -8, "arm_l": -120, "arm_r": -120, "thigh_l": -3, "shin_l": 3, "thigh_r": 3, "shin_r": 3, "z": 0.04},
+    ]
+}
+
+frames_by_anim = {}
+
+for anim_name, frames in anims.items():
+    anim_dir = os.path.join(tmp_dir, anim_name)
+    os.makedirs(anim_dir, exist_ok=True)
+    frames_by_anim[anim_name] = []
+    
+    for idx, f in enumerate(frames):
+        reset_pose()
+        
+        yaw = f.get("yaw", 0)
+        arm_obj.rotation_euler = (0, 0, math.radians(yaw))
+        arm_obj.location.z = f.get("z", 0.0)
+        
+        pb['Spine'].rotation_euler = (math.radians(f.get("spine", 0)), 0, 0)
+        pb['Arm.L'].rotation_euler = (math.radians(f.get("arm_l", 0)), 0, 0)
+        pb['ForeArm.L'].rotation_euler = (math.radians(f.get("arm_l", 0) * 0.8), 0, 0)
+        pb['Arm.R'].rotation_euler = (math.radians(f.get("arm_r", 0)), 0, 0)
+        pb['ForeArm.R'].rotation_euler = (math.radians(f.get("arm_r", 0) * 0.8), 0, 0)
+        pb['Thigh.L'].rotation_euler = (math.radians(f.get("thigh_l", 0)), 0, 0)
+        pb['Shin.L'].rotation_euler = (math.radians(f.get("shin_l", 0)), 0, 0)
+        pb['Thigh.R'].rotation_euler = (math.radians(f.get("thigh_r", 0)), 0, 0)
+        pb['Shin.R'].rotation_euler = (math.radians(f.get("shin_r", 0)), 0, 0)
+        
+        out_file = os.path.join(anim_dir, f"frame_{idx:04d}.png")
+        scene.render.filepath = out_file
+        bpy.ops.render.render(write_still=True)
+        frames_by_anim[anim_name].append(out_file)
+        print(f"Rendered {anim_name} [{idx}] -> {out_file}")
+
+print("Rendering complete!")
+
+# Pack into spritesheet
+sys.path.insert(0, "/home/mfedchyk/Godot/djura-1/tools/blender")
+import pack_spritesheet
+
+out_png = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_sheet.png"
+out_tres = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_frames.tres"
+out_json = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_manifest.json"
+
+pack_spritesheet.pack_spritesheet(
+    frames_by_anim=frames_by_anim,
+    output_png=out_png,
+    output_tres=out_tres,
+    output_json=out_json,
+    frame_width=128,
+    frame_height=128,
+    fps=12
+)
+print("SUCCESS: Packed animated Meshy Djura sheet, frames.tres and manifest.json!")
+"""
+
+    cmd = ["blender", "-b", "--python-expr", blend_script]
+    subprocess.check_call(cmd)
+
+if __name__ == "__main__":
+    run()
