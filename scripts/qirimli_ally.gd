@@ -78,8 +78,58 @@ const PHRASES_VICTORY: Array[String] = [
 func _ready() -> void:
 	shoot_timer = randf_range(2.0, 4.0)
 	stamina_timer = randf_range(6.8, 9.4)
+	_init_animated_sprite()
 	await get_tree().create_timer(1.2).timeout
 	say(PHRASES_GREETING.pick_random(), 2.8)
+
+func _init_animated_sprite() -> void:
+	if not animated_sprite:
+		return
+	if animated_sprite.sprite_frames != null:
+		animated_sprite.play("idle")
+		return
+	
+	if ResourceLoader.exists("res://assets/sprites/qirimli_frames.tres"):
+		var tres = load("res://assets/sprites/qirimli_frames.tres") as SpriteFrames
+		if tres != null:
+			animated_sprite.sprite_frames = tres
+			animated_sprite.play("idle")
+			return
+	
+	if FileAccess.file_exists("res://assets/sprites/qirimli_sheet.png"):
+		var img := Image.load_from_file("res://assets/sprites/qirimli_sheet.png")
+		if img != null:
+			var tex := ImageTexture.create_from_image(img)
+			var sf := SpriteFrames.new()
+			sf.add_animation("idle")
+			sf.set_animation_speed("idle", 8.0)
+			sf.set_animation_loop("idle", true)
+			for i in range(4):
+				var at := AtlasTexture.new()
+				at.atlas = tex
+				at.region = Rect2(float(i * 256), 0.0, 256.0, 256.0)
+				sf.add_frame("idle", at)
+			
+			sf.add_animation("shoot")
+			sf.set_animation_speed("shoot", 8.0)
+			sf.set_animation_loop("shoot", true)
+			for i in range(4):
+				var at := AtlasTexture.new()
+				at.atlas = tex
+				at.region = Rect2(float(i * 256), 256.0, 256.0, 256.0)
+				sf.add_frame("shoot", at)
+			
+			sf.add_animation("victory")
+			sf.set_animation_speed("victory", 8.0)
+			sf.set_animation_loop("victory", true)
+			for i in range(4):
+				var at := AtlasTexture.new()
+				at.atlas = tex
+				at.region = Rect2(float(i * 256), 512.0, 256.0, 256.0)
+				sf.add_frame("victory", at)
+			
+			animated_sprite.sprite_frames = sf
+			animated_sprite.play("idle")
 
 func start_rest(duration: float = 1.85) -> void:
 	if is_celebrating_victory:

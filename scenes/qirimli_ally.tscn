@@ -1,8 +1,7 @@
-[gd_scene load_steps=4 format=3 uid="uid://qirimli_ally_001"]
+[gd_scene load_steps=3 format=3 uid="uid://qirimli_ally_001"]
 
 [ext_resource type="Script" path="res://scripts/qirimli_ally.gd" id="1_ally"]
-[ext_resource type="SpriteFrames" path="res://assets/sprites/qirimli_frames.tres" id="2_frames"]
-[ext_resource type="PackedScene" path="res://scenes/speech_bubble.tscn" id="3_bubble"]
+[ext_resource type="PackedScene" path="res://scenes/speech_bubble.tscn" id="2_bubble"]
 
 [node name="QirimliAlly" type="Node2D"]
 script = ExtResource("1_ally")
@@ -10,8 +9,6 @@ script = ExtResource("1_ally")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -4)
 scale = Vector2(0.18, 0.18)
-sprite_frames = ExtResource("2_frames")
-animation = &"idle"
 
-[node name="SpeechBubble" parent="." instance=ExtResource("3_bubble")]
+[node name="SpeechBubble" parent="." instance=ExtResource("2_bubble")]
 position = Vector2(0, -24)
