@@ -13,6 +13,7 @@ import math
 import os
 from typing import Dict, List, Tuple
 from PIL import Image, ImageEnhance, ImageFilter
+import numpy as np
 
 
 def pack_spritesheet(
@@ -66,9 +67,18 @@ def pack_spritesheet(
             frame_img = frame_img.transpose(Image.FLIP_LEFT_RIGHT)
 
         if cartoon_fx:
-            enh_col = ImageEnhance.Color(frame_img).enhance(1.42)
-            enh_con = ImageEnhance.Contrast(enh_col).enhance(1.16)
-            enh_bri = ImageEnhance.Brightness(enh_con).enhance(1.06)
+            arr = np.array(frame_img, dtype=np.float32)
+            rgb = arr[:, :, :3]
+            alpha = arr[:, :, 3]
+            mask = alpha > 40
+            # Lift dark shadows from texture folds to enforce pure flat cartoon cel-shading
+            shadow_lift = 1.0 + np.maximum(0.0, (130.0 - rgb) / 130.0) * 0.48
+            rgb[mask] = np.clip(rgb[mask] * shadow_lift[mask], 0, 255)
+            arr[:, :, :3] = rgb
+            frame_img = Image.fromarray(arr.astype(np.uint8), mode="RGBA")
+
+            enh_col = ImageEnhance.Color(frame_img).enhance(1.38)
+            enh_bri = ImageEnhance.Brightness(enh_col).enhance(1.06)
             alpha = enh_bri.split()[3]
             outline_mask = alpha.filter(ImageFilter.MaxFilter(5))
             outline_img = Image.new("RGBA", frame_img.size, (20, 15, 28, 255))

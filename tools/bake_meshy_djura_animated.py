@@ -25,6 +25,24 @@ if not m:
 for mod in list(m.modifiers):
     m.modifiers.remove(mod)
 
+# Convert material to pure flat cartoon Emission (zero 3D shadows, zero shaded sides)
+if m.data.materials:
+    mat = m.data.materials[0]
+    nt = mat.node_tree
+    base_tex_node = None
+    for n in nt.nodes:
+        if n.type == 'TEX_IMAGE' and 'Image Texture' == n.name:
+            base_tex_node = n
+            break
+    if base_tex_node:
+        output_node = [n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL'][0]
+        for p in [n for n in nt.nodes if n.type == 'BSDF_PRINCIPLED']:
+            nt.nodes.remove(p)
+        emit_node = nt.nodes.new(type='ShaderNodeEmission')
+        emit_node.inputs['Strength'].default_value = 1.0
+        nt.links.new(base_tex_node.outputs['Color'], emit_node.inputs['Color'])
+        nt.links.new(emit_node.outputs['Emission'], output_node.inputs['Surface'])
+
 # Create custom armature
 bpy.ops.object.armature_add(enter_editmode=True, location=(0,0,0))
 arm_obj = bpy.context.active_object
