@@ -1,0 +1,14 @@
+=== PROMPT FOR MESHY.AI (VOHNYK / ВОГНИК-СТРИБУНЕЦЬ) ===
+
+PROMPT:
+3D character model of a lively stylized Ukrainian Cossack fire spirit creature named Vohnyk, inspired by Slavic folk tales and classic animation. Adorable teardrop-shaped living flame elemental with a bright glowing golden-yellow inner core and warm scarlet-orange outer flame licks swirling upward into a dynamic pointed crest. Expressive round cartoon amber eyes with glowing charcoal pupils, rosy cheeks, and a cheerful cheeky cartoon grin.
+
+Wearing a tiny traditional crimson Cossack sash belt with subtle gold folk embroidery around its lower body. Sprouting tiny dynamic flame-wing wisps at its sides and hovering cheerfully just above the ground with soft fire embers. Strictly cute fairy-tale cartoon style like Calcifer from Studio Ghibli or Pixar Elemental characters, zero-horror policy.
+
+Stylized 3D character, clean hand-painted PBR emissive materials with soft gradient fire glow, symmetrical hovering A-pose stance, centered at origin Z=0, clean quad topology, game-ready asset.
+
+NEGATIVE PROMPT:
+terrifying demon, scary hellfire monster, horror skull, dark sinister lava monster, realistic burnt skin, human torso, legs, shoes, gritty realism, uncanny, low poly distortion, gore, evil face.
+
+INPUT IMAGE:
+vohnyk_concept_meshy.png (or vohnyk_concept_meshy.jpg)
