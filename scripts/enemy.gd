@@ -830,6 +830,35 @@ func _draw_vidma() -> void:
 			draw_line(spark_pos - Vector2(2.2, 0), spark_pos + Vector2(2.2, 0), Color(1.0, 0.95, 0.55, spark_alpha), 1.0)
 			draw_line(spark_pos - Vector2(0, 2.2), spark_pos + Vector2(0, 2.2), Color(1.0, 0.95, 0.55, spark_alpha), 1.0)
 
+# Геометрія язика полум'я Вогника (чиста функція: Anti-Clipping, SWR-001-04).
+# Замкнений контур від основи base у напрямку dir: вигнута хвиляста вісь, ширина звужується до кінчика (0).
+static func vognyk_flame_points(base: Vector2, dir: Vector2, length: float, width: float, t: float, phase: float) -> PackedVector2Array:
+	var d := dir.normalized()
+	var n := Vector2(-d.y, d.x)
+	var steps := 8
+	var left := PackedVector2Array()
+	var right := PackedVector2Array()
+	for i in range(steps + 1):
+		var s := float(i) / float(steps)
+		var sway := sin(t - s * 4.0 + phase) * 0.22 * length * s * s
+		var c := base + d * (length * s) + n * sway
+		var w := width * pow(1.0 - s, 0.85) * (1.0 + 0.25 * sin(s * PI))
+		left.append(c + n * w)
+		right.append(c - n * w)
+	right.reverse()
+	left.append_array(right)
+	return left
+
+# Іскорки-ембери: [позиція, вік 0..1]; відлітають у напрямку dir (назад від руху) і згасають.
+static func vognyk_ember_points(dir: Vector2, t: float, count: int, reach: float) -> Array:
+	var out: Array = []
+	for i in range(count):
+		var life := fposmod(t * 0.9 + float(i) / float(count), 1.0)
+		var lane := sin(float(i) * 2.7) * 7.0
+		var pos := dir.normalized() * (8.0 + reach * life) + Vector2(0.0, lane * (0.4 + life) + sin(t * 9.0 + float(i)) * 1.5)
+		out.append([pos, life])
+	return out
+
 # -------------------------------------------------------------
 # БЛУКАЮЧИЙ ВОГНИК (Потерчата / Купальський Лісовий Дух)
 # -------------------------------------------------------------
@@ -839,29 +868,37 @@ func _draw_vognyk() -> void:
 	var c_outer := Color(0.12, 0.85, 0.75, 0.22) if not is_scared else Color(0.45, 0.65, 1.0, 0.25)
 	var c_mid := Color(0.22, 0.96, 0.58, 0.52) if not is_scared else Color(0.55, 0.80, 1.0, 0.55)
 	var c_core := Color(0.95, 1.0, 0.82, 0.94)
+	var c_flame_in := Color(1.0, 0.92, 0.55, 0.92) if not is_scared else Color(0.85, 0.95, 1.0, 0.92)
+	var c_tail := Color(c_mid.r, c_mid.g, c_mid.b, 0.88)
 	
-	# 1. Танцюючі язики купальського полум'я вгорі
+	# 1. Танцюючі вигнуті язики купальського полум'я вгорі (зовнішній смарагдовий + внутрішній золотий)
 	for t_i in range(3):
 		var offset_x := (float(t_i) - 1.0) * 4.5
-		var tongue_wave := sin(time_passed * 14.0 + float(t_i) * 1.8) * 3.2
-		var tongue_h := (16.5 if t_i == 1 else 12.5) * pulse
-		draw_colored_polygon(PackedVector2Array([
-			Vector2(offset_x - 4.5, 2.0),
-			Vector2(offset_x + tongue_wave, -tongue_h),
-			Vector2(offset_x + 4.5, 2.0)
-		]), c_mid)
-	
-	# 1.5. Вогняний хвіст-шлейф позаду (впізнаваний силует: не кулька, а купальська «блудна свічка»)
+		var tongue_h := (17.0 if t_i == 1 else 12.5) * pulse
+		var lean := (1.0 if t_i == 2 else -1.0) if t_i != 1 else sin(time_passed * 6.0)
+		var up_pts := vognyk_flame_points(Vector2(offset_x, 2.0), Vector2(lean * 0.35, -1.0).normalized(), tongue_h, 4.6, time_passed * 14.0, float(t_i) * 1.8)
+		draw_colored_polygon(up_pts, c_mid)
+		var up_in := vognyk_flame_points(Vector2(offset_x, 2.0), Vector2(lean * 0.35, -1.0).normalized(), tongue_h * 0.62, 2.4, time_passed * 14.0, float(t_i) * 1.8)
+		draw_colored_polygon(up_in, c_flame_in)
+
+	# 1.5. Багаторівневий вогняний хвіст-шлейф позаду: три хвилясті язики, кожен із двох шарів
 	var tail_dir := -(signf(velocity.x) if absf(velocity.x) > 5.0 else 1.0)
-	var c_tail := Color(c_mid.r, c_mid.g, c_mid.b, 0.88)
+	var tail_rest := 0.7 if is_resting else 1.0
 	for t_j in range(3):
-		var t_len := (22.0 - float(t_j) * 5.0) * pulse
-		var t_y := -4.0 + float(t_j) * 4.0
-		var t_wob := sin(time_passed * 12.0 + float(t_j) * 1.7) * 3.4
-		draw_colored_polygon(PackedVector2Array([
-			Vector2(0.0, t_y - 3.2), Vector2(tail_dir * t_len, t_y + t_wob), Vector2(0.0, t_y + 3.2)
-		]), c_tail)
-	
+		var t_len := (27.0 - float(t_j) * 5.5) * pulse * tail_rest
+		var t_y := -5.0 + float(t_j) * 5.0
+		var base := Vector2(0.0, t_y)
+		var dir := Vector2(tail_dir, (float(t_j) - 1.0) * 0.18)
+		draw_colored_polygon(vognyk_flame_points(base, dir, t_len, 4.8, time_passed * 12.0, float(t_j) * 1.7), c_tail)
+		draw_colored_polygon(vognyk_flame_points(base, dir, t_len * 0.66, 2.6, time_passed * 12.0, float(t_j) * 1.7 + 0.5), c_flame_in)
+		draw_polyline(vognyk_flame_points(base, dir, t_len, 4.8, time_passed * 12.0, float(t_j) * 1.7), Color(0.04, 0.30, 0.28, 0.9), 1.2)
+
+	# 1.6. Живі іскорки-ембери відлітають назад по траєкторії польоту
+	for ember in vognyk_ember_points(Vector2(tail_dir, 0.0), time_passed, 6, 36.0):
+		var e_pos: Vector2 = ember[0]
+		var e_life: float = ember[1]
+		draw_circle(e_pos, 1.9 * (1.0 - e_life) + 0.5, Color(1.0, 0.86 - 0.3 * e_life, 0.32, 0.95 * (1.0 - e_life)))
+
 	# 2. Ефірне смарагдово-блакитне сяйво ядра
 	draw_circle(Vector2.ZERO, 15.5 * pulse, c_outer)
 	draw_circle(Vector2(0, -1.0), 10.2 * pulse, c_mid)

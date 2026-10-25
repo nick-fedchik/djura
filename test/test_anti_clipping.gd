@@ -35,6 +35,22 @@ func _initialize() -> void:
 	var body_at := src.find("_draw_oval(Vector2(0, bob), CHORT_HEAD_RX, CHORT_HEAD_RY", fn)
 	if fn < 0 or horns_at < 0 or body_at < 0 or horns_at > body_at:
 		return _fail("ріжки мають малюватися до тіла")
+	# T-010: язики полум'я Вогника — звужуються до кінчика, виходять від основи у заданому напрямку, ембери відлітають назад
+	for dir in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, -1)]:
+		for t in [0.0, 1.3, 4.7]:
+			var pts := FolkloreEnemy.vognyk_flame_points(Vector2(2, 3), dir, 20.0, 4.0, t, 0.8)
+			if pts.size() != 18:
+				return _fail("язик Вогника: очікується 18 вершин, є %d" % pts.size())
+			var tip_mid := (pts[8] + pts[9]) * 0.5
+			if pts[8].distance_to(pts[9]) > 0.01:
+				return _fail("язик Вогника має закінчуватися гострим кінчиком")
+			if (tip_mid - Vector2(2, 3)).dot(dir) < 12.0:
+				return _fail("язик Вогника має тягнутися у заданому напрямку")
+			if pts[0].distance_to(pts[17]) > 12.0:
+				return _fail("основа язика Вогника завширшка")
+	for e in FolkloreEnemy.vognyk_ember_points(Vector2(-1, 0), 2.1, 6, 36.0):
+		if e[0].x > -7.0 or e[1] < 0.0 or e[1] > 1.0:
+			return _fail("ембер Вогника має летіти назад і мати вік 0..1")
 	# Перевірка нових NPC рівнів 13–20 (T-023: ZLYDNI, BASAVRIUK, VIJ, VIDMAK, FINAL_BOSS, DOMOVYK, KOBZAR, VAKULA)
 	var mavka_script = load("res://scripts/mavka_ally.gd")
 	var new_checks := [

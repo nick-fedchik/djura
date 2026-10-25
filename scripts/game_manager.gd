@@ -104,8 +104,10 @@ func _ready() -> void:
 	telemetry_engine.name = "TelemetryEngine"
 	add_child(telemetry_engine)
 	telemetry_engine.mamay_tip_ready.connect(_on_mamay_tip_ready)
-	hud.update_score(score)
-	hud.update_highscore(high_score)
+	if hud:
+		hud.update_score(score)
+		hud.update_highscore(high_score)
+		hud.profile_changed.connect(set_player_profile)
 	if player:
 		player.vakula_shoes_state_changed.connect(_on_vakula_shoes_state_changed)
 		player.combat_move_performed.connect(_on_player_combat_move_performed)
@@ -1220,6 +1222,8 @@ func _init_adaptation() -> void:
 		player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id)
 	telemetry.log_event("session_start", {"age_band": player_model.age_band, "experience": player_model.experience,
 		"mu": player_model.mu, "sigma": sqrt(player_model.sigma2)})
+	if hud and hud.has_method("update_profile_display"):
+		hud.update_profile_display(player_model.age_band, player_model.experience)
 
 func _save_profile() -> void:
 	if player_model == null or _Telemetry.is_headless():
@@ -1228,6 +1232,21 @@ func _save_profile() -> void:
 	if f:
 		f.store_string(JSON.stringify(player_model.to_dict()))
 		f.close()
+
+func set_player_profile(age: String, exp_level: String) -> void:
+	if player_model == null:
+		player_model = _PlayerModel.new()
+	player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id if telemetry != null else "")
+	_save_profile()
+	if telemetry != null:
+		telemetry.log_event("session_start", {
+			"age_band": player_model.age_band,
+			"experience": player_model.experience,
+			"mu": player_model.mu,
+			"sigma": sqrt(player_model.sigma2)
+		})
+	if hud and hud.has_method("update_profile_display"):
+		hud.update_profile_display(player_model.age_band, player_model.experience)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST and telemetry != null:
