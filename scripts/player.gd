@@ -82,8 +82,8 @@ var invulnerable_timer: float = 0.0
 
 # Чемпіонські навички боксу (Клички та Усик) + Козацькі удари ногами з Бойового Гопака!
 enum ChampionSkill {
-	STEELHAMMER_JAB,       # Володимир Кличко: нищівний сталевий джеб з ударною хвилею
-	IRONFIST_HOOK,         # Віталій Кличко: залізний хук/оверхенд згори
+	STEELHAMMER_JAB,       # Володимир Кличко: нищівний сталевий тичок з ударною хвилею
+	IRONFIST_HOOK,         # Віталій Кличко: Козацький Залізний Хрест згори
 	USYK_SLIP_COUNTER,     # Олександр Усик: човник, нирок та серійний контрудар
 	UNDISPUTED_TRIO,       # Абсолютний Чемпіон (Тріумф трьох легенд — Золота Хвиля Тризуба)
 	HOPAK_TYNOK_KICK,      # Бойовий Гопак: високий прямий удар ногою «Тинок» у сап'янці з золотою підковою!
@@ -403,7 +403,7 @@ func _perform_champion_punch() -> void:
 			_spawn_strike_effect(Vector2(-26.0, 2.0), Color(1.0, 0.85, 0.20), true, false)
 			combat_move_performed.emit("hopak_kick")
 	elif current_step == 2 and unlocked_skills.is_empty():
-		# На землі у серії ударів Джура завершує комбо високим ударом ноги «Тинок»!
+		# На землі у серії ударів Джура завершує серію високим ударом ноги «Тинок»!
 		punch_active_skill = ChampionSkill.HOPAK_TYNOK_KICK
 		_play_sfx(snd_hopak_kick, 1.15)
 		say("Бойовий Гопак: Удар чоботом — Тинок!", 1.4)
@@ -1003,7 +1003,7 @@ func _compute_skeletal_pose(flip: float, run_anim: float, on_ground: bool) -> Di
 			ankle_r = Vector2(9.5, 12.2)
 			
 			# Lead LEFT arm uncoils from guard into a straight punch to the LEFT!
-			# Посилення розмаху та ударної хвилі при вивченні Сталевого Джебу Володимира Кличка
+			# Посилення розмаху та ударної хвилі при вивченні Сталевого Тичка Володимира Кличка
 			var jab_reach := 29.5 if ChampionSkill.STEELHAMMER_JAB in unlocked_skills else 22.5
 			elbow_l = pelvis + Vector2(-3.0, -3.5).lerp(Vector2(-12.5, -9.2), strike)
 			wrist_l = pelvis + Vector2(-2.0, -7.5).lerp(Vector2(-jab_reach, -9.5), strike)
@@ -1042,7 +1042,7 @@ func _compute_skeletal_pose(flip: float, run_anim: float, on_ground: bool) -> Di
 			fist_l = true
 			
 			# Rear RIGHT arm unleashes full cross punch to the RIGHT!
-			# Посилення розмаху при вивченні Залізного Хука Віталія Кличка
+			# Посилення розмаху при вивченні Залізного Хреста Віталія Кличка
 			var cross_reach := 31.5 if ChampionSkill.IRONFIST_HOOK in unlocked_skills else 23.0
 			elbow_r = pelvis + Vector2(3.0, -3.0).lerp(Vector2(12.5, -8.8), strike)
 			wrist_r = pelvis + Vector2(1.0, -5.0).lerp(Vector2(cross_reach, -8.8), strike)
@@ -1697,7 +1697,7 @@ func _draw() -> void:
 			_draw_oval(head_c + Vector2(-1.5, 3.6), 2.2, 2.6, Color(0.30, 0.08, 0.08))
 			draw_arc(head_c + Vector2(-1.5, 3.0), 2.0, 0.2, PI - 0.2, 8, Color.WHITE, 1.0)
 		elif hopak_time < 1.36:
-			# Фаза 2: Силовий хук праворуч — напружений прицільний погляд вправо
+			# Фаза 2: Силовий Залізний Хрест праворуч — напружений прицільний погляд вправо
 			_draw_oval(eye_c, 2.4, 2.0, Color.WHITE)
 			draw_circle(eye_c + Vector2(1.2, 0.0), 1.2, Color(0.12, 0.22, 0.35))
 			draw_line(eye_c + Vector2(-2.0, -1.6), eye_c + Vector2(2.0, -2.4), Color(0.18, 0.12, 0.10), 1.8)

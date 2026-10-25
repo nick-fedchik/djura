@@ -30,6 +30,7 @@ var _last_bomb_ms: int = 0
 var _inter_bomb_intervals: Array[float] = []
 var _jumps_count: int = 0
 var _glides_count: int = 0
+var _current_level: int = 1
 var _fast_drops_count: int = 0
 var _rolls_count: int = 0
 var _punches_count: int = 0
@@ -45,7 +46,8 @@ var _idle_time_s: float = 0.0
 var _near_miss_cooldown: float = 0.0
 
 ## Скидання та старт збору лічильників на початку рівня
-func begin_level_tracking(_level: int) -> void:
+func begin_level_tracking(level: int) -> void:
+	_current_level = level
 	var now := Time.get_ticks_msec()
 	_level_start_ms = now
 	_last_bomb_ms = now
@@ -155,6 +157,18 @@ static func interest_signal(features: Dictionary) -> float:
 	var bonus := 0.10 * (rhythm_score - 0.5) + 0.08 * thrill + 0.06 * (lit_ratio - 0.35) - 0.15 * idle_ratio
 	return clampf(bonus, -0.20, 0.20)
 
+## Контекстна порада Наставника щодо механік Етапу 1 (рівні 1–5); порожній рядок, якщо поради немає:
+## Вогник-палій (7 с до «БАХ!»), ширяння на крилатій киреї, шлях до Булави Котигорошка.
+static func mamay_mechanic_tip(level: int, features: Dictionary) -> String:
+	var glides: int = int(features.get("glides", 0))
+	if level <= 2:
+		return "Вогник підпалив ядро — маєш сім секунд до «БАХ!», Джуро! Біжи й загаси його, поки ґніт не догорів, а там уже й побратимам легше!"
+	if level <= 4 and glides == 0:
+		return "Крилата кирея не лише для краси, Джуро! Стрибни й утримуй стрибок — і ширятимеш над прірвою, мов яструб над степом!"
+	if level >= 5:
+		return "Богатир Котигорошко лишив нам Булаву! Здолай Солоху, збережи ядра від підпалу — і спадщина роду стане твоєю!"
+	return ""
+
 ## Детермінована лицарська порада Козака-Шабельника (Наставника) відповідно до типу гравця та дій на рівні (GDD §3.2):
 static func mamay_tip_for_episode(persona: PlayerPersona, features: Dictionary) -> String:
 	var hits: int = int(features.get("hits", 0))
@@ -163,6 +177,9 @@ static func mamay_tip_for_episode(persona: PlayerPersona, features: Dictionary) 
 		return "Обережно зі склепінням, Джуро! Шануй земну твердь і стелю, оминай балки збоку або бери пружні підківки Вакули!"
 	if hits >= 2:
 		return "Гаряче серце — це добре, Джуро, але шабля любить холодну голову! Не поспішай на багнет — роби ухил на півкорпусу і ширяй на киреї!"
+	var mechanic_tip := mamay_mechanic_tip(int(features.get("level", 0)), features)
+	if not mechanic_tip.is_empty():
+		return mechanic_tip
 	match persona:
 		PlayerPersona.YOUNG_COSSACK_8PLUS:
 			return "Козак починається з рівноваги, юний Джуро! Тримай твердо підошви на дошках і стеж за ґнотами Вогника — у твоїх жилах тече кров Котигорошка!"
@@ -191,6 +208,8 @@ func summarize_level_episode(clear_time_s: float, hits: int) -> Dictionary:
 		"idle_ratio": idle_ratio,
 		"bonks": _bonks_count,
 		"near_misses": _near_misses_count,
+		"level": _current_level,
+		"glides": _glides_count,
 		"rhythm_cv": float(rhythm["cv"]),
 		"rhythm_score": float(rhythm["rhythm_score"]),
 	}

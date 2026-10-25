@@ -45,6 +45,25 @@ func _initialize() -> void:
 		return _fail("підсумок рівня має рахувати удари й генерувати пораду Мамая: %s" % [summary])
 	te.free()
 
+	# 3а) Поради Наставника щодо механік Етапу 1 (T-C01)
+	var tip_l1 := TE.mamay_mechanic_tip(1, {})
+	var tip_l2 := TE.mamay_mechanic_tip(2, {})
+	if tip_l1.is_empty() or tip_l1 != tip_l2 or not ("сім секунд" in tip_l1 and "БАХ" in tip_l1):
+		return _fail("поради рівнів 1–2 мають згадувати 7 секунд до «БАХ!»: %s" % [tip_l1])
+	for lvl in [3, 4]:
+		var tip_k := TE.mamay_mechanic_tip(lvl, {"glides": 0})
+		if not ("кирея" in tip_k.to_lower() or "киреї" in tip_k.to_lower()) or not ("утримуй" in tip_k):
+			return _fail("порада рівня %d має пояснювати ширяння на киреї: %s" % [lvl, tip_k])
+		if not TE.mamay_mechanic_tip(lvl, {"glides": 3}).is_empty():
+			return _fail("порада про кирею не потрібна, якщо гравець уже ширяє (рівень %d)" % lvl)
+	var tip_l5 := TE.mamay_mechanic_tip(5, {})
+	if not ("Котигорошк" in tip_l5 and "Булав" in tip_l5):
+		return _fail("порада рівня 5 має згадувати Котигорошка й Булаву: %s" % [tip_l5])
+	for banned in ["джеб", "хук", "оверхенд", "аперкот", "сліп", "деш", "комбо"]:
+		for t in [tip_l1, tip_l5, TE.mamay_mechanic_tip(3, {})]:
+			if banned in t.to_lower():
+				return _fail("англіцизм «%s» у пораді: %s" % [banned, t])
+
 	var tel := T.new("p_test")
 	var ev := tel.log_event("level_end", {
 		"level": 1, "k": 1.0, "persona": summary["persona"], "near_misses": summary["near_misses"],

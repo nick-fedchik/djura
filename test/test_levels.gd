@@ -2,6 +2,39 @@ extends SceneTree
 
 var frame_count: int = 0
 var mgr = null
+var mace_phase_start: int = -1 # кадр запуску перевірки нагороди Булавою після завершення рівня 5
+const MACE_WAIT_FRAMES: int = 3000
+
+func _count_types(level_id: int) -> Dictionary:
+	var counts := {}
+	for cfg in mgr.LEVEL_COMPOSITIONS[level_id]:
+		counts[cfg["type"]] = int(counts.get(cfg["type"], 0)) + 1
+	return counts
+
+func _check_stage1_compositions() -> void:
+	var T = FolkloreEnemy.EnemyType
+	# Рівень 1: виключно Вогник, жодного іншого ворога
+	var c1 := _count_types(1)
+	assert(c1.get(T.VOGNYK, 0) >= 1, "LEVEL_COMPOSITIONS[1] must contain Vognyk")
+	assert(c1.size() == 1, "LEVEL_COMPOSITIONS[1] must contain ONLY Vognyk")
+	assert(c1.get(T.CHORT, 0) == 0 and c1.get(T.VIDMA, 0) == 0, "Level 1: zero Chorts, zero Vidmas")
+	# Рівень 2: 2 Вогники, нуль чортиків і відьом
+	var c2 := _count_types(2)
+	assert(c2.get(T.VOGNYK, 0) == 2, "LEVEL_COMPOSITIONS[2] must have exactly 2 Vognyks")
+	assert(c2.get(T.CHORT, 0) == 0 and c2.get(T.VIDMA, 0) == 0 and c2.size() == 1, "Level 2: zero Chorts, zero Vidmas")
+	# Рівні 3–4: Вогники та Чортики, нуль відьом
+	for lvl in [3, 4]:
+		var c := _count_types(lvl)
+		assert(c.get(T.VOGNYK, 0) >= 1, "Level %d must have Vognyks" % lvl)
+		assert(c.get(T.CHORT, 0) >= 1, "Level %d must have Chorts" % lvl)
+		assert(c.get(T.VIDMA, 0) == 0, "Level %d must have zero Vidmas" % lvl)
+		assert(c.size() == 2, "Level %d must have only Vognyks and Chorts" % lvl)
+	# Рівень 5: Відьма Солоха разом із Вогниками та Чортиками
+	var c5 := _count_types(5)
+	assert(c5.get(T.VIDMA, 0) == 1, "Level 5 must have exactly 1 Vidma Solokha")
+	assert(c5.get(T.VOGNYK, 0) >= 1 and c5.get(T.CHORT, 0) >= 1, "Level 5 must keep Vognyks and Chorts alongside Vidma")
+	assert(c5.size() == 3, "Level 5 must have no enemy types beyond Vognyk/Chort/Vidma")
+	print("[OK] Stage 1 LEVEL_COMPOSITIONS invariants (levels 1-5) verified!")
 
 func _init() -> void:
 	var main_scene = load("res://scenes/main.tscn")
@@ -28,6 +61,8 @@ func _physics_process(delta: float) -> bool:
 		print("[OK] Level 1 enemies verified: Only Vohnyk for 8+ kids friendliness and Meshy 3D showcase!")
 		
 		# Simulate level 1 completion to test Level 2 transition
+		_check_stage1_compositions()
+		assert(mgr.hutsul_ally == null and mgr.qirimli_ally == null, "Level 1 must have zero external allies")
 		print("Simulating transition to Level 2...")
 		mgr.level = 2
 		mgr._setup_level()
@@ -354,7 +389,28 @@ func _physics_process(delta: float) -> bool:
 		print("[OK] 2K 16:9 Viewport resolution: %s (Aspect: %.4f)" % [v_size, v_size.x / v_size.y])
 		assert(is_equal_approx(v_size.x / v_size.y, 16.0 / 9.0), "Aspect ratio must be 16:9 2K")
 		
-		print("--- ALL LEVEL 1 & LEVEL 2 TESTS PASSED! ---")
-		quit(0)
-		return true
+		# Нагорода Булавою: окремий свіжий екземпляр гри, щоб не заважали корутини попередніх перевірок
+		print("Testing Kotyhoroshko Mace award on Level 5 completion...")
+		root.remove_child(mgr)
+		mgr.free()
+		var fresh = load("res://scenes/main.tscn").instantiate()
+		root.add_child(fresh)
+		mgr = fresh
+		mace_phase_start = frame_count + 2
+	elif mace_phase_start > 0 and frame_count == mace_phase_start:
+		mgr.adaptive_enabled = false
+		mgr.level = 5
+		mgr._setup_level()
+		mgr.is_transitioning_level = false
+		assert(mgr.player.has_mace == false, "Player must not own the mace before Level 5 is completed")
+		mgr._on_level_complete()
+	elif mace_phase_start > 0 and frame_count > mace_phase_start:
+		if mgr.level == 6:
+			assert(mgr.player.has_mace == true, "Completing Level 5 must award Kotyhoroshko Mace")
+			assert(mgr.player.mace_durability > 0, "Awarded mace must have positive durability")
+			print("[OK] Kotyhoroshko Mace awarded on Level 5 -> 6 transition (durability %d)!" % mgr.player.mace_durability)
+			print("--- ALL LEVEL 1 & LEVEL 2 TESTS PASSED! ---")
+			quit(0)
+			return true
+		assert(frame_count - mace_phase_start < MACE_WAIT_FRAMES, "Timeout waiting for Level 5 completion -> Level 6")
 	return false

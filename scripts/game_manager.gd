@@ -67,11 +67,11 @@ const COMBAT_HINTS: Dictionary = {
 	},
 	"air_slam_combo": {
 		"title": "УДАР СОКОЛА В СТРИБКУ",
-		"hint": "КОМБО В ПОВІТРІ: у стрибку [Пробіл + X/C] або Геймпад [Стрибок A -> X / B] — удар з неба!"
+		"hint": "СЕРІЯ В ПОВІТРІ: у стрибку [Пробіл + X/C] або Геймпад [Стрибок A -> X / B] — удар з неба!"
 	},
 	"roll_strike_combo": {
 		"title": "КОЗАЦЬКИЙ ПОВЗУНЕЦЬ З УДАРОМ",
-		"hint": "КОМБО «ПОВЗУНЕЦЬ»: затисни [Вниз + X/C] або Геймпад [Стік вниз + X / B] — перекат і підсічка!"
+		"hint": "ВОГНЕВА ЗВ’ЯЗКА «ПОВЗУНЕЦЬ»: затисни [Вниз + X/C] або Геймпад [Стік вниз + X / B] — перекат і підсічка!"
 	},
 	"steelhammer_jab": {
 		"title": "СТАЛЕВИЙ ПРЯМИЙ ТИЧОК",
@@ -691,7 +691,7 @@ func _check_progressive_ally_arrival() -> void:
 		return
 	var enemy_count := enemies_node.get_child_count() if enemies_node else 0
 	
-	# 1. Перший Карпатський Гуцул з барткою прибуває після перших успіхів Джури (2+ ядра або комбо >= 2)
+	# 1. Перший Карпатський Гуцул з барткою прибуває після перших успіхів Джури (2+ ядра або серія >= 2)
 	if not hutsul_spawned_this_level and enemy_count >= 1 and _Difficulty.ally_available("HUTSUL", level):
 		if bombs_collected_on_level >= _Difficulty.ally_threshold(2, difficulty_k, prev_quality) or lit_streak >= 2:
 			_spawn_hutsul_ally()
@@ -703,7 +703,7 @@ func _check_progressive_ally_arrival() -> void:
 		_spawn_single_hutsul(Vector2(760, 220), -1.0)
 		hud.show_message("ЩЕ ОДИН ГУЦУЛ-ОПРИШОК ПРИБУВ З ЧОРНОГОРИ НА ПІДМОГУ!", 2.4, Color(1.0, 0.88, 0.30))
 	
-	# 3. Побратим Киримли з Луком і Соколом прибуває далі по ходу прогресу (4+ ядра або комбо >= 3, рівні 3..5)
+	# 3. Побратим Киримли з Луком і Соколом прибуває далі по ходу прогресу (4+ ядра або серія >= 3, рівні 3..5)
 	if not qirimli_spawned_this_level and _Difficulty.ally_available("QIRIMLI", level) and enemy_count >= 3:
 		if bombs_collected_on_level >= _Difficulty.ally_threshold(4, difficulty_k, prev_quality) or lit_streak >= 3:
 			_spawn_qirimli_ally()
@@ -1398,7 +1398,7 @@ func _on_bomb_exploded(bomb: BombItem) -> void:
 	if is_transitioning_level:
 		return
 	
-	# Скидання стріку комбо палаючих бомб та штраф слави
+	# Скидання стріку серії палаючих бомб та штраф слави
 	lit_streak = 1
 	var penalty := 150
 	score = maxi(0, score - penalty)
