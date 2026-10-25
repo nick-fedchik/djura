@@ -125,6 +125,9 @@ var audio_player: AudioStreamPlayer
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var speech_bubble: SpeechBubble = get_node_or_null("SpeechBubble")
 @onready var animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
+## Головний режим рендерингу: автентичний 2D-мультиплікаційний векторний стиль Київнаукфільм (true)
+## або попередньо згенерований спрайтовий аркуш (false).
+@export var use_cartoon_character: bool = true
 
 func _ready() -> void:
 	audio_player = AudioStreamPlayer.new()
@@ -271,6 +274,12 @@ func take_hit(from_pos: Vector2) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F6:
+			use_cartoon_character = not use_cartoon_character
+			_update_animated_sprite()
+			queue_redraw()
+			say("Стиль: " + ("Мультиплікація (Київнаукфільм)" if use_cartoon_character else "Спрайт (Meshy 3D)"), 1.8)
+			return
 		if event.keycode == KEY_C or event.keycode == KEY_K or event.keycode == KEY_Z:
 			_perform_hopak_kick()
 			return
@@ -843,6 +852,9 @@ func _physics_process(delta: float) -> void:
 
 func _update_animated_sprite() -> void:
 	if not animated_sprite:
+		return
+	if use_cartoon_character:
+		animated_sprite.visible = false
 		return
 	if invulnerable_timer > 0.0 and fmod(invulnerable_timer, 0.14) > 0.07:
 		animated_sprite.visible = false
@@ -1458,7 +1470,10 @@ func _draw() -> void:
 		])
 		draw_colored_polygon(drop_pts, outer_blue)
 		draw_line(chest + Vector2(-5 * flip, -1.5), chest + Vector2(-10 * flip, -23.5 + wave), border_gold, 2.0)
-	else:
+	elif animated_sprite == null or not animated_sprite.visible:
+		# Траєкторія киреї на землі малюється ЛИШЕ в мультиплікаційному режимі!
+		# Якщо активний AnimatedSprite2D, одежа вже намальована у спрайті, тому малювання
+		# цього полігону під спрайтом створювало дефект смуги ("рушник з пояса до підлоги кольором прапора").
 		var cape_x := pelvis.x - 16.0 * flip + (run_anim * 4.0 * flip if on_ground and not is_hopak else 0.0) + wave
 		var cape_bottom_y := pelvis.y + 12.5 + clampf(-pelvis.y * 0.25, 0.0, 6.0)
 		var cape_outer = PackedVector2Array([

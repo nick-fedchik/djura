@@ -227,17 +227,18 @@ anims["run"] = []
 for i in range(10):
     t = float(i) / 10.0 * math.tau
     s = math.sin(t)
-    # Right leg (foreground) swings forward on s > 0
-    th_r = 48.0 * s
-    sh_r = max(0.0, 36.0 * s) + max(0.0, 22.0 * -s)
-    # Left leg (background) swings back on s > 0
-    th_l = -48.0 * s
-    sh_l = max(0.0, 36.0 * -s) + max(0.0, 22.0 * s)
+    # Forward sprint facing right:
+    # Negative thigh angle swings leg forward (-Y, into movement direction)
+    # Positive thigh angle pushes leg back (+Y)
+    th_r = -44.0 * s
+    sh_r = max(0.0, 52.0 * -s) + max(0.0, 16.0 * s)
+    th_l = 44.0 * s
+    sh_l = max(0.0, 52.0 * s) + max(0.0, 16.0 * -s)
     anims["run"].append({
         "yaw": 75,
         "spine": 14.0 + 2.0 * abs(s), # forward torso lean into the sprint
-        "arm_r": -42.0 * s,           # counter-swinging arms
-        "arm_l": 42.0 * s,
+        "arm_r": 40.0 * s,            # counter-swinging arms (opposite to leg)
+        "arm_l": -40.0 * s,
         "thigh_r": th_r,
         "shin_r": sh_r,
         "thigh_l": th_l,

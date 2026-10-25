@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 """
 Generates high-resolution cinematic story cards for Stage 1 Level 1
-using authentic 3D Meshy renders and Ukrainian Cossack folklore aesthetics.
+using authentic high-resolution screenshots of the 15-year-old Djura and Mentor Kharakternyk.
 """
 
 import os
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import numpy as np
+
+def extract_character_cutout(img_path, threshold=20):
+    im = Image.open(img_path).convert('RGBA')
+    arr = np.array(im, dtype=np.float32)
+    rgb = arr[:, :, :3]
+    brightness = np.max(rgb, axis=2)
+    # Smooth alpha feathering to cleanly remove the black background
+    alpha = np.clip((brightness - threshold) / (threshold * 1.5), 0.0, 1.0) * 255.0
+    arr[:, :, 3] = alpha
+    result = Image.fromarray(arr.astype(np.uint8))
+    bbox = result.getbbox()
+    if bbox:
+        result = result.crop(bbox)
+    return result
 
 def create_slide_1_meeting():
     w, h = 600, 300
@@ -44,11 +58,11 @@ def create_slide_1_meeting():
     cx, cy = int(w * 0.5), int(h * 0.72)
     glow_overlay = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     glow_draw = ImageDraw.Draw(glow_overlay)
-    for rad in range(110, 10, -5):
-        alpha = int(45 * (1.0 - rad / 110.0))
+    for rad in range(120, 10, -5):
+        alpha = int(45 * (1.0 - rad / 120.0))
         glow_draw.ellipse([cx - rad, cy - rad + 15, cx + rad, cy + rad + 15], fill=(255, 140, 30, alpha))
-    for rad in range(45, 5, -5):
-        alpha = int(90 * (1.0 - rad / 45.0))
+    for rad in range(50, 5, -5):
+        alpha = int(90 * (1.0 - rad / 50.0))
         glow_draw.ellipse([cx - rad, cy - rad + 15, cx + rad, cy + rad + 15], fill=(255, 220, 70, alpha))
     bg = Image.alpha_composite(bg, glow_overlay)
     draw = ImageDraw.Draw(bg)
@@ -62,27 +76,30 @@ def create_slide_1_meeting():
     draw.polygon(inner_flame, fill=(255, 230, 80, 255))
 
     # Sparks
-    for _ in range(12):
+    for _ in range(16):
         sp_x = cx + np.random.randint(-40, 40)
-        sp_y = cy - np.random.randint(5, 75)
+        sp_y = cy - np.random.randint(5, 85)
         draw.ellipse([sp_x - 1.5, sp_y - 1.5, sp_x + 1.5, sp_y + 1.5], fill=(255, 210, 60, 230))
         
-    # Mentor Cossack (Left side)
+    # Mentor Cossack (Left side) - Clean cutout from reports/mentor_cossack_preview.png
     mentor_path = "/home/mfedchyk/Godot/djura-1/reports/mentor_cossack_preview.png"
     if os.path.exists(mentor_path):
-        m_img = Image.open(mentor_path).convert("RGBA")
-        m_img = m_img.resize((210, 210), Image.Resampling.LANCZOS)
-        # Flip to face the fire/Djura on the right
-        bg.paste(m_img, (35, 65), m_img)
+        m_cut = extract_character_cutout(mentor_path)
+        target_h = 220
+        target_w = int(m_cut.width * target_h / m_cut.height)
+        m_img = m_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        bg.paste(m_img, (45, 68), m_img)
         
-    # Young Djura (Right side)
-    djura_path = "/home/mfedchyk/Godot/djura-1/reports/meshy_djura_preview.png"
+    # Young Djura (Right side) - Clean cutout from reports/djura_15yo_preview.png
+    djura_path = "/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png"
     if os.path.exists(djura_path):
-        d_img = Image.open(djura_path).convert("RGBA")
-        d_img = d_img.resize((185, 185), Image.Resampling.LANCZOS)
+        d_cut = extract_character_cutout(djura_path)
         # Flip to face the Mentor on the left
-        d_img = d_img.transpose(Image.FLIP_LEFT_RIGHT)
-        bg.paste(d_img, (380, 80), d_img)
+        d_cut = d_cut.transpose(Image.FLIP_LEFT_RIGHT)
+        target_h = 205
+        target_w = int(d_cut.width * target_h / d_cut.height)
+        d_img = d_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        bg.paste(d_img, (375, 75), d_img)
         
     # Labels / Title badge
     draw.rectangle([w//2 - 140, 10, w//2 + 140, 38], fill=(18, 22, 38, 230), outline=(220, 180, 60, 255), width=2)
@@ -108,38 +125,42 @@ def create_slide_2_pledge():
         draw.line([(0, y), (w, y)], fill=(r, g, b, 255))
         
     # Golden celestial aura behind Djura
-    cx, cy = int(w * 0.5), int(h * 0.5)
+    cx, cy = int(w * 0.48), int(h * 0.52)
     aura = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     aura_draw = ImageDraw.Draw(aura)
     for rad in range(140, 20, -6):
-        alpha = int(40 * (1.0 - rad / 140.0))
+        alpha = int(45 * (1.0 - rad / 140.0))
         aura_draw.ellipse([cx - rad, cy - rad, cx + rad, cy + rad], fill=(255, 215, 60, alpha))
     for rad in range(65, 10, -5):
-        alpha = int(75 * (1.0 - rad / 65.0))
+        alpha = int(80 * (1.0 - rad / 65.0))
         aura_draw.ellipse([cx - rad, cy - rad, cx + rad, cy + rad], fill=(70, 180, 255, alpha))
     bg = Image.alpha_composite(bg, aura)
     draw = ImageDraw.Draw(bg)
     
     # Sunburst rays of Cossack blessing
-    for deg in range(0, 360, 30):
+    for deg in range(0, 360, 24):
         rad = math.radians(deg)
-        x2 = cx + int(math.cos(rad) * 160)
-        y2 = cy + int(math.sin(rad) * 160)
-        draw.line([(cx, cy), (x2, y2)], fill=(255, 235, 120, 45), width=2)
+        x2 = cx + int(math.cos(rad) * 170)
+        y2 = cy + int(math.sin(rad) * 170)
+        draw.line([(cx, cy), (x2, y2)], fill=(255, 235, 120, 50), width=2)
         
     # Mentor on left raising hand in blessing
     mentor_path = "/home/mfedchyk/Godot/djura-1/reports/mentor_cossack_preview.png"
     if os.path.exists(mentor_path):
-        m_img = Image.open(mentor_path).convert("RGBA")
-        m_img = m_img.resize((190, 190), Image.Resampling.LANCZOS)
-        bg.paste(m_img, (25, 75), m_img)
+        m_cut = extract_character_cutout(mentor_path)
+        target_h = 225
+        target_w = int(m_cut.width * target_h / m_cut.height)
+        m_img = m_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        bg.paste(m_img, (35, 68), m_img)
         
     # Djura in center/right taking the solemn oath
-    djura_path = "/home/mfedchyk/Godot/djura-1/reports/meshy_djura_preview.png"
+    djura_path = "/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png"
     if os.path.exists(djura_path):
-        d_img = Image.open(djura_path).convert("RGBA")
-        d_img = d_img.resize((215, 215), Image.Resampling.LANCZOS)
-        bg.paste(d_img, (220, 55), d_img)
+        d_cut = extract_character_cutout(djura_path)
+        target_h = 220
+        target_w = int(d_cut.width * target_h / d_cut.height)
+        d_img = d_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
+        bg.paste(d_img, (220, 68), d_img)
         
     # Floating Kyreya cape & golden sash on the right
     kyreya_pts = [(470, 90), (510, 60), (550, 90), (540, 160), (510, 180), (480, 160)]
@@ -159,39 +180,40 @@ def create_slide_2_pledge():
 
 def create_slide_3_mission():
     w, h = 600, 300
-    bg = Image.new("RGBA", (w, h), (14, 16, 24, 255))
+    bg = Image.new("RGBA", (w, h), (16, 20, 32, 255))
     draw = ImageDraw.Draw(bg)
     
-    # Night fortress platforms & beams
-    for y in range(h):
-        ratio = y / float(h)
-        r = int(12 + ratio * 15)
-        g = int(14 + ratio * 18)
-        b = int(22 + ratio * 28)
-        draw.line([(0, y), (w, y)], fill=(r, g, b, 255))
+    # Fortress wall background grid texture
+    for y in range(0, h, 20):
+        draw.line([(0, y), (w, y)], fill=(24, 30, 48, 180), width=1)
+    for x in range(0, w, 40):
+        draw.line([(x, 0), (x, h)], fill=(24, 30, 48, 180), width=1)
         
-    # Wooden defense platforms
-    draw.rectangle([30, 235, 570, 248], fill=(90, 58, 34, 255), outline=(140, 95, 55, 255), width=2)
-    draw.rectangle([180, 145, 570, 156], fill=(90, 58, 34, 255), outline=(140, 95, 55, 255), width=2)
+    # Top Mission Banner
+    draw.rectangle([20, 12, w - 20, 46], fill=(22, 28, 48, 230), outline=(220, 180, 60, 255), width=2)
     
-    # 1. Mission Object: Powder Bomb with burning fuse on the left
-    bx, by = 90, 200
-    draw.ellipse([bx - 26, by - 26, bx + 26, by + 26], fill=(22, 22, 26, 255), outline=(65, 65, 75, 255), width=3)
-    # Highlight
-    draw.ellipse([bx - 16, by - 18, bx - 6, by - 8], fill=(85, 85, 105, 255))
-    # Bomb fuse cap & burning wick
-    draw.rectangle([bx - 6, by - 33, bx + 6, by - 26], fill=(140, 110, 50, 255))
-    draw.line([(bx, by - 33), (bx + 8, by - 44)], fill=(180, 140, 80, 255), width=3)
-    # Spark
-    draw.ellipse([bx + 6, by - 48, bx + 14, by - 40], fill=(255, 180, 40, 255))
-    draw.ellipse([bx + 8, by - 46, bx + 12, by - 42], fill=(255, 255, 200, 255))
-    # Spark rays
-    for angle in [0, 45, 90, 135, 180, 225, 270, 315]:
+    # 1. Mission Object: Mine / Bomb with sparking fuse on left
+    bx, by = 95, 115
+    # Bomb outer glow
+    for rad in range(48, 10, -4):
+        draw.ellipse([bx - rad, by - rad, bx + rad, by + rad], fill=(240, 60, 30, int(35 * (1.0 - rad/48.0))))
+    # Bomb body (deep iron black with specular highlight)
+    draw.ellipse([bx - 32, by - 32, bx + 32, by + 32], fill=(28, 28, 36, 255), outline=(220, 180, 60, 255), width=2)
+    draw.ellipse([bx - 18, by - 22, bx - 6, by - 12], fill=(70, 75, 90, 255))
+    # Bomb neck
+    draw.rectangle([bx - 7, by - 40, bx + 7, by - 30], fill=(80, 85, 95, 255), outline=(220, 180, 60, 255), width=1)
+    # Burning fuse
+    fuse_pts = [(bx, by - 40), (bx + 4, by - 46), (bx + 10, by - 44)]
+    draw.line(fuse_pts, fill=(180, 140, 80, 255), width=3)
+    # Fuse spark
+    draw.ellipse([bx + 8, by - 47, bx + 14, by - 41], fill=(255, 100, 20, 255))
+    draw.ellipse([bx + 9, by - 46, bx + 13, by - 42], fill=(255, 240, 80, 255))
+    for angle in range(0, 360, 45):
         ra = math.radians(angle)
-        draw.line([(bx + 10, by - 44), (bx + 10 + math.cos(ra)*9, by - 44 + math.sin(ra)*9)], fill=(255, 220, 60, 255), width=1)
+        draw.line([(bx + 11, by - 44), (bx + 11 + math.cos(ra)*9, by - 44 + math.sin(ra)*9)], fill=(255, 220, 60, 255), width=1)
         
     # Text badge for Bomb
-    draw.rectangle([bx - 45, by + 32, bx + 45, by + 48], fill=(20, 24, 36, 220), outline=(220, 180, 60, 255), width=1)
+    draw.rectangle([bx - 45, by + 36, bx + 45, by + 52], fill=(20, 24, 36, 220), outline=(220, 180, 60, 255), width=1)
     
     # 2. Enemy Queue: Escalation arrows and characters
     # Enemy 1: Vohnyk (Spawns Level 1)
