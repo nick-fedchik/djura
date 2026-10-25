@@ -15,6 +15,7 @@ var current_slide_idx: int = 0
 var slides: Array = []
 var time_passed: float = 0.0
 var is_active: bool = false
+var mentor_texture: Texture2D = null
 
 # Pre-defined cartoon slide stories for levels
 const LEVEL_STORIES: Dictionary = {
@@ -30,9 +31,9 @@ const LEVEL_STORIES: Dictionary = {
 			"visual": "chort_steal"
 		},
 		{
-			"title": "НАКАЗ КОЗАКА МАМАЯ",
-			"text": "Старий козак Мамай вручив Джурі крилату кирею:\n«Мерщій, Джуро! Розправляй крила, поверни всі ядра і покажи нечисті бойовий Гопак!»",
-			"visual": "mamay_gift"
+			"title": "НАСТАВНИК: УРОК 1 — РІВНОВАГА НА СІЧІ",
+			"text": "Старий Козак-Шабельник лагідно наставляє Джуру:\n«Козак починається з землі! Тримай твердо підошви на дошках, відчувай центр ваги і розправляй крилату кирею. Поверни всі ядра на Січ!»",
+			"visual": "mentor_portrait"
 		}
 	],
 	2: [
@@ -47,9 +48,9 @@ const LEVEL_STORIES: Dictionary = {
 			"visual": "chumak_cart"
 		},
 		{
-			"title": "ДАРИ КОВАЛЯ ВАКУЛИ",
-			"text": "Коваль Вакула викував на ковадлі чарівні золоті підківки на чоботи:\n«Одягай, Джуро, і прострибуй крізь балки знизу вгору! А згори ставай твердо як на камінь. Запали Чумацький Шлях!»",
-			"visual": "vakula_anvil"
+			"title": "НАСТАВНИК: УРОК 2 — СЛУЖІННЯ ТА ЧУМАЦЬКИЙ ШЛЯХ",
+			"text": "Біля нічного вогнища Козак-Шабельник наставляє:\n«Лицарська шабля кується не для чванства, а для захисту того, хто оре ниву й возить сіль. Вакула скував тобі золоті підківки — прострибуй крізь помости знизу вгору та освіти Шлях!»",
+			"visual": "mentor_portrait"
 		}
 	],
 	3: [
@@ -64,9 +65,9 @@ const LEVEL_STORIES: Dictionary = {
 			"visual": "qirimli_ally"
 		},
 		{
-			"title": "ОБОРОНА АРСЕНАЛУ ВІД МОСКАЛІВ",
-			"text": "Царські стрільці у червоних каптанах хочуть підпалити козацький порох!\n«Джуро, збери всі 24 вогняні ядра на карнизах фортеці, і ми розженемо загарбників!»",
-			"visual": "fortress_cannon"
+			"title": "НАСТАВНИК: УРОК 3 — СТЕПОВЕ ПОБРАТИМСТВО",
+			"text": "Радник оглядає мури Кам'янця й міцно обіймає Киримли:\n«У степу немає чужої правди: хто стоїть поруч плечем до плеча — той тобі рідний брат! Зберіть усі ядра на карнизах фортеці й покажіть силу братнього союзу!»",
+			"visual": "mentor_portrait"
 		}
 	],
 	4: [
@@ -81,9 +82,9 @@ const LEVEL_STORIES: Dictionary = {
 			"visual": "moskal_invaders"
 		},
 		{
-			"title": "СОЮЗ ДЖУРИ ТА КИРИМЛИ",
-			"text": "«Не бувати цьому, брате!» — вигукує Киримли. Коваль Вакула передає нові золоті підківки, а юний кримськотатарський батир натягує тугий лук!",
-			"visual": "cossack_crimean_union"
+			"title": "НАСТАВНИК: УРОК 4 — ДУХОВНА СКАРБНИЦЯ РОДУ",
+			"text": "Козак-Шабельник тримає батуринські літописи:\n«Можна відбудувати спалений курінь, але втрачене слово й забуту пісню предків не повернути за все золото світу. Захисти клейноди й святині гетьманської столиці, Джуро!»",
+			"visual": "mentor_portrait"
 		}
 	],
 	5: [
@@ -98,9 +99,9 @@ const LEVEL_STORIES: Dictionary = {
 			"visual": "moskal_retreat"
 		},
 		{
-			"title": "БРАМА КРИМУ ВІДКРИТА ДЛЯ БРАТІВ!",
-			"text": "Перекопський вал вистояв! Попереду — серце Кримського Юрту, сонячний Бахчисарай, а далі — Конотоп, ліси Литвинів та високі шпилі Карпат!",
-			"visual": "grand_fireworks"
+			"title": "НАСТАВНИК: УРОК 5 — СПРАВЖНЯ ПЕРЕМОГА ТА ЛИЦАРСЬКИЙ ТРІУМФ",
+			"text": "На вершині Перекопського валу Наставник вручає Джурі срібну шаблю:\n«Справжня перемога — це коли після бою лунає не плач, а спільна пісня вільних людей! Віднині ти не просто кандидат, а повноправний Лицар Запорозької Січі!»",
+			"visual": "mentor_portrait"
 		}
 	],
 	6: [
@@ -141,6 +142,8 @@ const LEVEL_STORIES: Dictionary = {
 
 func _ready() -> void:
 	visible = false
+	if ResourceLoader.exists("res://assets/sprites/mentor_portrait.png"):
+		mentor_texture = load("res://assets/sprites/mentor_portrait.png")
 	if visual_node:
 		visual_node.draw.connect(_on_visual_draw)
 
@@ -251,8 +254,36 @@ func _on_visual_draw() -> void:
 			_draw_moskal_retreat(center)
 		"grand_fireworks":
 			_draw_grand_fireworks(center)
+		"mentor_portrait":
+			_draw_mentor_portrait(center)
 
 # --- Cartoon procedural illustrations ---
+
+func _draw_mentor_portrait(c: Vector2) -> void:
+	# Campfire night atmosphere background
+	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.08, 0.05, 0.07))
+	
+	# Warm campfire glow in background
+	var glow_alpha := 0.22 + 0.08 * sin(time_passed * 5.0)
+	visual_node.draw_circle(Vector2(c.x, c.y + 40), 120.0, Color(1.0, 0.45, 0.1, glow_alpha))
+	
+	# Sparks rising from campfire
+	for i in range(7):
+		var sp_seed := float(i) * 1.618
+		var sp_y := fposmod(c.y + 70.0 - (time_passed * 40.0 + sp_seed * 30.0), 160.0)
+		var sp_x := c.x + sin(time_passed * 3.0 + sp_seed) * 60.0
+		visual_node.draw_circle(Vector2(sp_x, c.y + 80.0 - sp_y), 2.0, Color(1.0, 0.8, 0.2, 0.75))
+
+	if mentor_texture:
+		var tex_h := 170.0
+		var tex_w := 170.0
+		var rect := Rect2(c.x - tex_w * 0.5, c.y - tex_h * 0.5 - 10.0, tex_w, tex_h)
+		# Cossack golden ornamental border
+		visual_node.draw_rect(rect.grow(5), Color(0.85, 0.70, 0.22), true)
+		visual_node.draw_rect(rect.grow(2), Color(0.06, 0.04, 0.10), true)
+		visual_node.draw_texture_rect(mentor_texture, rect, false)
+	else:
+		_draw_mamay_gift(c)
 
 func _draw_sich_apple(c: Vector2) -> void:
 	# Blue sky & wooden palisade of Zaporozhian Sich
