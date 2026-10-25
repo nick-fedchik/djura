@@ -73,6 +73,25 @@ func _initialize() -> void:
 	if thief.velocity.x <= 0.0:
 		return _fail("злодій має тікати геть від гравця (удар зліва → вправо)")
 	print("[OK] броня відьми двофазна; чортик-злодій скидає ядро й панікує")
+	# 2г) перевірка удару Булавою по захищеному ворогу (не ламає скрипт, обнуляє armor)
+	var armored_boss := FolkloreEnemy.new()
+	armored_boss.enemy_type = FolkloreEnemy.EnemyType.VIDMA
+	armored_boss.armor = 2
+	armored_boss.global_position = Vector2(10.0, 0.0)
+	armored_boss.add_to_group("enemies")
+	root.add_child(armored_boss)
+	var player_scene = load("res://scenes/player.tscn")
+	var player = player_scene.instantiate()
+	player.has_mace = true
+	player.mace_durability = 12
+	player.global_position = Vector2(0.0, 0.0)
+	root.add_child(player)
+	player._check_strike_hitbox()
+	if armored_boss.armor != 0:
+		return _fail("Булава Котигорошка має обнуляти armor броньованого ворога")
+	if player.mace_durability != 11:
+		return _fail("Булава має витратити 1 заряд міцності (залишилось %d)" % player.mace_durability)
+	print("[OK] удар Булавою розбиває броню ворога (armor -> 0) без виклику неіснуючого armor_hp")
 	# 3) цінність: відьма вартує більше, ніж чортик (500)
 	if FolkloreEnemy.VIDMA_REWARD <= 600:
 		return _fail("нагорода за відьму має перевищувати нагороду за чортика й москаля")

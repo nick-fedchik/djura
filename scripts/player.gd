@@ -476,7 +476,7 @@ func _check_strike_hitbox() -> void:
 						enemy.defeated.emit(enemy, 1000)
 						enemy.queue_free()
 					else:
-						enemy.armor_hp = 0
+						enemy.armor = 0
 						enemy.make_scared(12.0)
 						enemy.velocity = Vector2(push_x * 450.0, -250.0)
 					
