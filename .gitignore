@@ -29,3 +29,9 @@ mono_crash.*.json
 __pycache__/
 build/
 *.blend1
+
+# Local development tasks & backlog
+docs/TASKS.md
+docs/tasks.md
+*TASKS*.md
+*backlog*
