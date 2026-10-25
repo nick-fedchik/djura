@@ -38,8 +38,8 @@
 ### Крок 2. Клонуйте репозиторій та запустіть гру
 
 ```bash
-git clone https://github.com/nick-fedchik/geek-jack.git
-cd geek-jack
+git clone https://github.com/nick-fedchik/djura.git
+cd djura
 
 # Варіант А: Миттєвий запуск гри з термінала
 godot --path .
@@ -47,7 +47,9 @@ godot --path .
 # Варіант Б: Відкрити проєкт у візуальному редакторі Godot
 godot -e --path .
 ```
-*(Якщо ви відкрили Godot через ярлик на робочому столі: натисніть **«Import»**, оберіть файл `project.godot` у папці `geek-jack` і натисніть **«Run Project» (F5)**).*
+*(Якщо ви відкрили Godot через ярлик на робочому столі: натисніть **«Import»**, оберіть файл `project.godot` у папці `djura` і натисніть **«Run Project» (F5)**).*
+
+Детальні інструкції з налаштування робочого середовища під **Ubuntu** та **Windows 10/11** дивіться у файлі [**INSTALL.md**](INSTALL.md).
 
 ---
 
