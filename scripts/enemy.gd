@@ -48,6 +48,7 @@ var defeat_dance_time: float = 0.0
 var has_stolen_artifact: bool = false
 var artifact_buff_timer: float = 0.0
 var _vohnyk_ignite_timer: float = 0.0
+var _vohnyk_wander_timer: float = 3.5
 
 var snd_poof = preload("res://assets/audio/chort_poof.wav")
 static var _vohnyk_sheet_cache: Texture2D = null
@@ -271,10 +272,14 @@ func _process(delta: float) -> void:
 						if global_position.distance_to(b.global_position) <= ignite_dist:
 							if randf() < ignite_chance:
 								b.ignite()
-								_vohnyk_ignite_timer = 1.0 # пауза перед пошуком наступного ядра
+								_vohnyk_ignite_timer = randf_range(3.0, 4.5)
+								_vohnyk_wander_timer = randf_range(3.5, 5.5)
+								if enemy_type == EnemyType.VOGNYK and randf() < 0.50:
+									start_rest(randf_range(2.0, 3.0))
 								break
 							else:
-								_vohnyk_ignite_timer = 0.5 # невдала спроба — спробувати ще через 0.5с
+								_vohnyk_ignite_timer = 1.2
+								_vohnyk_wander_timer = randf_range(2.0, 3.5)
 								break
 	
 	if has_stolen_artifact:
@@ -299,15 +304,16 @@ func _process(delta: float) -> void:
 		if rest_timer <= 0.0:
 			is_resting = false
 			stamina_timer = randf_range(4.2, 6.4)
+			_vohnyk_wander_timer = randf_range(3.0, 5.0)
 			fatigue_mult = 1.0
 	elif not has_stolen_artifact:
 		# Під час паніки ворог втомлюється ще швидше!
-		var drain_rate := 1.35 if is_scared else 1.0
+		var drain_rate := 1.35 if is_scared else (1.20 if enemy_type == EnemyType.VOGNYK else 1.0)
 		stamina_timer -= delta * drain_rate
 		# Поступове сповільнення перед зупинкою від втоми
 		fatigue_mult = clampf(stamina_timer / 1.3, 0.35, 1.0) if stamina_timer < 1.3 else 1.0
 		if stamina_timer <= 0.0:
-			start_rest(randf_range(2.0, 2.6))
+			start_rest(randf_range(2.0, 2.8))
 	
 	if is_resting:
 		# Короткий перепочинок: супротивник зупиняється на місці й важко переводить дух
@@ -339,34 +345,49 @@ func _process(delta: float) -> void:
 					velocity = velocity.lerp(flee_dir * 120.0, delta * 5.0)
 					position += velocity * fatigue_mult * delta
 				else:
-					var target_bomb: BombItem = null
-					var min_dist := 999999.0
-					var tree := get_tree()
-					if tree != null:
-						for b in tree.get_nodes_in_group("bombs"):
-							if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
-								var d := global_position.distance_to(b.global_position)
-								if d < min_dist:
-									min_dist = d
-									target_bomb = b
-					
+					_vohnyk_wander_timer -= delta
 					var current_lvl := 1
 					var p_mgr = get_parent()
 					if p_mgr and p_mgr.get_parent() and p_mgr.get_parent().get("level") != null:
 						current_lvl = int(p_mgr.get_parent().level)
 					
-					var float_speed := (75.0 if current_lvl <= 1 else 85.0) * fatigue_mult
-					if target_bomb != null:
-						var to_bomb := target_bomb.global_position - global_position
-						var dir := to_bomb.normalized()
-						velocity = velocity.lerp(dir * float_speed, delta * 4.0)
-						var bob := Vector2(0.0, sin(time_passed * 5.0) * 8.0)
+					var float_speed := (64.0 if current_lvl <= 1 else 75.0) * fatigue_mult
+					
+					# Вогник грайливо ширяє ярусами та оглядає краєвиди, а не сухо послідовно підпалює всі ядра
+					if _vohnyk_wander_timer > 0.0:
+						var drift_angle := time_passed * 1.4 + float(get_instance_id() % 7)
+						var wander_target := Vector2(
+							cos(drift_angle) * 58.0,
+							sin(drift_angle * 1.8) * 32.0
+						)
+						velocity = velocity.lerp(wander_target, delta * 2.2)
+						var bob := Vector2(0.0, sin(time_passed * 4.5) * 6.0)
 						position += (velocity + bob) * delta
 					else:
-						# Якщо всі ядра запалено або зібрано — грайливий безтурботний політ
-						var patrol := Vector2(cos(time_passed * 1.6) * 55.0, sin(time_passed * 2.2) * 35.0)
-						velocity = velocity.lerp(patrol, delta * 2.0)
-						position += velocity * fatigue_mult * delta
+						# Завершив прогулянку: шукає найближче непідпалене ядро
+						var target_bomb: BombItem = null
+						var min_dist := 999999.0
+						var tree := get_tree()
+						if tree != null:
+							for b in tree.get_nodes_in_group("bombs"):
+								if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
+									var d := global_position.distance_to(b.global_position)
+									if d < min_dist:
+										min_dist = d
+										target_bomb = b
+						
+						if target_bomb != null:
+							var to_bomb := target_bomb.global_position - global_position
+							var dir := to_bomb.normalized()
+							velocity = velocity.lerp(dir * float_speed, delta * 3.5)
+							var bob := Vector2(0.0, sin(time_passed * 5.0) * 7.0)
+							position += (velocity + bob) * delta
+						else:
+							# Всі ядра вже запалено або зібрано — вільне безтурботне ширяння
+							_vohnyk_wander_timer = randf_range(3.5, 6.0)
+							var patrol := Vector2(cos(time_passed * 1.6) * 55.0, sin(time_passed * 2.2) * 35.0)
+							velocity = velocity.lerp(patrol, delta * 2.0)
+							position += velocity * fatigue_mult * delta
 				position.x = clampf(position.x, 32.0, 928.0)
 				position.y = clampf(position.y, 40.0, 490.0)
 			EnemyType.CHORT, EnemyType.ZLYDNI:

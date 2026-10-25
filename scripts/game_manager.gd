@@ -678,11 +678,12 @@ func _setup_level() -> void:
 	# Friendly folklore lore tips for players
 	_show_level_lore_tip()
 	
-	# Guaranteed Horseshoe gift from Blacksmith Vakula on all levels after 3.2s
-	get_tree().create_timer(3.2).timeout.connect(func():
-		if not is_transitioning_level and items_node and items_node.get_children().is_empty() and player and not player.has_vakula_shoes:
-			_spawn_vakula_horseshoe()
-	)
+	# Guaranteed Horseshoe gift from Blacksmith Vakula on levels where Vakula is available (Stage 4+)
+	if _Difficulty.ally_available("VAKULA", level):
+		get_tree().create_timer(3.2).timeout.connect(func():
+			if not is_transitioning_level and items_node and items_node.get_children().is_empty() and player and not player.has_vakula_shoes:
+				_spawn_vakula_horseshoe()
+		)
 	
 func _check_progressive_ally_arrival() -> void:
 	# На рівнях 1–5 (Етап 1: Запорозька Січ) союзники не прибувають: діє виключно Джура
@@ -853,11 +854,11 @@ func _on_vakula_shoes_state_changed(is_active: bool) -> void:
 			plat.is_one_way = is_active
 
 const LEVEL_LORE_20: Dictionary = {
-	1: "РІВЕНЬ 1 (ЗАПОРОЗЬКА СІЧ): «СТРИБАЙ, ДЖУРО! ЗБЕРИ 24 ЯДРА Й ШИРЯЙ НА КИРЕЇ МАМАЯ!»",
-	2: "РІВЕНЬ 2 (ДИКАНСЬКИЙ ХУТІР): «КОВАЛЬ ВАКУЛА ДАРУЄ ЗОЛОТІ ПІДКІВКИ! ЗАПАЛИ ЧУМАЦЬКИЙ ШЛЯХ!»",
-	3: "РІВЕНЬ 3 (КАМ'ЯНЕЦЬКА ТВЕРДИНЯ): «КИРИМЛИ ТА ГУЦУЛ Б'ЮТЬ БОЛОТНИХ ШИШІВ ТА КИКИМОР МОСКОВЩИНИ!»",
-	4: "РІВЕНЬ 4 (ГЕТЬМАНСЬКИЙ БАТУРИН): «ЗАХИСТИМО СКАРБНИЦЮ ТА КЛЕЙНОДИ ВІД ЛИХА ОДНООКОГО Й ОПРИЧНИКІВ!»",
-	5: "РІВЕНЬ 5 (ПЕРЕКОПСЬКИЙ ВАЛ — БРАМА ОР-КАПУ): «СТЕПОВИЙ ОБУР І БОЛОТНІ ШИШІ ТІКАЮТЬ ВІД ОБ'ЄДНАНИХ БРАТІВ!»",
+	1: "РІВЕНЬ 1 (ЗАПОРОЗЬКА СІЧ): «ЗБЕРИ БОМБИ Й ГАСИ ҐНОТИ ВОГНИКА! ПОРХАЙ НА КРИЛАТІЙ КИРЕЇ!»",
+	2: "РІВЕНЬ 2 (СІЧОВА ВЕРФ): «ВОГНИКИ РОЗСИПАЮТЬ ІСКРИ! ЗНЕШКОДЖУЙ ЯДРА ДО ВИБУХУ!»",
+	3: "РІВЕНЬ 3 (ПОРОХОВИЙ АРСЕНАЛ СІЧІ): «ХИТРИЙ ЧОРТИК СКИДАЄ БОМБИ! ЗУПИНИ ЙОГО УДАРАМИ ГОПАКА!»",
+	4: "РІВЕНЬ 4 (СІЧОВА ДЗВІНИЦЯ): «НАВАЛА НЕЧИСТІ НА ПОМОСТАХ! ЗАХИСТИ ПОРОХОВІ ПОГРЕБИ!»",
+	5: "РІВЕНЬ 5 (ГОЛОВНИЙ МАЙДАН СІЧІ): «ВІДЬМА СОЛОХА КРУТИТЬ ВИХОРИ! РОЗВІЙ ЧАРИ Й ЗДОБУДЬ БУЛАВУ!»",
 	6: "РІВЕНЬ 6 (ХАНСЬКИЙ БАХЧИСАРАЙ ТА ЧУФУТ-КАЛЕ): «СОЛЯНІ ДЖИННИ СИВАША ТА ПЕЧЕРНІ АЖДАХИ ВІДСТУПАЮТЬ ПЕРЕД СОКОЛОМ КИРИМЛИ!»",
 	7: "РІВЕНЬ 7 (КОНОТОПСЬКА ПЕРЕПРАВА): «КОЗАКИ Й ЛИТВИНИ ТОПЛЯТЬ ЦАРСЬКОГО ДЯКА, ОПРИЧНИКІВ ТА ТАЙШІВ У БОЛОТІ!»",
 	8: "РІВЕНЬ 8 (СТАРОДАВНІЙ ПОЛОЦЬК І ПУЩА): «ПОБРАТИМИ-ЛИТВИНИ З ПОГОНЕЮ ТА ЧАРОДІЙ ВСЕСЛАВ ВИГАНЯЮТЬ БАГНИКІВ!»",
@@ -1347,7 +1348,7 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 			player.say("Оце так вогонь!", 1.6)
 		
 		# Гарантована доставка чарівних підківок Вакули або цвіту папороті
-		if lit_streak >= 3 and level >= 2:
+		if lit_streak >= 3 and _Difficulty.ally_available("VAKULA", level):
 			call_deferred("_spawn_vakula_horseshoe")
 		elif lit_streak == 5:
 			call_deferred("_spawn_fern_flower")
@@ -1376,8 +1377,8 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 	
 	hud.update_bombs(remaining_count, 24)
 	
-	# Гарантована доставка підківок Вакули після збору перших 3 будь-яких ядер на всіх рівнях
-	if remaining_count == 21:
+	# Доставка підківок Вакули після збору перших 3 ядер на рівнях, де відкритий коваль
+	if remaining_count == 21 and _Difficulty.ally_available("VAKULA", level):
 		call_deferred("_spawn_vakula_horseshoe")
 	
 	# Motivational folklore guidance cues for age 8+ clarity

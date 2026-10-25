@@ -601,9 +601,10 @@ func _physics_process(delta: float) -> void:
 			hopak_sfx_played["kick1"] = true
 			_play_sfx(snd_hopak_kick, 1.10)
 		# Phase 4: Airborne Split Kick ("Щупак / Різножка")
-		if hopak_time >= 2.20 and not hopak_sfx_played.get("kick_split", false):
+		if hopak_time >= 2.08 and not hopak_sfx_played.get("kick_split", false):
 			hopak_sfx_played["kick_split"] = true
 			_play_sfx(snd_hopak_kick, 1.28)
+			velocity.y = -240.0 # Вибуховий богатирський стрибок у повітряний шпагат!
 		# Phase 5: Low Squat Sweep Kick ("Пістоль / Повзунець")
 		if hopak_time >= 2.90 and not hopak_sfx_played.get("kick2", false):
 			hopak_sfx_played["kick2"] = true
@@ -854,8 +855,36 @@ func _update_animated_sprite() -> void:
 		if animated_sprite.animation != "bonk":
 			animated_sprite.play("bonk")
 	elif is_hopak:
-		if animated_sprite.animation != "victory":
-			animated_sprite.play("victory")
+		# 6 автентичних фаз Бойового Гопака для нового спрайта (в такт музиці та ударам):
+		# Фаза 1 (0.0..0.68с): Прямий удар ліворуч (Тичок)
+		# Фаза 2 (0.68..1.36с): Силовий прямий удар праворуч (Хрест)
+		# Фаза 3 (1.36..2.04с): Високий стрибковий удар ногою (Тинок)
+		# Фаза 4 (2.04..2.72с): Повітряний шпагатний стрибок (Щупак / Розніжка)
+		# Фаза 5 (2.72..3.44с): Низький повзунець та присядка (Повзунець)
+		# Фаза 6 (3.44..4.10с): Тріумфальний фінал із руками в боки та посмішкою
+		if hopak_time < 0.68:
+			animated_sprite.flip_h = true
+			if animated_sprite.animation != "punch":
+				animated_sprite.play("punch")
+		elif hopak_time < 1.36:
+			animated_sprite.flip_h = false
+			if animated_sprite.animation != "punch":
+				animated_sprite.play("punch")
+		elif hopak_time < 2.04:
+			animated_sprite.flip_h = false
+			if animated_sprite.animation != "hopak_kick":
+				animated_sprite.play("hopak_kick")
+		elif hopak_time < 2.72:
+			if animated_sprite.animation != "jump":
+				animated_sprite.play("jump")
+		elif hopak_time < 3.44:
+			animated_sprite.flip_h = (int(hopak_time * 5.0) % 2 == 1)
+			if animated_sprite.animation != "victory":
+				animated_sprite.play("victory")
+		else:
+			animated_sprite.flip_h = false
+			if animated_sprite.animation != "victory":
+				animated_sprite.play("victory")
 	elif punch_timer > 0.0:
 		if punch_active_skill in [ChampionSkill.HOPAK_TYNOK_KICK, ChampionSkill.HOPAK_SHCHUPAK_SPLIT, ChampionSkill.HOPAK_POVZUNETS_SWEEP]:
 			if animated_sprite.animation != "hopak_kick":
@@ -1388,10 +1417,6 @@ func _draw() -> void:
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 13.5 * height_factor, 4.5 * height_factor, Color(0.0, 0.0, 0.05, 0.38 * height_factor))
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 8.2 * height_factor, 2.5 * height_factor, Color(0.0, 0.0, 0.05, 0.58 * height_factor))
 	
-	# If using high-fidelity 3D Meshy AnimatedSprite2D, delegate character body rendering to sprite!
-	if animated_sprite != null and animated_sprite.visible:
-		return
-	
 	# --- 2. 3D DOUBLE-SIDED BILLOWING KYREYA (Cossack Parkour Wing-Cape) ---
 	var wave := sin(cape_wave) * 4.0
 	var outer_blue := Color(0.10, 0.22, 0.65)
@@ -1400,30 +1425,30 @@ func _draw() -> void:
 	var border_gold := Color(0.98, 0.85, 0.25)
 	
 	if is_gliding or flap_timer > 0.0:
-		var flap_lift := sin(time_passed * 24.0) * 3.5
+		var flap_lift := sin(time_passed * 24.0) * 5.5
 		var wing_l = PackedVector2Array([
 			chest + Vector2(-2 * flip, -1.5),
-			chest + Vector2(-26 * flip, -9.5 + flap_lift),
-			chest + Vector2(-24 * flip, 16.5 + flap_lift * 0.5),
+			chest + Vector2(-36 * flip, -12.0 + flap_lift),
+			chest + Vector2(-32 * flip, 18.0 + flap_lift * 0.5),
 			pelvis + Vector2(-4 * flip, 4)
 		])
 		draw_colored_polygon(wing_l, outer_blue)
 		draw_colored_polygon(PackedVector2Array([
 			chest + Vector2(-2 * flip, -1.5),
-			chest + Vector2(-12 * flip, -5.5),
-			pelvis + Vector2(-10 * flip, 6),
+			chest + Vector2(-16 * flip, -7.0 + flap_lift * 0.5),
+			pelvis + Vector2(-12 * flip, 6),
 			pelvis + Vector2(-4 * flip, 4)
 		]), outer_blue_hi)
-		draw_line(chest + Vector2(-2 * flip, -1.5), chest + Vector2(-26 * flip, -9.5 + flap_lift), border_gold, 2.5)
+		draw_line(chest + Vector2(-2 * flip, -1.5), chest + Vector2(-36 * flip, -12.0 + flap_lift), border_gold, 2.5)
 		
 		var wing_r = PackedVector2Array([
 			chest + Vector2(2 * flip, -1.5),
-			chest + Vector2(26 * flip, -5.5 + flap_lift),
-			chest + Vector2(22 * flip, 18.5 + flap_lift * 0.5),
+			chest + Vector2(36 * flip, -8.0 + flap_lift),
+			chest + Vector2(30 * flip, 20.0 + flap_lift * 0.5),
 			pelvis + Vector2(4 * flip, 4)
 		])
 		draw_colored_polygon(wing_r, outer_blue_hi)
-		draw_line(chest + Vector2(2 * flip, -1.5), chest + Vector2(26 * flip, -5.5 + flap_lift), border_gold, 2.5)
+		draw_line(chest + Vector2(2 * flip, -1.5), chest + Vector2(36 * flip, -8.0 + flap_lift), border_gold, 2.5)
 	elif is_fast_dropping:
 		var drop_pts = PackedVector2Array([
 			chest + Vector2(-5 * flip, -1.5),
@@ -1450,6 +1475,24 @@ func _draw() -> void:
 		])
 		draw_colored_polygon(cape_inner, inner_gold)
 		draw_line(chest + Vector2(-3 * flip, -2.5), Vector2(cape_x, cape_bottom_y), border_gold, 2.0)
+	
+	# If using high-fidelity AnimatedSprite2D, character body rendering is handled by the sprite!
+	if animated_sprite != null and animated_sprite.visible:
+		# Draw rotating championship belts during Victory Hopak celebration!
+		if ChampionSkill.UNDISPUTED_TRIO in unlocked_skills or (is_hopak and hopak_time >= 3.44):
+			var sash_c := pelvis + Vector2(0.0, 2.0)
+			var belt_cols = [
+				Color(0.12, 0.68, 0.28), # WBC (зелений)
+				Color(0.14, 0.14, 0.18), # WBA (чорний з золотом)
+				Color(0.85, 0.12, 0.18), # IBF (червоний)
+				Color(0.55, 0.10, 0.22)  # WBO (бордовий)
+			]
+			for bi in range(4):
+				var b_ang := time_passed * 4.0 + float(bi) * (TAU / 4.0)
+				var b_pos := sash_c + Vector2(cos(b_ang) * 14.5, sin(b_ang) * 5.0)
+				_draw_oval(b_pos, 3.2, 2.2, belt_cols[bi])
+				draw_circle(b_pos, 1.2, Color(1.0, 0.88, 0.22))
+		return
 	
 	# Determine anatomical boot orientation for both legs
 	var leg_flip_l: float = -1.0 if (is_hopak and pose["ankle_l"].x <= pelvis.x) else flip
