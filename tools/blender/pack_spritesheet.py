@@ -12,7 +12,7 @@ import json
 import math
 import os
 from typing import Dict, List, Tuple
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 
 def pack_spritesheet(
@@ -24,6 +24,7 @@ def pack_spritesheet(
     frame_height: int = 128,
     fps: int = 12,
     flip_horizontal: bool = False,
+    cartoon_fx: bool = False,
 ) -> None:
     """
     Packs all animation frames into a single sprite sheet and creates Godot 4 .tres resource.
@@ -63,6 +64,18 @@ def pack_spritesheet(
             frame_img = frame_img.resize((frame_width, frame_height), Image.Resampling.LANCZOS)
         if flip_horizontal:
             frame_img = frame_img.transpose(Image.FLIP_LEFT_RIGHT)
+
+        if cartoon_fx:
+            enh_col = ImageEnhance.Color(frame_img).enhance(1.42)
+            enh_con = ImageEnhance.Contrast(enh_col).enhance(1.16)
+            enh_bri = ImageEnhance.Brightness(enh_con).enhance(1.06)
+            alpha = enh_bri.split()[3]
+            outline_mask = alpha.filter(ImageFilter.MaxFilter(5))
+            outline_img = Image.new("RGBA", frame_img.size, (20, 15, 28, 255))
+            comp = Image.new("RGBA", frame_img.size, (0, 0, 0, 0))
+            comp.paste(outline_img, (0, 0), outline_mask)
+            comp.paste(enh_bri, (0, 0), enh_bri)
+            frame_img = comp
 
         sheet_img.paste(frame_img, (x, y))
 

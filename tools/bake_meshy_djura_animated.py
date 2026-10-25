@@ -137,7 +137,7 @@ scene.eevee.taa_render_samples = 8
 
 cam_data = bpy.data.cameras.new(name='SpriteCam')
 cam_data.type = 'ORTHO'
-cam_data.ortho_scale = 2.15
+cam_data.ortho_scale = 2.02
 cam = bpy.data.objects.new(name='SpriteCam', object_data=cam_data)
 scene.collection.objects.link(cam)
 scene.camera = cam
@@ -145,13 +145,13 @@ cam.location = (0, -3.5, 0.0)
 cam.rotation_euler = (math.radians(90), 0, 0)
 
 sun_data = bpy.data.lights.new(name='KeySun', type='SUN')
-sun_data.energy = 4.5
+sun_data.energy = 5.0
 sun = bpy.data.objects.new(name='KeySun', object_data=sun_data)
 scene.collection.objects.link(sun)
 sun.rotation_euler = (math.radians(45), math.radians(25), math.radians(35))
 
 fill_data = bpy.data.lights.new(name='FillSun', type='SUN')
-fill_data.energy = 2.2
+fill_data.energy = 2.5
 fill = bpy.data.objects.new(name='FillSun', object_data=fill_data)
 scene.collection.objects.link(fill)
 fill.rotation_euler = (math.radians(45), math.radians(-40), math.radians(-110))
@@ -168,8 +168,22 @@ def reset_pose():
     for b in pb:
         b.rotation_euler = (0, 0, 0)
         b.location = (0, 0, 0)
+        b.scale = (1, 1, 1)
     arm_obj.rotation_euler = (0, 0, 0)
     arm_obj.location = (0, 0, 0)
+    
+    # Authentic cartoon proportions (billowing Cossack sharovary, broad chest & expressive head)
+    pb['Thigh.L'].scale = (1.26, 1.15, 1.0)
+    pb['Shin.L'].scale = (1.24, 1.15, 1.0)
+    pb['Thigh.R'].scale = (1.26, 1.15, 1.0)
+    pb['Shin.R'].scale = (1.24, 1.15, 1.0)
+    pb['Root'].scale = (1.22, 1.10, 1.0)
+    pb['Spine'].scale = (1.18, 1.08, 1.0)
+    pb['Head'].scale = (1.16, 1.16, 1.16)
+    pb['Arm.L'].scale = (1.12, 1.12, 1.0)
+    pb['ForeArm.L'].scale = (1.12, 1.12, 1.0)
+    pb['Arm.R'].scale = (1.12, 1.12, 1.0)
+    pb['ForeArm.R'].scale = (1.12, 1.12, 1.0)
 
 anims = {}
 
@@ -357,7 +371,8 @@ pack_spritesheet.pack_spritesheet(
     frame_width=128,
     frame_height=128,
     fps=12,
-    flip_horizontal=True
+    flip_horizontal=True,
+    cartoon_fx=True
 )
 print("SUCCESS: Packed 70-frame animated Meshy Djura sheet, frames.tres and manifest.json!")
 """
