@@ -73,6 +73,45 @@
   2. Перевірити інваріант захисного щита Відьми Солохи (`VIDMA_ARMOR = 2`): перший удар розколює магічний ореол (звук тріскотіння скла, спалах іскор), другий удар завдає нокдауну й змушує Відьму в паніці тікати.
 * **Критерій приймання:** `godot --headless --path . -s res://test/test_engineers.gd` та `./tools/run_tests.sh` завершуються з кодом 0 (PASS).
 
+---
+
+### Задача C-06: Логіка повернення вкраденого ядра на поміст
+* **Файли для роботи:** [`scripts/enemy.gd`](file:///home/mfedchyk/Godot/djura-1/scripts/enemy.gd), [`scripts/game_manager.gd`](file:///home/mfedchyk/Godot/djura-1/scripts/game_manager.gd)
+* **Мета:**
+  1. Коли Чортик несе вкрадене ядро, і Джура влучає ударом кулака чи ногою «Тинок»:
+     - Ядро випадає на найближчу горизонтальну платформу під Чортиком;
+     - Лічильник активних бомб на арені повертається до норми;
+     - Чортик верещить, скидає ядро і в паніці біжить у протилежний бік (2.5 с).
+  2. Покрити тестом у `test/test_engineers.gd`.
+* **Критерій приймання:** `./tools/run_tests.sh` завершується успішно.
+
+---
+
+### Задача C-07: Глобальний аудит на дотримання Anti-Anglicism Invariant
+* **Файли для роботи:** [`scripts/hud.gd`](file:///home/mfedchyk/Godot/djura-1/scripts/hud.gd), [`scripts/telemetry_engine.gd`](file:///home/mfedchyk/Godot/djura-1/scripts/telemetry_engine.gd), [`scripts/player.gd`](file:///home/mfedchyk/Godot/djura-1/scripts/player.gd)
+* **Мета:**
+  1. Знайти та усунути будь-які боксерські або геймерські англіцизми в діалогах, підказках або спливаючих повідомленнях:
+     * «джеб» $\to$ «прямий сталевий тичок»
+     * «хук» / «оверхенд» $\to$ «Козацький Залізний Хрест»
+     * «сліп каунтер» $\to$ «Козацький Човник та ухил»
+     * «деш» $\to$ «Крок Характерника»
+* **Критерій приймання:** `./tools/run_tests.sh` проходить з нульовими зауваженнями.
+
+---
+
+### Задача C-08: Автоматизований тест валідації активів Пантеону та Бестіарію
+* **Файл для створення:** `test/test_pantheon_bestiary.gd`
+* **Мета:**
+  1. Створити headless-тест, який перевіряє наявність усіх ключових файлів активів згідно з [docs/PANTHEON_AND_BESTIARY.md](file:///home/mfedchyk/Godot/djura-1/docs/PANTHEON_AND_BESTIARY.md):
+     * `res://assets/sprites/djura_sheet.png`, `djura_frames.tres`
+     * `res://assets/sprites/mentor_portrait.png`
+     * `res://assets/sprites/vohnyk_sheet.png`, `vohnyk_frames.tres`
+     * `res://assets/sprites/qirimli_sheet.png`, `qirimli_frames.tres`
+     * `res://assets/sprites/story/slide_level1_1_meeting.png`, `slide_level1_2_pledge.png`, `slide_level1_3_mission.png`
+  2. Додати виклик тесту у скрипт `tools/run_tests.sh`.
+* **Критерій приймання:** `godot --headless --path . -s res://test/test_pantheon_bestiary.gd` друкує `[OK]`.
+
+
 
 ---
 

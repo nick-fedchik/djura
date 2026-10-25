@@ -59,4 +59,25 @@
      - Детерміноване скидання вкраденого ядра Чортиком при отриманні козацького удару («Тинок» / кулак) та перехід у стан панічної втечі.
      - Логіка захисного щита Відьми (`VIDMA_ARMOR = 2`): перший удар знімає щит, другий завдає поразки; верифікація в `test/test_engineers.gd`.
 
+6. **[T-C06] Реалізація логіки повернення ядра на поміст при ударі Чортика (`scripts/enemy.gd`, `scripts/game_manager.gd`):**
+   - Коли Чортик несе вкрадене ядро, і Джура влучає ударом кулака або «Тинком»:
+     - Ядро випадає на найближчу платформу (`global_position.y` платформи);
+     - Лічильник вкрадених ядер зменшується;
+     - Чортик верещить, скидає ядро і біжить у протилежний бік з анімацією паніки на 2.5 секунди.
+   - Створити перевірку в `test/test_engineers.gd`.
+
+7. **[T-C07] Аудит усіх реплік гри на дотримання Anti-Anglicism Invariant (`scripts/hud.gd`, `scripts/telemetry_engine.gd`, `scripts/story_cards.gd`):**
+   - Провести глобальний пошук боксерських і геймерських англіцизмів у діалогах, інтерфейсі та підказках (слова на кшталт «джеб», «хук», «аперкот», «деш», «сліп»).
+   - Замінити на автентичні козацькі терміни: «сталевий тичок», «маховий Тинок», «розніжка Щупак», «коса підсічка Повзунець», «козацький ухил».
+
+8. **[T-C08] Автотест валідації активів Пантеону та Бестіарію (`test/test_pantheon_bestiary.gd`):**
+   - Створити headless-тест `test/test_pantheon_bestiary.gd`, який верифікує наявність обов'язкових рантайм-файлів згідно з `docs/PANTHEON_AND_BESTIARY.md`:
+     - `res://assets/sprites/djura_sheet.png`, `djura_frames.tres`
+     - `res://assets/sprites/mentor_portrait.png`
+     - `res://assets/sprites/vohnyk_sheet.png`, `vohnyk_frames.tres`
+     - `res://assets/sprites/qirimli_sheet.png`, `qirimli_frames.tres`
+     - `res://assets/sprites/story/slide_level1_1_meeting.png`, `slide_level1_2_pledge.png`, `slide_level1_3_mission.png`
+   - Підключити новий тест до `./tools/run_tests.sh`.
+
+
 
