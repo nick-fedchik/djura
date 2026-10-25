@@ -356,7 +356,8 @@ pack_spritesheet.pack_spritesheet(
     output_json=out_json,
     frame_width=128,
     frame_height=128,
-    fps=12
+    fps=12,
+    flip_horizontal=True
 )
 print("SUCCESS: Packed 70-frame animated Meshy Djura sheet, frames.tres and manifest.json!")
 """

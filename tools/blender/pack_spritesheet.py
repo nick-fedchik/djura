@@ -23,6 +23,7 @@ def pack_spritesheet(
     frame_width: int = 128,
     frame_height: int = 128,
     fps: int = 12,
+    flip_horizontal: bool = False,
 ) -> None:
     """
     Packs all animation frames into a single sprite sheet and creates Godot 4 .tres resource.
@@ -60,6 +61,8 @@ def pack_spritesheet(
         frame_img = Image.open(fpath).convert("RGBA")
         if frame_img.size != (frame_width, frame_height):
             frame_img = frame_img.resize((frame_width, frame_height), Image.Resampling.LANCZOS)
+        if flip_horizontal:
+            frame_img = frame_img.transpose(Image.FLIP_LEFT_RIGHT)
 
         sheet_img.paste(frame_img, (x, y))
 
