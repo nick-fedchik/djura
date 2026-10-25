@@ -825,12 +825,26 @@ func _update_animated_sprite() -> void:
 		if is_gliding:
 			if animated_sprite.animation != "glide":
 				animated_sprite.play("glide")
+		elif (is_fast_dropping or velocity.y > 180.0) and animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("fall"):
+			if animated_sprite.animation != "fall":
+				animated_sprite.play("fall")
 		else:
 			if animated_sprite.animation != "jump":
 				animated_sprite.play("jump")
 	elif is_rolling:
-		if animated_sprite.animation != "run":
+		if animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("roll"):
+			if animated_sprite.animation != "roll":
+				animated_sprite.play("roll")
+		elif animated_sprite.animation != "run":
 			animated_sprite.play("run")
+	elif squat_timer > 0.0:
+		if animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("victory"):
+			if animated_sprite.animation != "victory" or animated_sprite.frame != 1:
+				animated_sprite.play("victory")
+				animated_sprite.frame = 1
+				animated_sprite.pause()
+		elif animated_sprite.animation != "idle":
+			animated_sprite.play("idle")
 	elif absf(velocity.x) > 10.0:
 		if animated_sprite.animation != "run":
 			animated_sprite.play("run")

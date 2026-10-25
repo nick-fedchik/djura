@@ -170,7 +170,7 @@ def generate_godot_spriteframes_tres(
 
     anim_entries = []
     for anim_name, refs in anim_frame_refs.items():
-        loop_val = 1 if anim_name in ("idle", "run", "glide") else 0
+        loop_val = 1 if anim_name in ("idle", "run", "glide", "fall") else 0
         frames_array = ", ".join([f'{{\n"duration": 1.0,\n"texture": {ref}\n}}' for ref in refs])
         entry = (
             "{\n"

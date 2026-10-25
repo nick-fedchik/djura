@@ -318,6 +318,40 @@ anims["bonk"] = [
     {"yaw": -30, "spine": 0, "arm_l": 5, "arm_r": -5, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
 ]
 
+# 9. FALL (8 frames) - Aerodynamic descent & falcon dive
+anims["fall"] = []
+for i in range(8):
+    t = float(i) / 8.0 * math.tau
+    w = math.sin(t)
+    anims["fall"].append({
+        "yaw": -50,
+        "spine": 12.0 + 2.0 * w,
+        "arm_l": 28.0 + 4.0 * w,
+        "arm_r": -28.0 - 4.0 * w,
+        "thigh_l": 15.0 + 2.0 * math.cos(t),
+        "shin_l": 10.0,
+        "thigh_r": 18.0 - 2.0 * math.cos(t),
+        "shin_r": 12.0,
+        "z": 0.01 * w
+    })
+
+# 10. ROLL (8 frames) - Parkour tuck & 360-degree combat roll
+anims["roll"] = []
+for i in range(8):
+    ang = float(i) / 8.0 * 360.0
+    anims["roll"].append({
+        "yaw": -90,
+        "roll": -ang,
+        "spine": 35.0,
+        "arm_l": -60.0,
+        "arm_r": 60.0,
+        "thigh_l": -80.0,
+        "shin_l": 110.0,
+        "thigh_r": -80.0,
+        "shin_r": 110.0,
+        "z": -0.04
+    })
+
 frames_by_anim = {}
 total_to_render = sum(len(f) for f in anims.values())
 rendered_count = 0
@@ -333,7 +367,9 @@ for anim_name, frames in anims.items():
         reset_pose()
         
         yaw = f.get("yaw", 0)
-        arm_obj.rotation_euler = (0, 0, math.radians(yaw))
+        pitch = f.get("pitch", 0)
+        roll = f.get("roll", 0)
+        arm_obj.rotation_euler = (math.radians(pitch), math.radians(roll), math.radians(yaw))
         arm_obj.location.z = f.get("z", 0.0)
         
         pb['Spine'].rotation_euler = (math.radians(f.get("spine", 0)), 0, 0)
