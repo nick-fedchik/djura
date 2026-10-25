@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Generates high-resolution cinematic story cards for Stage 1 Level 1
-using authentic high-resolution screenshots of the 15-year-old Djura and Mentor Kharakternyk.
+using authentic 2D concept art of the 15-year-old Djura and Mentor Kharakternyk.
 """
 
 import os
@@ -9,12 +9,11 @@ import math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 import numpy as np
 
-def extract_character_cutout(img_path, threshold=20):
+def extract_black_bg(img_path, threshold=20):
     im = Image.open(img_path).convert('RGBA')
     arr = np.array(im, dtype=np.float32)
     rgb = arr[:, :, :3]
     brightness = np.max(rgb, axis=2)
-    # Smooth alpha feathering to cleanly remove the black background
     alpha = np.clip((brightness - threshold) / (threshold * 1.5), 0.0, 1.0) * 255.0
     arr[:, :, 3] = alpha
     result = Image.fromarray(arr.astype(np.uint8))
@@ -22,6 +21,39 @@ def extract_character_cutout(img_path, threshold=20):
     if bbox:
         result = result.crop(bbox)
     return result
+
+def extract_light_bg(img_path, bg_color=(233, 234, 236), tol=28):
+    im = Image.open(img_path).convert('RGBA')
+    arr = np.array(im, dtype=np.float32)
+    rgb = arr[:, :, :3]
+    bg = np.array(bg_color, dtype=np.float32)
+    dist = np.linalg.norm(rgb - bg, axis=2)
+    alpha = np.clip((dist - 14) / (tol - 14), 0.0, 1.0) * 255.0
+    arr[:, :, 3] = alpha
+    res = Image.fromarray(arr.astype(np.uint8))
+    bbox = res.getbbox()
+    if bbox:
+        res = res.crop(bbox)
+    return res
+
+def get_djura_15yo_cutout():
+    # Use authentic 2D concept art from reports/sketches/djura_15yo/
+    p_3q = "/home/mfedchyk/Godot/djura-1/reports/sketches/djura_15yo/djura_02_threequarter_l.png"
+    if os.path.exists(p_3q):
+        return extract_light_bg(p_3q)
+    p_front = "/home/mfedchyk/Godot/djura-1/reports/sketches/djura_15yo/djura_01_front.png"
+    if os.path.exists(p_front):
+        return extract_light_bg(p_front)
+    return Image.open("/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png").convert("RGBA")
+
+def get_mentor_cutout():
+    p_prev = "/home/mfedchyk/Godot/djura-1/reports/mentor_cossack_preview.png"
+    if os.path.exists(p_prev):
+        return extract_black_bg(p_prev)
+    p_port = "/home/mfedchyk/Godot/djura-1/assets/sprites/mentor_portrait.png"
+    if os.path.exists(p_port):
+        return Image.open(p_port).convert("RGBA")
+    return None
 
 def create_slide_1_meeting():
     w, h = 600, 300
@@ -81,25 +113,23 @@ def create_slide_1_meeting():
         sp_y = cy - np.random.randint(5, 85)
         draw.ellipse([sp_x - 1.5, sp_y - 1.5, sp_x + 1.5, sp_y + 1.5], fill=(255, 210, 60, 230))
         
-    # Mentor Cossack (Left side) - Clean cutout from reports/mentor_cossack_preview.png
-    mentor_path = "/home/mfedchyk/Godot/djura-1/reports/mentor_cossack_preview.png"
-    if os.path.exists(mentor_path):
-        m_cut = extract_character_cutout(mentor_path)
+    # Mentor Cossack (Left side)
+    m_cut = get_mentor_cutout()
+    if m_cut:
         target_h = 220
         target_w = int(m_cut.width * target_h / m_cut.height)
         m_img = m_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
         bg.paste(m_img, (45, 68), m_img)
         
-    # Young Djura (Right side) - Clean cutout from reports/djura_15yo_preview.png
-    djura_path = "/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png"
-    if os.path.exists(djura_path):
-        d_cut = extract_character_cutout(djura_path)
-        # Flip to face the Mentor on the left
+    # Young 15yo Djura (Right side) - authentic 2D concept art
+    d_cut = get_djura_15yo_cutout()
+    if d_cut:
+        # Flip to face left toward the Mentor and campfire
         d_cut = d_cut.transpose(Image.FLIP_LEFT_RIGHT)
-        target_h = 205
+        target_h = 225
         target_w = int(d_cut.width * target_h / d_cut.height)
         d_img = d_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
-        bg.paste(d_img, (375, 75), d_img)
+        bg.paste(d_img, (400, 62), d_img)
         
     # Labels / Title badge
     draw.rectangle([w//2 - 140, 10, w//2 + 140, 38], fill=(18, 22, 38, 230), outline=(220, 180, 60, 255), width=2)
@@ -145,22 +175,20 @@ def create_slide_2_pledge():
         draw.line([(cx, cy), (x2, y2)], fill=(255, 235, 120, 50), width=2)
         
     # Mentor on left raising hand in blessing
-    mentor_path = "/home/mfedchyk/Godot/djura-1/reports/mentor_cossack_preview.png"
-    if os.path.exists(mentor_path):
-        m_cut = extract_character_cutout(mentor_path)
+    m_cut = get_mentor_cutout()
+    if m_cut:
         target_h = 225
         target_w = int(m_cut.width * target_h / m_cut.height)
         m_img = m_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
         bg.paste(m_img, (35, 68), m_img)
         
-    # Djura in center/right taking the solemn oath
-    djura_path = "/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png"
-    if os.path.exists(djura_path):
-        d_cut = extract_character_cutout(djura_path)
-        target_h = 220
+    # 15yo Djura in center/right taking the solemn oath
+    d_cut = get_djura_15yo_cutout()
+    if d_cut:
+        target_h = 230
         target_w = int(d_cut.width * target_h / d_cut.height)
         d_img = d_cut.resize((target_w, target_h), Image.Resampling.LANCZOS)
-        bg.paste(d_img, (220, 68), d_img)
+        bg.paste(d_img, (230, 60), d_img)
         
     # Floating Kyreya cape & golden sash on the right
     kyreya_pts = [(470, 90), (510, 60), (550, 90), (540, 160), (510, 180), (480, 160)]
@@ -194,45 +222,35 @@ def create_slide_3_mission():
     
     # 1. Mission Object: Mine / Bomb with sparking fuse on left
     bx, by = 95, 115
-    # Bomb outer glow
     for rad in range(48, 10, -4):
         draw.ellipse([bx - rad, by - rad, bx + rad, by + rad], fill=(240, 60, 30, int(35 * (1.0 - rad/48.0))))
-    # Bomb body (deep iron black with specular highlight)
     draw.ellipse([bx - 32, by - 32, bx + 32, by + 32], fill=(28, 28, 36, 255), outline=(220, 180, 60, 255), width=2)
     draw.ellipse([bx - 18, by - 22, bx - 6, by - 12], fill=(70, 75, 90, 255))
-    # Bomb neck
     draw.rectangle([bx - 7, by - 40, bx + 7, by - 30], fill=(80, 85, 95, 255), outline=(220, 180, 60, 255), width=1)
-    # Burning fuse
     fuse_pts = [(bx, by - 40), (bx + 4, by - 46), (bx + 10, by - 44)]
     draw.line(fuse_pts, fill=(180, 140, 80, 255), width=3)
-    # Fuse spark
     draw.ellipse([bx + 8, by - 47, bx + 14, by - 41], fill=(255, 100, 20, 255))
     draw.ellipse([bx + 9, by - 46, bx + 13, by - 42], fill=(255, 240, 80, 255))
     for angle in range(0, 360, 45):
         ra = math.radians(angle)
         draw.line([(bx + 11, by - 44), (bx + 11 + math.cos(ra)*9, by - 44 + math.sin(ra)*9)], fill=(255, 220, 60, 255), width=1)
         
-    # Text badge for Bomb
     draw.rectangle([bx - 45, by + 36, bx + 45, by + 52], fill=(20, 24, 36, 220), outline=(220, 180, 60, 255), width=1)
     
     # 2. Enemy Queue: Escalation arrows and characters
-    # Enemy 1: Vohnyk (Spawns Level 1)
     vohnyk_path = "/home/mfedchyk/Godot/djura-1/reports/sketches/vognyk/vohnyk_concept_meshy.jpg"
     if os.path.exists(vohnyk_path):
         v_img = Image.open(vohnyk_path).convert("RGBA")
         v_img = v_img.resize((100, 100), Image.Resampling.LANCZOS)
-        # Apply circular crop & fiery outline
         mask = Image.new("L", (100, 100), 0)
         ImageDraw.Draw(mask).ellipse([2, 2, 98, 98], fill=255)
         bg.paste(v_img, (200, 65), mask)
         draw.ellipse([198, 63, 302, 167], outline=(255, 120, 20, 255), width=3)
         draw.rectangle([190, 172, 310, 192], fill=(25, 15, 10, 230), outline=(255, 120, 20, 255), width=1)
         
-    # Arrow 1: "+2 РІВНІ"
     draw.line([(318, 115), (348, 115)], fill=(255, 215, 60, 255), width=3)
     draw.polygon([(348, 108), (358, 115), (348, 122)], fill=(255, 215, 60, 255))
     
-    # Enemy 2: Chort (Spawns Level 3)
     chort_path = "/home/mfedchyk/Godot/djura-1/reports/sketches/chort/chort_concept_meshy.jpg"
     if os.path.exists(chort_path):
         c_img = Image.open(chort_path).convert("RGBA")
@@ -243,11 +261,9 @@ def create_slide_3_mission():
         draw.ellipse([363, 63, 467, 167], outline=(180, 50, 220, 255), width=3)
         draw.rectangle([355, 172, 475, 192], fill=(20, 10, 25, 230), outline=(180, 50, 220, 255), width=1)
         
-    # Arrow 2: "+2 РІВНІ"
     draw.line([(475, 115), (505, 115)], fill=(255, 215, 60, 255), width=3)
     draw.polygon([(505, 108), (515, 115), (505, 122)], fill=(255, 215, 60, 255))
     
-    # Enemy 3: Vidma (Spawns Level 5)
     vidma_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/vidma_calm.png"
     if os.path.exists(vidma_path):
         vi_img = Image.open(vidma_path).convert("RGBA")
@@ -256,7 +272,6 @@ def create_slide_3_mission():
         draw.ellipse([515, 63, 595, 167], outline=(220, 40, 60, 255), width=3)
         draw.rectangle([510, 172, 595, 192], fill=(30, 10, 15, 230), outline=(220, 40, 60, 255), width=1)
         
-    # Gold frame
     draw.rectangle([0, 0, w - 1, h - 1], outline=(220, 180, 60, 255), width=3)
     draw.rectangle([3, 3, w - 4, h - 4], outline=(60, 45, 20, 200), width=1)
     
