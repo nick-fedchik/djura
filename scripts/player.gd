@@ -812,8 +812,15 @@ func _update_animated_sprite() -> void:
 		if animated_sprite.animation != "victory":
 			animated_sprite.play("victory")
 	elif punch_timer > 0.0:
-		if animated_sprite.animation != "hopak_kick":
-			animated_sprite.play("hopak_kick")
+		if punch_active_skill in [ChampionSkill.HOPAK_TYNOK_KICK, ChampionSkill.HOPAK_SHCHUPAK_SPLIT, ChampionSkill.HOPAK_POVZUNETS_SWEEP]:
+			if animated_sprite.animation != "hopak_kick":
+				animated_sprite.play("hopak_kick")
+		elif animated_sprite.sprite_frames and animated_sprite.sprite_frames.has_animation("punch"):
+			if animated_sprite.animation != "punch":
+				animated_sprite.play("punch")
+		else:
+			if animated_sprite.animation != "hopak_kick":
+				animated_sprite.play("hopak_kick")
 	elif not is_on_floor():
 		if is_gliding:
 			if animated_sprite.animation != "glide":
