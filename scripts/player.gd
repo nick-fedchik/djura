@@ -1487,20 +1487,21 @@ func _draw() -> void:
 		
 		var cape_outer = PackedVector2Array([
 			cape_shoulder_top,
-			cape_mid,
 			cape_tip,
+			cape_mid,
 			cape_shoulder_bot
 		])
 		draw_colored_polygon(cape_outer, outer_blue)
 		# Золота шовкова виворітна підкладка на згині
 		var cape_inner = PackedVector2Array([
-			cape_mid,
 			cape_tip,
-			cape_tip + Vector2(2.5 * flip, -2.0)
+			cape_mid,
+			cape_mid + Vector2(2.5 * flip, -2.0)
 		])
 		draw_colored_polygon(cape_inner, inner_gold)
 		# Золотий обвід киреї та китиця на краю
 		draw_line(cape_shoulder_top, cape_tip, border_gold, 2.0)
+		draw_line(cape_tip, cape_mid, border_gold, 1.5)
 		draw_circle(cape_tip, 1.3, border_gold)
 	
 	# If using high-fidelity AnimatedSprite2D, character body rendering is handled by the sprite!
