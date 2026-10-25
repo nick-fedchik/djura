@@ -230,6 +230,17 @@ func absorb_strike() -> bool:
 		return true
 	return false
 
+const CHORT_THIEF_PANIC_S: float = 2.5
+
+# Козацький удар по чортику-злодію: скидає вкрадене ядро й панічно тікає від Джури. true = удар оброблено (чортик не переможений).
+func strike_thief(away_x: float) -> bool:
+	if enemy_type != EnemyType.CHORT or not has_stolen_artifact:
+		return false
+	make_scared(CHORT_THIEF_PANIC_S) # емітить stolen_artifact_dropped і скидає has_stolen_artifact
+	var dir := signf(away_x) if away_x != 0.0 else 1.0
+	velocity = Vector2(dir * base_speed * 1.35, -60.0)
+	return true
+
 func make_scared(duration: float = 8.0) -> void:
 	if has_stolen_artifact:
 		# Перший удар або переляк вибиває вкрадений артефакт із рук злодія назад на арену!

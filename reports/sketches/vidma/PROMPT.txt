@@ -1,0 +1,27 @@
+=== ВІДЬМА СОЛОХА (VIDMA SOLOKHA) — MESHY.AI 3D MODEL & SPRITE PROMPT ===
+
+[UA] Опис для Image-to-3D / Text-to-3D та 2D концепту:
+Колоритна, харизматична фольклорна відьма Солоха в стилі золотої доби української анімації («Київнаукфільм», «Як козаки...», «Ніч перед Різдвом»).
+Повна відсутність темного жаху (Invariant I-3 Zero-Horror). Кумедний, яскравий, мультяшний казковий персонаж.
+Пишна, чорнява, з хитрими карими очима, рум'яними щоками та широкою глузливою посмішкою.
+Одягнена у традиційне святкове українське вбрання:
+- біла лляна сорочка з пишними рукавами та червоно-чорною полтавською вишивкою («хрестик» і «калина»);
+- темно-синя картата плахта та яскраво-червона парчева запаска, підперезана розшитим шовковим поясом;
+- на шиї — багате багаторядне червоне коралове намисто з дукачами;
+- на голові — золотавий очіпок, з-під якого вибиваються чорні кучері;
+- на ніжках — м'які червоні сап'янці на невисоких підборах.
+Тримає в руках або осідлала кумедну березову мітлу з реактивним димовим свистком (чарівний артефакт інженера).
+Нейтральна А-поза (руки розведені в боки, мітла вертикально поруч або закріплена за спиною), фронтальний ракурс, чисте світло-сіре/біле студійне тло.
+
+[EN] Prompt for Meshy.ai / Concept Art:
+A colorful, charismatic Ukrainian folklore witch character ('Vidma Solokha') in stylized 3D animation (classic Kyivnaukfilm / Cossack cartoon style):
+- Character: Comedic, flamboyant folklore enchantress and craftswoman, completely non-scary, zero-horror, stylized cartoon villainess.
+- Appearance: Plump and cheerful, rosy cheeks, arched eyebrows, big expressive dark eyes with mischievous sparkle, wide sly smirk, curly black hair partially peeking out from under a golden embroidered headdress (ochipok).
+- Traditional Attire:
+  * White linen peasant blouse with puffy sleeves and rich red-and-black Ukrainian cross-stitch embroidery.
+  * Deep blue checkered woven wrap skirt (plakhta) with vibrant red apron (zapaska) and ornate silk sash.
+  * Multi-strand glowing red coral bead necklace with gold coins (dukachi).
+  * Red Moroccan leather boots (sap'yantsi).
+- Accessory: Comical steampunk-folklore birch broomstick with tiny copper exhaust whistle puffing tiny puffs of white steam.
+- Pose: Full body front-facing neutral standing A-pose, arms spread at 45 degrees, feet firmly grounded on floor (Z=0).
+- Background: Clean solid neutral studio light grey background, soft ambient cartoon lighting, clean silhouette for 3D modeling / sprite baking.

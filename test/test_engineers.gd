@@ -40,6 +40,39 @@ func _initialize() -> void:
 		absorbed += 1
 	if absorbed != FolkloreEnemy.VIDMA_ARMOR or absorbed < 2:
 		return _fail("відьма має поглинати %d удари(ів), поглинула %d" % [FolkloreEnemy.VIDMA_ARMOR, absorbed])
+	# 2б) двофазна броня відьми: перший удар знімає щит, другий — перемагає (щита вже нема)
+	if FolkloreEnemy.VIDMA_ARMOR != 2:
+		return _fail("VIDMA_ARMOR має дорівнювати 2")
+	var vidma2 := FolkloreEnemy.new()
+	vidma2.enemy_type = FolkloreEnemy.EnemyType.VIDMA
+	root.add_child(vidma2)
+	if vidma2.armor != 2:
+		return _fail("свіжа відьма має armor == 2, є %d" % vidma2.armor)
+	if not vidma2.absorb_strike() or vidma2.armor != 1 or vidma2.is_scared:
+		return _fail("перший удар має зняти лише 1 шар броні й не перемогти відьму")
+	if not vidma2.absorb_strike() or vidma2.armor != 0:
+		return _fail("другий удар має зняти останній шар")
+	if vidma2.absorb_strike():
+		return _fail("третій удар має пройти крізь зруйнований щит (поразка)")
+	# 2в) чортик-злодій скидає ядро і панікує 2.5 с, тікаючи від гравця
+	var thief := FolkloreEnemy.new()
+	thief.enemy_type = FolkloreEnemy.EnemyType.CHORT
+	root.add_child(thief)
+	var drops: Array = []
+	thief.stolen_artifact_dropped.connect(func(p: Vector2): drops.append(p))
+	if chort.strike_thief(1.0):
+		return _fail("чортик без ядра не є злодієм")
+	thief.apply_stolen_artifact_buff()
+	thief.velocity = Vector2(-100.0, 0.0)
+	if not thief.strike_thief(1.0):
+		return _fail("удар по злодію має бути оброблено")
+	if drops.size() != 1 or thief.has_stolen_artifact:
+		return _fail("злодій мав скинути ядро рівно один раз")
+	if not thief.is_scared or not is_equal_approx(thief.scared_timer, 2.5):
+		return _fail("злодій мав запанікувати на 2.5 с")
+	if thief.velocity.x <= 0.0:
+		return _fail("злодій має тікати геть від гравця (удар зліва → вправо)")
+	print("[OK] броня відьми двофазна; чортик-злодій скидає ядро й панікує")
 	# 3) цінність: відьма вартує більше, ніж чортик (500)
 	if FolkloreEnemy.VIDMA_REWARD <= 600:
 		return _fail("нагорода за відьму має перевищувати нагороду за чортика й москаля")

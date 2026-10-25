@@ -469,7 +469,9 @@ func _check_strike_hitbox() -> void:
 				if has_mace:
 					_spawn_strike_effect(hit_local, Color(1.0, 0.85, 0.15), false, true)
 					_play_sfx(snd_bonk, 0.75)
-					if enemy.enemy_type == FolkloreEnemy.EnemyType.CHORT:
+					if enemy.strike_thief(push_x):
+						_play_sfx(snd_bonk, 1.15)
+					elif enemy.enemy_type == FolkloreEnemy.EnemyType.CHORT:
 						enemy._play_poof()
 						enemy.defeated.emit(enemy, 1000)
 						enemy.queue_free()
@@ -500,6 +502,8 @@ func _check_strike_hitbox() -> void:
 					if is_sweep_kick:
 						enemy.position.y -= 18.0
 					_play_sfx(snd_bonk, 1.25)
+				elif enemy.strike_thief(push_x):
+					_play_sfx(snd_bonk, 1.15)
 				elif enemy.enemy_type == FolkloreEnemy.EnemyType.CHORT:
 					enemy._play_poof()
 					enemy.defeated.emit(enemy, int(float(600 if is_kick else 500) * strike_level_boost))
