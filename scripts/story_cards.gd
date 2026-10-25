@@ -231,6 +231,8 @@ func show_story_for_level(lvl: int) -> void:
 	if slides.is_empty():
 		is_active = false
 		visible = false
+		if get_tree():
+			get_tree().paused = false
 		call_deferred("emit_signal", "story_finished")
 		return
 	
@@ -239,6 +241,10 @@ func show_story_for_level(lvl: int) -> void:
 	visible = true
 	time_passed = 0.0
 	_display_current_slide()
+	
+	if DisplayServer.get_name() != "headless":
+		if get_tree():
+			get_tree().paused = true
 
 func _display_current_slide() -> void:
 	if current_slide_idx >= slides.size():
@@ -248,7 +254,7 @@ func _display_current_slide() -> void:
 	var data: Dictionary = slides[current_slide_idx]
 	title_label.text = data["title"]
 	text_label.text = data["text"]
-	prompt_label.text = "КРОК %d з %d  |  [ ПРОБІЛ / A на геймпаді ] - ДАЛІ  |  [ ESC / START ] - ПРОПУСТИТИ" % [current_slide_idx + 1, slides.size()]
+	prompt_label.text = "КРОК %d з %d  |  [ ПРОБІЛ / ENTER / A на геймпаді ] - ДАЛІ  |  [ ESC / START ] - ПРОПУСТИТИ" % [current_slide_idx + 1, slides.size()]
 	if visual_node:
 		visual_node.queue_redraw()
 
@@ -262,6 +268,8 @@ func _next_slide() -> void:
 func _finish_story() -> void:
 	is_active = false
 	visible = false
+	if get_tree():
+		get_tree().paused = false
 	story_finished.emit()
 
 func _on_visual_draw() -> void:

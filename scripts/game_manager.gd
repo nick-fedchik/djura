@@ -121,6 +121,7 @@ func _ready() -> void:
 		story_cards.show_story_for_level(level)
 		await story_cards.story_finished
 	hud.announce_level(level, 2.4)
+	level_started_ms = Time.get_ticks_msec()
 
 func _process(delta: float) -> void:
 	if telemetry_engine and not is_transitioning_level:
@@ -1537,4 +1538,5 @@ func _on_level_complete() -> void:
 	# 6. Resume stage background music & show classic center-screen level announcement with fade-out
 	bgm_player.play()
 	hud.announce_level(level, 2.5)
+	level_started_ms = Time.get_ticks_msec()
 	is_transitioning_level = false
