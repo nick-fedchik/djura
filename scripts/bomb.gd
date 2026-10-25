@@ -4,14 +4,19 @@ class_name BombItem
 
 signal collected(bomb: BombItem, is_lit: bool)
 signal exploded(bomb: BombItem)
+signal fizzled(bomb: BombItem)
 
 const FUSE_DURATION: float = 7.0
 const CRITICAL_FUSE_THRESHOLD: float = 2.2
 const EXPLOSION_DURATION: float = 0.45
+const FIZZLE_DURATION: float = 0.65
+const FIZZLE_CHANCE: float = 0.20
 
 var fuse_timer: float = 7.0
 var is_exploding: bool = false
 var explosion_anim_time: float = 0.0
+var is_fizzling: bool = false
+var fizzle_anim_time: float = 0.0
 
 @export var is_lit: bool = false:
 	set(val):
@@ -45,6 +50,17 @@ func ignite() -> void:
 		fuse_timer = FUSE_DURATION
 		queue_redraw()
 
+func fizzle() -> void:
+	if is_fizzling or is_exploding or is_queued_for_deletion():
+		return
+	is_lit = false
+	is_fizzling = true
+	fizzle_anim_time = 0.0
+	fuse_timer = FUSE_DURATION
+	embers.clear()
+	fizzled.emit(self)
+	queue_redraw()
+
 func explode() -> void:
 	if is_exploding or is_queued_for_deletion():
 		return
@@ -73,10 +89,20 @@ func _process(delta: float) -> void:
 			queue_free()
 		return
 	
+	if is_fizzling:
+		fizzle_anim_time += delta
+		queue_redraw()
+		if fizzle_anim_time >= FIZZLE_DURATION:
+			is_fizzling = false
+	
 	if is_lit:
 		fuse_timer -= delta
 		if fuse_timer <= 0.0:
-			explode()
+			# 20% шанс, що ґніт просто пшикне й згасне без вибуху!
+			if randf() < FIZZLE_CHANCE:
+				fizzle()
+			else:
+				explode()
 			return
 		
 		# Інтенсивність іскор зростає, коли ґніт догорає (критична фаза)
@@ -237,6 +263,18 @@ func _draw() -> void:
 			var alpha: float = emb["life"] / emb["max_life"]
 			var col := Color(1.0, 0.75 * alpha, 0.1, alpha * 0.9)
 			draw_circle(emb["pos"], emb["size"] * alpha, col)
+
+	# 7. КОМІЧНИЙ ПШИК ТА ДИМОК ПРИ ЗГАСАННІ
+	if is_fizzling:
+		var f_progress := fizzle_anim_time / FIZZLE_DURATION
+		var smoke_y := collar_y - 4.0 - f_progress * 14.0
+		var r_fizzle := 3.5 + f_progress * 8.0
+		draw_circle(Vector2(2.0, smoke_y), r_fizzle, Color(0.65, 0.70, 0.75, (1.0 - f_progress) * 0.75))
+		draw_circle(Vector2(-2.0, smoke_y - 2.0), r_fizzle * 0.75, Color(0.80, 0.85, 0.90, (1.0 - f_progress) * 0.65))
+		draw_circle(Vector2(1.0, smoke_y + 2.0), r_fizzle * 0.6, Color(0.95, 0.95, 1.0, (1.0 - f_progress) * 0.8))
+		var fnt := ThemeDB.fallback_font
+		if fnt:
+			draw_string(fnt, Vector2(-24.0, smoke_y - 7.0), "ПШИК!", HORIZONTAL_ALIGNMENT_CENTER, 48.0, 11, Color(0.70, 0.88, 1.0, 1.0 - f_progress))
 
 func _draw_oval(center: Vector2, rx: float, ry: float, color: Color) -> void:
 	var pts := PackedVector2Array()

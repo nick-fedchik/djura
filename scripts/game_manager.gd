@@ -1300,6 +1300,7 @@ func _spawn_bomb_grid() -> void:
 		bomb.position = pos
 		bomb.collected.connect(_on_bomb_collected)
 		bomb.exploded.connect(_on_bomb_exploded)
+		bomb.fizzled.connect(_on_bomb_fizzled)
 		bombs_node.add_child(bomb)
 	
 	hud.update_bombs(bomb_positions.size(), bomb_positions.size())
@@ -1424,6 +1425,16 @@ func _on_bomb_exploded(bomb: BombItem) -> void:
 		_on_level_complete()
 	else:
 		_light_next_bomb()
+
+func _on_bomb_fizzled(bomb: BombItem) -> void:
+	if is_transitioning_level:
+		return
+	hud.show_message("ПШИК! ҐНІТ ЗГАС! ПРОНЕСЛО!", 1.8, Color(0.65, 0.85, 1.0))
+	if player:
+		player.say("Хух, згасло! Пронесло!", 1.6)
+	_play_sfx_at(snd_poof, bomb.global_position, 1.5)
+	# Передаємо вогонь іншій незапаленій бомбі, щоб не ламати потік гри
+	_light_next_bomb()
 
 func _on_level_complete() -> void:
 	if is_transitioning_level:
