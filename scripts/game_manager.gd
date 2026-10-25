@@ -98,6 +98,7 @@ var snd_bomb_regular = preload("res://assets/audio/bomb_regular.wav")
 var snd_bomb_lit = preload("res://assets/audio/bomb_lit.wav")
 var snd_level_clear = preload("res://assets/audio/level_clear.wav")
 var snd_hopak_music = preload("res://assets/audio/hopak_music.wav")
+var snd_poof = preload("res://assets/audio/chort_poof.wav")
 
 func _ready() -> void:
 	telemetry_engine = _TelemetryEngine.new()
@@ -1298,6 +1299,7 @@ func _spawn_bomb_grid() -> void:
 		var bomb = bomb_scene.instantiate() as BombItem
 		bomb.position = pos
 		bomb.collected.connect(_on_bomb_collected)
+		bomb.exploded.connect(_on_bomb_exploded)
 		bombs_node.add_child(bomb)
 	
 	hud.update_bombs(bomb_positions.size(), bomb_positions.size())
@@ -1393,6 +1395,35 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 		hud.show_message("УСІ 24 ЯДРА ЗІБРАНО! ПЕРЕМОЖНИЙ ГОПАК!", 3.5, Color(0.25, 1.0, 0.50))
 		player.say("Усі ядра в арсеналі! Перемога!", 2.0)
 		_on_level_complete()
+
+func _on_bomb_exploded(bomb: BombItem) -> void:
+	if is_transitioning_level:
+		return
+	
+	# Скидання стріку комбо палаючих бомб та штраф слави
+	lit_streak = 1
+	var penalty := 150
+	score = maxi(0, score - penalty)
+	hud.update_score(score)
+	hud.show_message("БОМБА ЗДЕТОНУВАЛА! -%d СЛАВИ!" % penalty, 2.0, Color(1.0, 0.35, 0.2))
+	
+	if player:
+		player.say("Ой лишенько, порох згорів!", 1.8)
+	
+	_play_sfx_at(snd_poof, bomb.global_position, 0.8)
+	
+	# Рахуємо залишок бомб
+	var remaining_count := 0
+	for child in bombs_node.get_children():
+		if child is BombItem and child != bomb and not child.is_queued_for_deletion():
+			remaining_count += 1
+	
+	hud.update_bombs(remaining_count, 24)
+	if remaining_count == 0:
+		hud.show_message("РІВЕНЬ ЗАВЕРШЕНО!", 3.0, Color(0.25, 1.0, 0.50))
+		_on_level_complete()
+	else:
+		_light_next_bomb()
 
 func _on_level_complete() -> void:
 	if is_transitioning_level:

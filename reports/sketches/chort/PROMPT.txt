@@ -1,0 +1,16 @@
+=== ЧОРТИК (CHORTIK) — MESHY.AI 3D MODEL GENERATION PROMPT ===
+
+[UA] Опис для Image-to-3D / Text-to-3D:
+Кумедний, чарівний фольклорний чортик-капосник у стилі золотої доби української анімації («Київнаукфільм», «Як козаки...», «Пропала грамота»).
+Жодного горору чи лякання (Invariant I-3 Zero-Horror). Повністю комічний, веселий казковий персонаж.
+Попелясто-димчасте пухнасте хутро, кругла мордочка, великі круглі бурштинові пустотливі очі, широка добра посмішка з крихітними смішними іклами, маленькі закручені гладкі ріжки на голівці, вушка пензликами.
+Підперезаний мініатюрним червоним козацьким поясом, смішні маленькі ратиці на ніжках, довгий гнучкий хвостик із китичкою на кінці.
+Нейтральна А-поза (руки розведені в боки, стоїть рівно на підлозі), фронтальний ракурс на чистому білому студійному тлі, м'яке освітлення без різких тіней.
+
+[EN] Prompt for Meshy.ai (Text-to-3D / Image-to-3D):
+A cute, comedic Ukrainian folklore imp character ('Chortik') in stylized 3D animation (Kyivnaukfilm / classic Cossack cartoon style):
+- Character: Playful, lovable trickster imp, completely non-scary, zero-horror, comedic folklore fairy-tale creature.
+- Body & Face: Soft charcoal-grey soot fur with warm highlights, cute animated face, big round amber-gold mischievous eyes, wide cheerful grin with tiny blunt fangs, small elegant curved horns on forehead, perky tufted ears.
+- Details: Wearing a comical miniature bright red Ukrainian Cossack woven sash around waist, tiny neat cloven hooves, long thin expressive devil tail with a fluffy brush tuft at the tip.
+- Pose: Full body front-facing neutral standing A-pose, arms slightly raised away from torso, feet firmly grounded on the floor (Z=0), full body centered.
+- Background: Clean solid neutral light grey/white studio background, soft 3D studio ambient lighting, crisp clean silhouette for 3D reconstruction. Stylized 3D character asset, PBR cartoon texture.

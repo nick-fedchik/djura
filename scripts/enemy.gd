@@ -47,6 +47,7 @@ var defeat_dance_time: float = 0.0
 # Тимчасова перевага ворога, якщо він перехопив чар-артефакт (Золоті Підківки Вакули)
 var has_stolen_artifact: bool = false
 var artifact_buff_timer: float = 0.0
+var _vohnyk_ignite_timer: float = 0.0
 
 var snd_poof = preload("res://assets/audio/chort_poof.wav")
 static var _vohnyk_sheet_cache: Texture2D = null
@@ -242,6 +243,20 @@ func _process(delta: float) -> void:
 		defeat_dance_time += delta
 		queue_redraw()
 		return
+	
+	# Вогник (Купальський Вогник) підпалює холодні ядра при зближенні (ймовірність 60%)
+	if enemy_type == EnemyType.VOGNYK and not is_scared and not is_resting:
+		_vohnyk_ignite_timer -= delta
+		if _vohnyk_ignite_timer <= 0.0:
+			_vohnyk_ignite_timer = 0.35
+			var tree := get_tree()
+			if tree != null:
+				for b in tree.get_nodes_in_group("bombs"):
+					if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
+						if global_position.distance_to(b.global_position) <= 42.0:
+							if randf() < 0.60:
+								b.ignite()
+								break
 	
 	if has_stolen_artifact:
 		artifact_buff_timer -= delta
