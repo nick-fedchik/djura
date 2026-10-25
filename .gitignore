@@ -35,3 +35,6 @@ docs/TASKS.md
 docs/tasks.md
 *TASKS*.md
 *backlog*
+
+# Turnaround raw frame dumps
+reports/turnarounds/*/*.png
