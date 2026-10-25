@@ -2,7 +2,7 @@
 
 **Проєкт:** «Джура: початок шляху козака» (*Djura: Path of the Cossack*)  
 **Рушій:** Godot Engine 4.x (рекомендовано 4.3+ або 4.7 Standard, 64-bit, без .NET)  
-**Мова скриптів:** GDScript 2.0 + Python 3.10+ (для інструментів збірки та тестів)  
+**Мова скриптів:** GDScript 2.0 + Python 3.13 / 3.14+ (проєкт верифіковано на Python 3.14)  
 **Репозиторій:** [https://github.com/nick-fedchik/djura.git](https://github.com/nick-fedchik/djura.git)
 
 Цей посібник допоможе новим розробникам, художникам і тестувальникам швидко налаштувати оточення, запустити проєкт локально та доєднатися до розробки гри під **Ubuntu Linux** або **Windows 10 / 11**.
@@ -83,15 +83,15 @@ bash tools/run_tests.sh
 Відкрийте **PowerShell** або **Термінал Windows** від імені адміністратора та виконайте команду встановлення Git, Python і Godot:
 ```powershell
 winget install --id Git.Git -e --source winget
-winget install --id Python.Python.3.12 -e --source winget
+winget install --id Python.Python.3.14 -e --source winget
 winget install --id GodotEngine.GodotEngine -e --source winget
 ```
-*(Після встановлення перезапустіть вікно PowerShell, щоб оновилися змінні середовища PATH).*
+*(Якщо `Python.Python.3.14` ще не синхронізовано у вашому регіоні Winget, команда `winget install --id Python.Python.3.13 -e --source winget` або `winget install Python.Python.3` встановить найсвіжіший офіційний реліз. Після встановлення перезапустіть вікно PowerShell, щоб оновилися змінні середовища PATH).*
 
 > **Альтернативний ручний спосіб:**
 > 1. Завантажте **Git for Windows**: [git-scm.com/download/win](https://git-scm.com/download/win).
 > 2. Завантажте **Godot Engine 4.x (Standard version)**: [godotengine.org/download/windows](https://godotengine.org/download/windows) (розпакуйте архів `Godot_v4.*.exe` у зручну папку, наприклад `C:\Tools\Godot\`, і додайте в PATH або створіть ярлик).
-> 3. Завантажте **Python 3.12**: [python.org/downloads](https://www.python.org/downloads) (обов'язково поставте прапорець **«Add python.exe to PATH»** під час інсталяції).
+> 3. Завантажте актуальний **Python 3.14 / 3.13+**: [python.org/downloads](https://www.python.org/downloads) (обов'язково поставте прапорець **«Add python.exe to PATH»** під час інсталяції).
 
 ### Крок 2. Клонування проєкту
 Відкрийте **Git Bash** або **PowerShell**:
