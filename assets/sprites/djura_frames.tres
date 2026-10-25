@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=34 format=3]
+[gd_resource type="SpriteFrames" load_steps=32 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/djura_sheet.png" id="1_sheet"]
 
@@ -122,14 +122,6 @@ region = Rect2(512, 512, 128, 128)
 atlas = ExtResource("1_sheet")
 region = Rect2(640, 512, 128, 128)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_32"]
-atlas = ExtResource("1_sheet")
-region = Rect2(0, 640, 128, 128)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_33"]
-atlas = ExtResource("1_sheet")
-region = Rect2(128, 640, 128, 128)
-
 [resource]
 animations = [{
 "frames": [{
@@ -180,9 +172,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_13")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_14")
 }],
 "loop": 0,
 "name": &"hopak_kick",
@@ -191,6 +180,9 @@ animations = [{
 {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_14")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_15")
 }, {
 "duration": 1.0,
@@ -198,12 +190,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_17")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_18")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_19")
 }],
 "loop": 1,
 "name": &"idle",
@@ -212,16 +198,16 @@ animations = [{
 {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_18")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_19")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_20")
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_21")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_22")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_23")
 }],
 "loop": 0,
 "name": &"jump",
@@ -229,6 +215,12 @@ animations = [{
 },
 {
 "frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_22")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_23")
+}, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_24")
 }, {
@@ -240,9 +232,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_27")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_28")
 }],
 "loop": 1,
 "name": &"run",
@@ -251,6 +240,9 @@ animations = [{
 {
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_28")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_29")
 }, {
 "duration": 1.0,
@@ -258,12 +250,6 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_31")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_32")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_33")
 }],
 "loop": 0,
 "name": &"victory",

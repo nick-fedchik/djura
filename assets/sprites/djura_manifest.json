@@ -1,7 +1,7 @@
 {
   "format": "djura_spritesheet_v1",
   "sheet_width": 768,
-  "sheet_height": 768,
+  "sheet_height": 640,
   "frame_width": 128,
   "frame_height": 128,
   "fps": 12,
@@ -9,7 +9,7 @@
     64.0,
     128.0
   ],
-  "total_frames": 32,
+  "total_frames": 30,
   "frames": [
     {
       "animation": "bonk",
@@ -108,8 +108,8 @@
       "h": 128
     },
     {
-      "animation": "hopak_kick",
-      "frame_index": 4,
+      "animation": "idle",
+      "frame_index": 0,
       "x": 0,
       "y": 256,
       "w": 128,
@@ -117,7 +117,7 @@
     },
     {
       "animation": "idle",
-      "frame_index": 0,
+      "frame_index": 1,
       "x": 128,
       "y": 256,
       "w": 128,
@@ -125,7 +125,7 @@
     },
     {
       "animation": "idle",
-      "frame_index": 1,
+      "frame_index": 2,
       "x": 256,
       "y": 256,
       "w": 128,
@@ -133,23 +133,23 @@
     },
     {
       "animation": "idle",
-      "frame_index": 2,
+      "frame_index": 3,
       "x": 384,
       "y": 256,
       "w": 128,
       "h": 128
     },
     {
-      "animation": "idle",
-      "frame_index": 3,
+      "animation": "jump",
+      "frame_index": 0,
       "x": 512,
       "y": 256,
       "w": 128,
       "h": 128
     },
     {
-      "animation": "idle",
-      "frame_index": 4,
+      "animation": "jump",
+      "frame_index": 1,
       "x": 640,
       "y": 256,
       "w": 128,
@@ -157,7 +157,7 @@
     },
     {
       "animation": "jump",
-      "frame_index": 0,
+      "frame_index": 2,
       "x": 0,
       "y": 384,
       "w": 128,
@@ -165,23 +165,23 @@
     },
     {
       "animation": "jump",
-      "frame_index": 1,
+      "frame_index": 3,
       "x": 128,
       "y": 384,
       "w": 128,
       "h": 128
     },
     {
-      "animation": "jump",
-      "frame_index": 2,
+      "animation": "run",
+      "frame_index": 0,
       "x": 256,
       "y": 384,
       "w": 128,
       "h": 128
     },
     {
-      "animation": "jump",
-      "frame_index": 3,
+      "animation": "run",
+      "frame_index": 1,
       "x": 384,
       "y": 384,
       "w": 128,
@@ -189,7 +189,7 @@
     },
     {
       "animation": "run",
-      "frame_index": 0,
+      "frame_index": 2,
       "x": 512,
       "y": 384,
       "w": 128,
@@ -197,7 +197,7 @@
     },
     {
       "animation": "run",
-      "frame_index": 1,
+      "frame_index": 3,
       "x": 640,
       "y": 384,
       "w": 128,
@@ -205,7 +205,7 @@
     },
     {
       "animation": "run",
-      "frame_index": 2,
+      "frame_index": 4,
       "x": 0,
       "y": 512,
       "w": 128,
@@ -213,15 +213,15 @@
     },
     {
       "animation": "run",
-      "frame_index": 3,
+      "frame_index": 5,
       "x": 128,
       "y": 512,
       "w": 128,
       "h": 128
     },
     {
-      "animation": "run",
-      "frame_index": 4,
+      "animation": "victory",
+      "frame_index": 0,
       "x": 256,
       "y": 512,
       "w": 128,
@@ -229,7 +229,7 @@
     },
     {
       "animation": "victory",
-      "frame_index": 0,
+      "frame_index": 1,
       "x": 384,
       "y": 512,
       "w": 128,
@@ -237,7 +237,7 @@
     },
     {
       "animation": "victory",
-      "frame_index": 1,
+      "frame_index": 2,
       "x": 512,
       "y": 512,
       "w": 128,
@@ -245,25 +245,9 @@
     },
     {
       "animation": "victory",
-      "frame_index": 2,
+      "frame_index": 3,
       "x": 640,
       "y": 512,
-      "w": 128,
-      "h": 128
-    },
-    {
-      "animation": "victory",
-      "frame_index": 3,
-      "x": 0,
-      "y": 640,
-      "w": 128,
-      "h": 128
-    },
-    {
-      "animation": "victory",
-      "frame_index": 4,
-      "x": 128,
-      "y": 640,
       "w": 128,
       "h": 128
     }

@@ -119,7 +119,34 @@ young boy, anime elf, demonic wizard, dark fantasy grimdark, blood, torn clothes
 
 ---
 
-### 2.5. Чортик-крутько (Chortik-Besketnyk) — Гоголівський степовий бісик
+### 2.5. Вогник-Стрибунець (Vohnyk) — Січовий вогняний дух (Рівень 1)
+
+* **Роль:** Пустотливий магічний дух порохового полум'я на Січі, стрибучий нейтрально-ворожий NPC, що перестрибує з балки на балку.
+* **Зріст та силует:** Маленька краплеподібна жива вогняна істота (зріст Джурі до колін, $\approx 0.45\times$ від зросту Джури). Верхня частина витягується у динамічні язики полум'я, що звиваються при стрибку.
+* **Анатомія та обличчя:** Округле палаюче тільце золотисто-бурштинового кольору з гарячим біло-жовтим ядром у центрі. Великі виразні мультяшні бурштинові очі з грайливими вугликами-зіницями, пустотлива усмішка. З боків тіла — маленькі крилаті язички вогню замість рук, якими він балансує у повітрі. Навколо тіла постійно кружляють дрібні золоті та багряні іскри (ембери).
+* **Ракурси Turnaround:**
+  - *Front ($0^\circ$):* Краплеподібна симетрія полум'я, сяючі очі, грайлива посмішка, центральне золоте ядро.
+  - *3/4 Left/Right ($30^\circ / 330^\circ$):* Вигин язиків вогню назад по інерції руху, видимість бічних вогняних крилець.
+  - *Profile ($90^\circ / 270^\circ$):* Аеродинамічний нахил полум'я вперед із шлейфом іскор позаду.
+  - *Back ($180^\circ$):* Насичене багряно-помаранчеве градієнтне сяйво зі шлейфом тліючих іскорок.
+
+#### Промпт для Meshy AI (Text-to-3D):
+```text
+3D character model of a lively stylized fire spirit creature named Vohnyk, inspired by Slavic Cossack folklore and classic animation. Adorable teardrop-shaped living flame elemental with a bright glowing golden-yellow inner core and warm scarlet-orange outer flame licks swirling upward into a pointed crest. Expressive round cartoon amber eyes with glowing charcoal pupils and a cheerful cheeky cartoon grin.
+
+Sprouting tiny dynamic flame-wing wisps at its sides and trailing dancing embers and sparkles around its silhouette. No realistic horror, strictly cute fairy-tale cartoon style like Calcifer from Ghibli or Pixar elemental characters. 
+
+Stylized 3D character, clean hand-painted PBR emissive materials with soft gradient glow, centered at origin Z=0, symmetrical floating or hovering stance, game-ready asset.
+```
+
+#### Negative Prompt:
+```text
+terrifying demon, scary hellfire monster, horror skull, dark sinister lava monster, realistic burnt skin, human torso, legs, shoes, gritty realism, uncanny, low poly distortion.
+```
+
+---
+
+### 2.6. Чортик-крутько (Chortik-Besketnyk) — Гоголівський степовий бісик
 
 * **Роль:** Спритний мультяшний злодійчук ядер, комічний слуга відьми.
 * **Вік та анатомія:** Мультяшний маленький бісик (зріст Джурі до пояса), пухнасте графітово-чорне тільце, смішний рожевий свинячий п'ятачок, два маленьких закручених червоних ріжки на маківці, великі круглі жовті очі з чорними зіницями, довгий тонкий хвостик із пухнастим пензликом.

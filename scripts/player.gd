@@ -105,6 +105,7 @@ var audio_player: AudioStreamPlayer
 
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var speech_bubble: SpeechBubble = get_node_or_null("SpeechBubble")
+@onready var animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 
 func _ready() -> void:
 	audio_player = AudioStreamPlayer.new()
@@ -756,7 +757,44 @@ func _physics_process(delta: float) -> void:
 			# Smooth ceiling sliding: horizontal trajectory preserved, zero bonk penalty
 			velocity.y = 0.0
 	
+	_update_animated_sprite()
 	queue_redraw()
+
+func _update_animated_sprite() -> void:
+	if not animated_sprite:
+		return
+	if invulnerable_timer > 0.0 and fmod(invulnerable_timer, 0.14) > 0.07:
+		animated_sprite.visible = false
+	else:
+		animated_sprite.visible = true
+
+	animated_sprite.flip_h = (facing_direction < 0)
+
+	if bonk_timer > 0.0:
+		if animated_sprite.animation != "bonk":
+			animated_sprite.play("bonk")
+	elif is_hopak:
+		if animated_sprite.animation != "victory":
+			animated_sprite.play("victory")
+	elif punch_timer > 0.0:
+		if animated_sprite.animation != "hopak_kick":
+			animated_sprite.play("hopak_kick")
+	elif not is_on_floor():
+		if is_gliding:
+			if animated_sprite.animation != "glide":
+				animated_sprite.play("glide")
+		else:
+			if animated_sprite.animation != "jump":
+				animated_sprite.play("jump")
+	elif is_rolling:
+		if animated_sprite.animation != "run":
+			animated_sprite.play("run")
+	elif absf(velocity.x) > 10.0:
+		if animated_sprite.animation != "run":
+			animated_sprite.play("run")
+	else:
+		if animated_sprite.animation != "idle":
+			animated_sprite.play("idle")
 
 # Analytical 2-Bone Inverse Kinematics solver (Law of Cosines) for natural limb arcs
 func _solve_2bone_ik(root: Vector2, target: Vector2, len1: float, len2: float, bend_sign: float) -> Vector2:
@@ -1249,6 +1287,10 @@ func _draw() -> void:
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 13.5 * height_factor, 4.5 * height_factor, Color(0.0, 0.0, 0.05, 0.38 * height_factor))
 		_draw_oval(Vector2(pelvis.x * 0.5, 16.0), 8.2 * height_factor, 2.5 * height_factor, Color(0.0, 0.0, 0.05, 0.58 * height_factor))
 	
+	# If using high-fidelity 3D Meshy AnimatedSprite2D, delegate character body rendering to sprite!
+	if animated_sprite != null and animated_sprite.visible:
+		return
+
 	# --- 2. 3D DOUBLE-SIDED BILLOWING KYREYA (Cossack Parkour Wing-Cape) ---
 	var wave := sin(cape_wave) * 4.0
 	var outer_blue := Color(0.10, 0.22, 0.65)
