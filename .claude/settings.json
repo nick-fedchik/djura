@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(godot --version)",
+      "Bash(godot --headless *)",
+      "Bash(tools/run_tests.sh*)",
+      "Bash(gdlint *)",
+      "Bash(gdparse *)",
+      "Bash(gdformat --check *)",
+      "Bash(python3 tools/test_*.py*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); case \"$f\" in *.gd) gdparse \"$f\" >/dev/null 2>/tmp/gdparse.err || { cat /tmp/gdparse.err >&2; exit 2; };; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
