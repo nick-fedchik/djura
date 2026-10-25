@@ -248,20 +248,29 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		return
 	
-	# Ворожі NPC підпалюють холодні ядра при зближенні (Вогник 60%, інші злодії 25–40%)
+	# Ворожі NPC підпалюють холодні ядра при зближенні (Вогник 60% на рівні 1, 70% на рівні 2+; інші злодії 25–40%)
 	if not is_scared and not is_resting and not is_dancing_defeat:
 		_vohnyk_ignite_timer -= delta
 		if _vohnyk_ignite_timer <= 0.0:
-			_vohnyk_ignite_timer = 0.35
+			_vohnyk_ignite_timer = 0.25
 			var tree := get_tree()
 			if tree != null:
-				var ignite_chance := 0.60 if enemy_type == EnemyType.VOGNYK else (0.40 if (enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK) else (0.30 if enemy_type == EnemyType.CHORT else 0.25))
-				var ignite_dist := 44.0 if enemy_type == EnemyType.VOGNYK else 32.0
+				var current_lvl := 1
+				var p_mgr = get_parent()
+				if p_mgr and p_mgr.get_parent() and p_mgr.get_parent().get("level") != null:
+					current_lvl = int(p_mgr.get_parent().level)
+				var vohnyk_chance := 0.60 if current_lvl <= 1 else 0.70
+				var ignite_chance := vohnyk_chance if enemy_type == EnemyType.VOGNYK else (0.40 if (enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK) else (0.30 if enemy_type == EnemyType.CHORT else 0.25))
+				var ignite_dist := 48.0 if enemy_type == EnemyType.VOGNYK else 32.0
 				for b in tree.get_nodes_in_group("bombs"):
 					if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
 						if global_position.distance_to(b.global_position) <= ignite_dist:
 							if randf() < ignite_chance:
 								b.ignite()
+								_vohnyk_ignite_timer = 1.0 # пауза перед пошуком наступного ядра
+								break
+							else:
+								_vohnyk_ignite_timer = 0.5 # невдала спроба — спробувати ще через 0.5с
 								break
 	
 	if has_stolen_artifact:
@@ -319,9 +328,43 @@ func _process(delta: float) -> void:
 					velocity.x = flight_dir * 85.0
 					velocity.y = cos(time_passed * 2.2) * 2.2 * 32.0
 			EnemyType.VOGNYK:
-				var float_speed := (65.0 if not is_scared else 115.0) * fatigue_mult
-				var drift := Vector2(sin(time_passed * 1.5), cos(time_passed * 1.8)) * 16.0
-				position += (velocity.normalized() * float_speed + drift) * delta
+				if is_scared:
+					var flee_dir := (global_position - _player_ref.global_position).normalized() if (_player_ref and is_instance_valid(_player_ref)) else velocity.normalized()
+					if flee_dir.length_squared() < 0.1:
+						flee_dir = Vector2(1.0, -1.0).normalized()
+					velocity = velocity.lerp(flee_dir * 120.0, delta * 5.0)
+					position += velocity * fatigue_mult * delta
+				else:
+					var target_bomb: BombItem = null
+					var min_dist := 999999.0
+					var tree := get_tree()
+					if tree != null:
+						for b in tree.get_nodes_in_group("bombs"):
+							if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
+								var d := global_position.distance_to(b.global_position)
+								if d < min_dist:
+									min_dist = d
+									target_bomb = b
+					
+					var current_lvl := 1
+					var p_mgr = get_parent()
+					if p_mgr and p_mgr.get_parent() and p_mgr.get_parent().get("level") != null:
+						current_lvl = int(p_mgr.get_parent().level)
+					
+					var float_speed := (75.0 if current_lvl <= 1 else 85.0) * fatigue_mult
+					if target_bomb != null:
+						var to_bomb := target_bomb.global_position - global_position
+						var dir := to_bomb.normalized()
+						velocity = velocity.lerp(dir * float_speed, delta * 4.0)
+						var bob := Vector2(0.0, sin(time_passed * 5.0) * 8.0)
+						position += (velocity + bob) * delta
+					else:
+						# Якщо всі ядра запалено або зібрано — грайливий безтурботний політ
+						var patrol := Vector2(cos(time_passed * 1.6) * 55.0, sin(time_passed * 2.2) * 35.0)
+						velocity = velocity.lerp(patrol, delta * 2.0)
+						position += velocity * fatigue_mult * delta
+				position.x = clampf(position.x, 32.0, 928.0)
+				position.y = clampf(position.y, 40.0, 490.0)
 			EnemyType.CHORT, EnemyType.ZLYDNI:
 				var z_mult := 1.08 if enemy_type == EnemyType.ZLYDNI else 1.0
 				var speed := (base_speed * z_mult if not is_scared else (base_speed * 1.35)) * fatigue_mult
@@ -896,57 +939,33 @@ static func vognyk_ember_points(dir: Vector2, t: float, count: int, reach: float
 # БЛУКАЮЧИЙ ВОГНИК (Потерчата / Купальський Лісовий Дух)
 # -------------------------------------------------------------
 func _draw_vognyk() -> void:
-	var pulse := (0.76 + sin(time_passed * 5.0) * 0.06) if is_resting else (1.0 + sin(time_passed * 16.0) * 0.22)
-	var sway := sin(time_passed * 10.0) * 3.5
-	var c_outer := Color(0.12, 0.85, 0.75, 0.22) if not is_scared else Color(0.45, 0.65, 1.0, 0.25)
-	var c_mid := Color(0.22, 0.96, 0.58, 0.52) if not is_scared else Color(0.55, 0.80, 1.0, 0.55)
-	var c_core := Color(0.95, 1.0, 0.82, 0.94)
-	var c_flame_in := Color(1.0, 0.92, 0.55, 0.92) if not is_scared else Color(0.85, 0.95, 1.0, 0.92)
-	var c_tail := Color(c_mid.r, c_mid.g, c_mid.b, 0.88)
-	
-	# 1. Танцюючі вигнуті язики купальського полум'я вгорі (зовнішній смарагдовий + внутрішній золотий)
-	for t_i in range(3):
-		var offset_x := (float(t_i) - 1.0) * 4.5
-		var tongue_h := (17.0 if t_i == 1 else 12.5) * pulse
-		var lean := (1.0 if t_i == 2 else -1.0) if t_i != 1 else sin(time_passed * 6.0)
-		var up_pts := vognyk_flame_points(Vector2(offset_x, 2.0), Vector2(lean * 0.35, -1.0).normalized(), tongue_h, 4.6, time_passed * 14.0, float(t_i) * 1.8)
-		draw_colored_polygon(up_pts, c_mid)
-		var up_in := vognyk_flame_points(Vector2(offset_x, 2.0), Vector2(lean * 0.35, -1.0).normalized(), tongue_h * 0.62, 2.4, time_passed * 14.0, float(t_i) * 1.8)
-		draw_colored_polygon(up_in, c_flame_in)
-
-	# 1.5. Багаторівневий вогняний хвіст-шлейф позаду: три хвилясті язики, кожен із двох шарів
-	var tail_dir := -(signf(velocity.x) if absf(velocity.x) > 5.0 else 1.0)
-	var tail_rest := 0.7 if is_resting else 1.0
-	for t_j in range(3):
-		var t_len := (27.0 - float(t_j) * 5.5) * pulse * tail_rest
-		var t_y := -5.0 + float(t_j) * 5.0
-		var base := Vector2(0.0, t_y)
-		var dir := Vector2(tail_dir, (float(t_j) - 1.0) * 0.18)
-		draw_colored_polygon(vognyk_flame_points(base, dir, t_len, 4.8, time_passed * 12.0, float(t_j) * 1.7), c_tail)
-		draw_colored_polygon(vognyk_flame_points(base, dir, t_len * 0.66, 2.6, time_passed * 12.0, float(t_j) * 1.7 + 0.5), c_flame_in)
-		draw_polyline(vognyk_flame_points(base, dir, t_len, 4.8, time_passed * 12.0, float(t_j) * 1.7), Color(0.04, 0.30, 0.28, 0.9), 1.2)
-
-	# 1.6. Живі іскорки-ембери відлітають назад по траєкторії польоту
-	for ember in vognyk_ember_points(Vector2(tail_dir, 0.0), time_passed, 6, 36.0):
-		var e_pos: Vector2 = ember[0]
-		var e_life: float = ember[1]
-		draw_circle(e_pos, 1.9 * (1.0 - e_life) + 0.5, Color(1.0, 0.86 - 0.3 * e_life, 0.32, 0.95 * (1.0 - e_life)))
-
-	# 2. Ефірне смарагдово-блакитне сяйво ядра
-	draw_circle(Vector2.ZERO, 15.5 * pulse, c_outer)
-
+	var pulse := (0.80 + sin(time_passed * 5.0) * 0.05) if is_resting else (1.0 + sin(time_passed * 14.0) * 0.15)
 	var look_dir := signf(velocity.x) if absf(velocity.x) > 5.0 else 1.0
-
-	# 3. Високодеталізований 3D Meshy-спрайт Вогника (або фолбек на процедурні овали)
 	var spr_sheet := get_vohnyk_sheet()
+	
 	if spr_sheet != null:
+		# 1. Тепле вогняне сяйво-аура навколо персонажа Вогника (затишний вогонь печі / вогнища)
+		var glow_c := Color(1.0, 0.52, 0.10, 0.26) if not is_scared else Color(0.40, 0.65, 1.0, 0.28)
+		var glow_in := Color(1.0, 0.85, 0.22, 0.36) if not is_scared else Color(0.70, 0.88, 1.0, 0.40)
+		draw_circle(Vector2(0, -6.0), 24.0 * pulse, glow_c)
+		draw_circle(Vector2(0, -6.0), 14.0 * pulse, glow_in)
+		
+		# 2. Живі золоті іскорки-ембери, що злітають позаду під час польоту
+		var tail_dir := -(signf(velocity.x) if absf(velocity.x) > 5.0 else 1.0)
+		for ember in vognyk_ember_points(Vector2(tail_dir, 0.0), time_passed, 5, 26.0):
+			var e_pos: Vector2 = ember[0]
+			var e_life: float = ember[1]
+			var ember_c := Color(1.0, 0.72 - 0.3 * e_life, 0.15, 0.9 * (1.0 - e_life))
+			draw_circle(e_pos, 2.0 * (1.0 - e_life) + 0.6, ember_c)
+		
+		# 3. Високодеталізований 3D Meshy-персонаж Вогника (чіткий, великий та виразний)
 		var frame_col := 0
 		var frame_row := 1 # idle
 		if is_dancing_defeat:
 			frame_row = 0 # fizzle
 			frame_col = int(defeat_dance_time * 8.0) % 4
 		elif absf(velocity.y) > 20.0 or is_scared:
-			frame_row = 2 # jump
+			frame_row = 2 # jump/dive
 			frame_col = int(time_passed * 10.0) % 4
 		else:
 			frame_row = 1 # idle
@@ -954,8 +973,8 @@ func _draw_vognyk() -> void:
 		
 		var src_rect := Rect2(frame_col * 128.0, frame_row * 128.0, 128.0, 128.0)
 		var flip_sprite := (look_dir < 0.0)
-		var spr_w := 38.0 * pulse
-		var spr_h := 38.0 * pulse
+		var spr_w := 54.0 * pulse
+		var spr_h := 54.0 * pulse
 		var dest_rect := Rect2(-spr_w * 0.5, -spr_h * 0.65, spr_w, spr_h)
 		if flip_sprite:
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2(-1.0, 1.0))
@@ -965,24 +984,28 @@ func _draw_vognyk() -> void:
 			draw_texture_rect_region(spr_sheet, dest_rect, src_rect)
 		
 		if is_resting:
-			_draw_sweat_and_breath(Vector2(0.0, -10.5), Vector2(4.5 * look_dir, 1.5), look_dir, "ХУХ...")
+			_draw_sweat_and_breath(Vector2(0.0, -12.0), Vector2(4.5 * look_dir, 2.0), look_dir, "ХУХ...")
 	else:
-		draw_circle(Vector2(0, -1.0), 10.2 * pulse, c_mid)
-		draw_circle(Vector2(0, -0.5), 6.2 * pulse, c_core)
+		# Процедурний фолбек: тепле сонячно-вогняне тільце
+		var c_outer := Color(1.0, 0.55, 0.12, 0.28) if not is_scared else Color(0.45, 0.65, 1.0, 0.25)
+		var c_mid := Color(1.0, 0.72, 0.18, 0.75) if not is_scared else Color(0.55, 0.80, 1.0, 0.55)
+		var c_core := Color(1.0, 0.95, 0.65, 0.95)
 		
-		# 3. Живі містичні оченята духа-потерчати всередині ядра!
+		draw_circle(Vector2.ZERO, 16.0 * pulse, c_outer)
+		draw_circle(Vector2(0, -1.0), 11.0 * pulse, c_mid)
+		draw_circle(Vector2(0, -0.5), 7.0 * pulse, c_core)
+		
+		# Живі містичні оченята духа
 		if is_resting:
-			# Сонно прикриті оченята Купальського Вогника під час короткого перепочинку
-			draw_arc(Vector2(-2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
-			draw_arc(Vector2(2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
+			draw_arc(Vector2(-2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.40, 0.15, 0.05), 1.8)
+			draw_arc(Vector2(2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.40, 0.15, 0.05), 1.8)
 			_draw_sweat_and_breath(Vector2(0.0, -10.5), Vector2(4.5 * look_dir, 1.5), look_dir, "ХУХ...")
 		elif not is_scared:
-			_draw_oval(Vector2(-2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
-			_draw_oval(Vector2(2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
+			_draw_oval(Vector2(-2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.40, 0.15, 0.05))
+			_draw_oval(Vector2(2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.40, 0.15, 0.05))
 			draw_circle(Vector2(-1.9 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
 			draw_circle(Vector2(2.5 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
 		else:
-			# Перелякані круглі оченята
 			draw_circle(Vector2(-2.4, -0.5), 2.2, Color.WHITE)
 			draw_circle(Vector2(2.4, -0.5), 2.2, Color.WHITE)
 			draw_circle(Vector2(-2.4, -0.5), 0.9, Color(0.08, 0.15, 0.35))

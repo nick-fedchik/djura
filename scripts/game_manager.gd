@@ -681,11 +681,10 @@ func _setup_level() -> void:
 			_spawn_vakula_horseshoe()
 	)
 	
-	# Light up first bomb after a short delay
-	await get_tree().create_timer(0.3).timeout
-	_light_next_bomb()
-
 func _check_progressive_ally_arrival() -> void:
+	# На рівнях 1 та 2 союзники не прибувають: діють лише Джура та Вогник
+	if level <= 2:
+		return
 	var enemy_count := enemies_node.get_child_count() if enemies_node else 0
 	
 	# 1. Перший Карпатський Гуцул з барткою прибуває після перших успіхів Джури (2+ ядра або комбо >= 2)
@@ -1354,8 +1353,6 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 			call_deferred("_spawn_fern_flower")
 		elif lit_streak == 10:
 			call_deferred("_spawn_fern_flower")
-		# Chain continues: light up next bomb
-		call_deferred("_light_next_bomb")
 	else:
 		bonus = 100
 		score += bonus
@@ -1422,8 +1419,6 @@ func _on_bomb_exploded(bomb: BombItem) -> void:
 	if remaining_count == 0:
 		hud.show_message("РІВЕНЬ ЗАВЕРШЕНО!", 3.0, Color(0.25, 1.0, 0.50))
 		_on_level_complete()
-	else:
-		_light_next_bomb()
 
 func _on_bomb_fizzled(bomb: BombItem) -> void:
 	if is_transitioning_level:
@@ -1432,8 +1427,6 @@ func _on_bomb_fizzled(bomb: BombItem) -> void:
 	if player:
 		player.say("Хух, згасло! Пронесло!", 1.6)
 	_play_sfx_at(snd_poof, bomb.global_position, 1.5)
-	# Передаємо вогонь іншій незапаленій бомбі, щоб не ламати потік гри
-	_light_next_bomb()
 
 func _on_level_complete() -> void:
 	if is_transitioning_level:
