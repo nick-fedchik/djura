@@ -17,6 +17,9 @@ var time_passed: float = 0.0
 var is_active: bool = false
 var mentor_texture: Texture2D = null
 var qirimli_texture: Texture2D = null
+var slide_meeting_texture: Texture2D = null
+var slide_pledge_texture: Texture2D = null
+var slide_mission_texture: Texture2D = null
 
 # Pre-defined cartoon slide stories for levels
 const LEVEL_STORIES: Dictionary = {
@@ -198,6 +201,12 @@ func _ready() -> void:
 		mentor_texture = load("res://assets/sprites/mentor_portrait.png")
 	if ResourceLoader.exists("res://assets/sprites/qirimli_portrait.png"):
 		qirimli_texture = load("res://assets/sprites/qirimli_portrait.png")
+	if ResourceLoader.exists("res://assets/sprites/story/slide_level1_1_meeting.png"):
+		slide_meeting_texture = load("res://assets/sprites/story/slide_level1_1_meeting.png")
+	if ResourceLoader.exists("res://assets/sprites/story/slide_level1_2_pledge.png"):
+		slide_pledge_texture = load("res://assets/sprites/story/slide_level1_2_pledge.png")
+	if ResourceLoader.exists("res://assets/sprites/story/slide_level1_3_mission.png"):
+		slide_mission_texture = load("res://assets/sprites/story/slide_level1_3_mission.png")
 	if visual_node:
 		visual_node.draw.connect(_on_visual_draw)
 
@@ -328,6 +337,10 @@ func _on_visual_draw() -> void:
 # --- Cartoon procedural illustrations ---
 
 func _draw_mentor_meeting(c: Vector2) -> void:
+	if slide_meeting_texture != null:
+		var rect := Rect2(Vector2.ZERO, visual_node.size)
+		visual_node.draw_texture_rect(slide_meeting_texture, rect, false)
+		return
 	# Deep night sky over the Dnipro
 	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.06, 0.09, 0.16))
 	
@@ -399,6 +412,10 @@ func _draw_mentor_meeting(c: Vector2) -> void:
 	visual_node.draw_line(bh + Vector2(-6, -7), bh + Vector2(4, -9), Color(0.35, 0.22, 0.14), 3.0) # hair
 
 func _draw_dzhura_pledge(c: Vector2) -> void:
+	if slide_pledge_texture != null:
+		var rect := Rect2(Vector2.ZERO, visual_node.size)
+		visual_node.draw_texture_rect(slide_pledge_texture, rect, false)
+		return
 	# Twilight hill with glowing golden aura
 	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.08, 0.06, 0.14))
 	
@@ -436,6 +453,10 @@ func _draw_dzhura_pledge(c: Vector2) -> void:
 	_draw_story_dzhura(c + Vector2(65, 20), -1.0, "horseshoe")
 
 func _draw_mission_briefing(c: Vector2) -> void:
+	if slide_mission_texture != null:
+		var rect := Rect2(Vector2.ZERO, visual_node.size)
+		visual_node.draw_texture_rect(slide_mission_texture, rect, false)
+		return
 	# Night fortress silhouette & wooden platforms
 	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.07, 0.08, 0.12))
 	

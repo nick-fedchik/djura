@@ -205,164 +205,166 @@ def reset_pose():
 
 anims = {}
 
-# 1. IDLE (8 frames) - Smooth breathing and subtle heroic pulse
+# 1. IDLE (8 frames) - Smooth breathing and subtle heroic pulse facing 3/4 right
 anims["idle"] = []
 for i in range(8):
     t = float(i) / 8.0 * math.tau
     b = math.sin(t)
     anims["idle"].append({
-        "yaw": -35,
+        "yaw": 30,
         "spine": -3.5 * b,
-        "arm_l": 8.0 + 4.0 * b,
-        "arm_r": -8.0 - 4.0 * b,
-        "thigh_l": 2.0 * math.cos(t),
+        "arm_l": -8.0 - 4.0 * b,
+        "arm_r": 8.0 + 4.0 * b,
+        "thigh_l": -2.0 * math.cos(t),
         "shin_l": 0.0,
-        "thigh_r": -2.0 * math.cos(t),
+        "thigh_r": 2.0 * math.cos(t),
         "shin_r": 0.0,
         "z": 0.015 * b
     })
 
-# 2. RUN (10 frames) - Buttery smooth running cycle with broad strides
+# 2. RUN (10 frames) - Athletic Cossack sprint facing RIGHT with forward lean
 anims["run"] = []
 for i in range(10):
     t = float(i) / 10.0 * math.tau
     s = math.sin(t)
-    th_l = -50.0 * s
-    sh_l = max(0.0, 45.0 * s) + max(0.0, 25.0 * -s)
-    th_r = 50.0 * s
-    sh_r = max(0.0, 45.0 * -s) + max(0.0, 25.0 * s)
+    # Right leg (foreground) swings forward on s > 0
+    th_r = 48.0 * s
+    sh_r = max(0.0, 36.0 * s) + max(0.0, 22.0 * -s)
+    # Left leg (background) swings back on s > 0
+    th_l = -48.0 * s
+    sh_l = max(0.0, 36.0 * -s) + max(0.0, 22.0 * s)
     anims["run"].append({
-        "yaw": -65,
-        "spine": 12.0 + 2.0 * abs(s),
-        "arm_l": 45.0 * s,
-        "arm_r": -45.0 * s,
-        "thigh_l": th_l,
-        "shin_l": sh_l,
+        "yaw": 75,
+        "spine": 14.0 + 2.0 * abs(s), # forward torso lean into the sprint
+        "arm_r": -42.0 * s,           # counter-swinging arms
+        "arm_l": 42.0 * s,
         "thigh_r": th_r,
         "shin_r": sh_r,
+        "thigh_l": th_l,
+        "shin_l": sh_l,
         "z": -0.02 * (1.0 - abs(s)) + 0.02 * abs(s)
     })
 
-# 3. JUMP (8 frames) - Crouch -> Leap -> Apex -> Landing
+# 3. JUMP (8 frames) - Crouch -> Leap -> Apex -> Landing facing right
 anims["jump"] = [
-    {"yaw": -45, "spine": 16, "arm_l": 20, "arm_r": 20, "thigh_l": -32, "shin_l": 52, "thigh_r": -32, "shin_r": 52, "z": -0.05},
-    {"yaw": -45, "spine": -6, "arm_l": -50, "arm_r": -50, "thigh_l": -45, "shin_l": 50, "thigh_r": -35, "shin_r": 40, "z": 0.04},
-    {"yaw": -45, "spine": -9, "arm_l": -65, "arm_r": -65, "thigh_l": -58, "shin_l": 62, "thigh_r": -48, "shin_r": 52, "z": 0.07},
-    {"yaw": -45, "spine": -7, "arm_l": -60, "arm_r": -60, "thigh_l": -50, "shin_l": 55, "thigh_r": -40, "shin_r": 45, "z": 0.08},
-    {"yaw": -45, "spine": -3, "arm_l": -45, "arm_r": -45, "thigh_l": -35, "shin_l": 40, "thigh_r": -25, "shin_r": 30, "z": 0.09},
-    {"yaw": -45, "spine": 0, "arm_l": -30, "arm_r": -30, "thigh_l": -22, "shin_l": 25, "thigh_r": -18, "shin_r": 20, "z": 0.06},
-    {"yaw": -45, "spine": 5, "arm_l": -15, "arm_r": -15, "thigh_l": -12, "shin_l": 15, "thigh_r": -12, "shin_r": 15, "z": 0.02},
-    {"yaw": -45, "spine": 12, "arm_l": 10, "arm_r": 10, "thigh_l": -22, "shin_l": 32, "thigh_r": -22, "shin_r": 32, "z": -0.02}
+    {"yaw": 65, "spine": 16, "arm_l": 20, "arm_r": 20, "thigh_l": -32, "shin_l": 52, "thigh_r": -32, "shin_r": 52, "z": -0.05},
+    {"yaw": 65, "spine": -6, "arm_l": -50, "arm_r": -50, "thigh_l": -45, "shin_l": 50, "thigh_r": -35, "shin_r": 40, "z": 0.04},
+    {"yaw": 65, "spine": -9, "arm_l": -65, "arm_r": -65, "thigh_l": -58, "shin_l": 62, "thigh_r": -48, "shin_r": 52, "z": 0.07},
+    {"yaw": 65, "spine": -7, "arm_l": -60, "arm_r": -60, "thigh_l": -50, "shin_l": 55, "thigh_r": -40, "shin_r": 45, "z": 0.08},
+    {"yaw": 65, "spine": -3, "arm_l": -45, "arm_r": -45, "thigh_l": -35, "shin_l": 40, "thigh_r": -25, "shin_r": 30, "z": 0.09},
+    {"yaw": 65, "spine": 0, "arm_l": -30, "arm_r": -30, "thigh_l": -22, "shin_l": 25, "thigh_r": -18, "shin_r": 20, "z": 0.06},
+    {"yaw": 65, "spine": 5, "arm_l": -15, "arm_r": -15, "thigh_l": -12, "shin_l": 15, "thigh_r": -12, "shin_r": 15, "z": 0.02},
+    {"yaw": 65, "spine": 12, "arm_l": 10, "arm_r": 10, "thigh_l": -22, "shin_l": 32, "thigh_r": -22, "shin_r": 32, "z": -0.02}
 ]
 
-# 4. GLIDE (8 frames) - Aerodynamic flight with wing arms
+# 4. GLIDE (8 frames) - Aerodynamic flight with wing arms facing right
 anims["glide"] = []
 for i in range(8):
     t = float(i) / 8.0 * math.tau
     w = math.sin(t)
     anims["glide"].append({
-        "yaw": -55,
+        "yaw": 70,
         "spine": 25.0 + 3.0 * w,
-        "arm_l": -78.0 + 6.0 * w,
-        "arm_r": -78.0 - 6.0 * w,
-        "thigh_l": 25.0 + 4.0 * math.cos(t),
-        "shin_l": 16.0,
-        "thigh_r": 28.0 - 4.0 * math.cos(t),
-        "shin_r": 18.0,
+        "arm_r": -78.0 + 6.0 * w,
+        "arm_l": -78.0 - 6.0 * w,
+        "thigh_r": -25.0 + 4.0 * math.cos(t),
+        "shin_r": 16.0,
+        "thigh_l": -28.0 - 4.0 * math.cos(t),
+        "shin_l": 18.0,
         "z": 0.04 + 0.015 * w
     })
 
-# 5. PUNCH (8 frames) - Boxing Steelhammer Jab / Straight Strike
+# 5. PUNCH (8 frames) - Boxing Steelhammer Jab / Straight Strike to the right
 anims["punch"] = [
-    {"yaw": -60, "spine": 0, "arm_l": -20, "arm_r": 15, "thigh_l": -5, "shin_l": 5, "thigh_r": 5, "shin_r": 10, "z": 0.0},
-    {"yaw": -60, "spine": -5, "arm_l": -30, "arm_r": 30, "thigh_l": -8, "shin_l": 8, "thigh_r": 8, "shin_r": 12, "z": 0.01},
-    {"yaw": -65, "spine": 10, "arm_l": -45, "arm_r": -35, "thigh_l": -15, "shin_l": 12, "thigh_r": 15, "shin_r": 18, "z": 0.0},
-    {"yaw": -65, "spine": 14, "arm_l": -50, "arm_r": -85, "thigh_l": -25, "shin_l": 20, "thigh_r": 25, "shin_r": 22, "z": 0.01},
-    {"yaw": -65, "spine": 15, "arm_l": -52, "arm_r": -90, "thigh_l": -28, "shin_l": 22, "thigh_r": 28, "shin_r": 25, "z": 0.02}, # Peak impact hold!
-    {"yaw": -65, "spine": 10, "arm_l": -45, "arm_r": -65, "thigh_l": -20, "shin_l": 15, "thigh_r": 20, "shin_r": 18, "z": 0.01},
-    {"yaw": -60, "spine": 5, "arm_l": -30, "arm_r": -20, "thigh_l": -10, "shin_l": 10, "thigh_r": 10, "shin_r": 12, "z": 0.0},
-    {"yaw": -60, "spine": 0, "arm_l": -15, "arm_r": 10, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
+    {"yaw": 75, "spine": 0, "arm_l": 15, "arm_r": -20, "thigh_l": 5, "shin_l": 10, "thigh_r": -5, "shin_r": 5, "z": 0.0},
+    {"yaw": 75, "spine": -5, "arm_l": 30, "arm_r": -30, "thigh_l": 8, "shin_l": 12, "thigh_r": -8, "shin_r": 8, "z": 0.01},
+    {"yaw": 75, "spine": 10, "arm_l": -35, "arm_r": -45, "thigh_l": 15, "shin_l": 18, "thigh_r": -15, "shin_r": 12, "z": 0.0},
+    {"yaw": 75, "spine": 14, "arm_l": -85, "arm_r": -50, "thigh_l": 25, "shin_l": 22, "thigh_r": -25, "shin_r": 20, "z": 0.01},
+    {"yaw": 75, "spine": 15, "arm_l": -90, "arm_r": -52, "thigh_l": 28, "shin_l": 25, "thigh_r": -28, "shin_r": 22, "z": 0.02}, # Peak impact hold!
+    {"yaw": 75, "spine": 10, "arm_l": -65, "arm_r": -45, "thigh_l": 20, "shin_l": 18, "thigh_r": -20, "shin_r": 15, "z": 0.01},
+    {"yaw": 75, "spine": 5, "arm_l": -20, "arm_r": -30, "thigh_l": 10, "shin_l": 12, "thigh_r": -10, "shin_r": 10, "z": 0.0},
+    {"yaw": 75, "spine": 0, "arm_l": 10, "arm_r": -15, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
 ]
 
-# 6. HOPAK_KICK (8 frames) - Martial Cossack Tynok / Shchupak Kick
+# 6. HOPAK_KICK (8 frames) - Martial Cossack Tynok / Shchupak Kick to the right
 anims["hopak_kick"] = [
-    {"yaw": -50, "spine": 8, "arm_l": -25, "arm_r": -25, "thigh_l": 10, "shin_l": 20, "thigh_r": -40, "shin_r": 60, "z": -0.02},
-    {"yaw": -55, "spine": 5, "arm_l": -20, "arm_r": -30, "thigh_l": 15, "shin_l": 25, "thigh_r": -65, "shin_r": 75, "z": 0.01},
-    {"yaw": -65, "spine": -12, "arm_l": 30, "arm_r": -40, "thigh_l": 20, "shin_l": 28, "thigh_r": -82, "shin_r": 25, "z": 0.05},
-    {"yaw": -65, "spine": -16, "arm_l": 40, "arm_r": -50, "thigh_l": 25, "shin_l": 30, "thigh_r": -90, "shin_r": 0, "z": 0.08}, # Full 90-degree martial boot strike!
-    {"yaw": -65, "spine": -18, "arm_l": 45, "arm_r": -55, "thigh_l": 26, "shin_l": 32, "thigh_r": -92, "shin_r": 0, "z": 0.08}, # Power impact hold!
-    {"yaw": -60, "spine": -10, "arm_l": 30, "arm_r": -35, "thigh_l": 18, "shin_l": 22, "thigh_r": -65, "shin_r": 20, "z": 0.04},
-    {"yaw": -55, "spine": 0, "arm_l": -10, "arm_r": -20, "thigh_l": 10, "shin_l": 15, "thigh_r": -35, "shin_r": 40, "z": 0.01},
-    {"yaw": -50, "spine": 5, "arm_l": -15, "arm_r": -20, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": 0.0}
+    {"yaw": 75, "spine": 8, "arm_l": -25, "arm_r": -25, "thigh_l": 10, "shin_l": 20, "thigh_r": -40, "shin_r": 60, "z": -0.02},
+    {"yaw": 75, "spine": 5, "arm_l": -30, "arm_r": -20, "thigh_l": 15, "shin_l": 25, "thigh_r": -65, "shin_r": 75, "z": 0.01},
+    {"yaw": 75, "spine": -12, "arm_l": -40, "arm_r": 30, "thigh_l": 20, "shin_l": 28, "thigh_r": 82, "shin_r": 25, "z": 0.05},
+    {"yaw": 75, "spine": -16, "arm_l": -50, "arm_r": 40, "thigh_l": 25, "shin_l": 30, "thigh_r": 90, "shin_r": 0, "z": 0.08}, # Full 90-degree martial boot strike!
+    {"yaw": 75, "spine": -18, "arm_l": -55, "arm_r": 45, "thigh_l": 26, "shin_l": 32, "thigh_r": 92, "shin_r": 0, "z": 0.08}, # Power impact hold!
+    {"yaw": 75, "spine": -10, "arm_l": -35, "arm_r": 30, "thigh_l": 18, "shin_l": 22, "thigh_r": 65, "shin_r": 20, "z": 0.04},
+    {"yaw": 75, "spine": 0, "arm_l": -20, "arm_r": -10, "thigh_l": 10, "shin_l": 15, "thigh_r": 35, "shin_r": 40, "z": 0.01},
+    {"yaw": 75, "spine": 5, "arm_l": -20, "arm_r": -15, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": 0.0}
 ]
 
 # 7. VICTORY / HOPAK_DANCE (12 frames) - Authentic Cossack Victory Hopak (Присядка, Повзунець, Руки в боки, Стрибок)
 anims["victory"] = [
     # 0: Pride stance
-    {"yaw": -15, "spine": -6, "arm_l": -40, "arm_r": -40, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.01},
+    {"yaw": 15, "spine": -6, "arm_l": -40, "arm_r": -40, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.01},
     # 1: Deep drop into Cossack squat (Присядка)
-    {"yaw": -25, "spine": 15, "arm_l": 30, "arm_r": -30, "thigh_l": -75, "shin_l": 95, "thigh_r": -75, "shin_r": 95, "z": -0.14},
+    {"yaw": 25, "spine": 15, "arm_l": 30, "arm_r": -30, "thigh_l": -75, "shin_l": 95, "thigh_r": -75, "shin_r": 95, "z": -0.14},
     # 2: Deep squat with arms crossed over chest
-    {"yaw": -30, "spine": 18, "arm_l": -35, "arm_r": 35, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.16},
+    {"yaw": 30, "spine": 18, "arm_l": -35, "arm_r": 35, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.16},
     # 3: ПОВЗУНЕЦЬ 1 - Right boot shoots straight out horizontally!
-    {"yaw": -55, "spine": -10, "arm_l": -45, "arm_r": 45, "thigh_l": -75, "shin_l": 100, "thigh_r": -88, "shin_r": 0, "z": -0.13},
+    {"yaw": 55, "spine": -10, "arm_l": 45, "arm_r": -45, "thigh_l": -75, "shin_l": 100, "thigh_r": 88, "shin_r": 0, "z": -0.13},
     # 4: Full extension hold of right boot
-    {"yaw": -55, "spine": -12, "arm_l": -50, "arm_r": 50, "thigh_l": -75, "shin_l": 100, "thigh_r": -90, "shin_r": 0, "z": -0.13},
+    {"yaw": 55, "spine": -12, "arm_l": 50, "arm_r": -50, "thigh_l": -75, "shin_l": 100, "thigh_r": 90, "shin_r": 0, "z": -0.13},
     # 5: Retract right boot back into squat
-    {"yaw": -30, "spine": 16, "arm_l": -30, "arm_r": 30, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.15},
+    {"yaw": 30, "spine": 16, "arm_l": -30, "arm_r": 30, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.15},
     # 6: ПОВЗУНЕЦЬ 2 - Left boot shoots straight out horizontally!
-    {"yaw": -20, "spine": -10, "arm_l": 45, "arm_r": -45, "thigh_l": -88, "shin_l": 0, "thigh_r": -75, "shin_r": 100, "z": -0.13},
+    {"yaw": 20, "spine": -10, "arm_l": -45, "arm_r": 45, "thigh_l": 88, "shin_l": 0, "thigh_r": -75, "shin_r": 100, "z": -0.13},
     # 7: Retract left boot back into squat
-    {"yaw": -25, "spine": 16, "arm_l": -30, "arm_r": 30, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.15},
+    {"yaw": 25, "spine": 16, "arm_l": -30, "arm_r": 30, "thigh_l": -80, "shin_l": 105, "thigh_r": -80, "shin_r": 105, "z": -0.15},
     # 8: Explosive upward leap from squat!
-    {"yaw": -15, "spine": -10, "arm_l": -90, "arm_r": -90, "thigh_l": -30, "shin_l": 35, "thigh_r": -30, "shin_r": 35, "z": 0.06},
+    {"yaw": 15, "spine": -10, "arm_l": -90, "arm_r": -90, "thigh_l": -30, "shin_l": 35, "thigh_r": -30, "shin_r": 35, "z": 0.06},
     # 9: Airborne triumph with arms raised high!
-    {"yaw": -10, "spine": -15, "arm_l": -135, "arm_r": -135, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 20, "z": 0.08},
+    {"yaw": 10, "spine": -15, "arm_l": -135, "arm_r": -135, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 20, "z": 0.08},
     # 10: Landing proudly with hands on hips («руки в боки»)!
-    {"yaw": -10, "spine": -5, "arm_l": 65, "arm_r": -65, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": 0.02},
+    {"yaw": 10, "spine": -5, "arm_l": 65, "arm_r": -65, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": 0.02},
     # 11: Cheerful victory smile & nod
-    {"yaw": -10, "spine": 0, "arm_l": 60, "arm_r": -60, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
+    {"yaw": 10, "spine": 0, "arm_l": 60, "arm_r": -60, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
 ]
 
 # 8. BONK (8 frames) - Dizzy wobble and recovery
 anims["bonk"] = [
-    {"yaw": -25, "spine": -20, "arm_l": -45, "arm_r": 45, "thigh_l": 10, "shin_l": 10, "thigh_r": -10, "shin_r": 10, "z": -0.02},
-    {"yaw": -30, "spine": -25, "arm_l": -55, "arm_r": 55, "thigh_l": 15, "shin_l": 15, "thigh_r": -15, "shin_r": 15, "z": -0.04},
-    {"yaw": -35, "spine": 12, "arm_l": 35, "arm_r": -35, "thigh_l": -12, "shin_l": 18, "thigh_r": 12, "shin_r": 18, "z": -0.03},
-    {"yaw": -35, "spine": 15, "arm_l": 40, "arm_r": -40, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 20, "z": -0.04},
-    {"yaw": -15, "spine": -10, "arm_l": -30, "arm_r": 30, "thigh_l": 12, "shin_l": 18, "thigh_r": -12, "shin_r": 18, "z": -0.02},
-    {"yaw": -15, "spine": -12, "arm_l": -35, "arm_r": 35, "thigh_l": 15, "shin_l": 20, "thigh_r": -15, "shin_r": 20, "z": -0.03},
-    {"yaw": -25, "spine": 5, "arm_l": 10, "arm_r": -10, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": -0.01},
-    {"yaw": -30, "spine": 0, "arm_l": 5, "arm_r": -5, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
+    {"yaw": 25, "spine": -20, "arm_l": 45, "arm_r": -45, "thigh_l": -10, "shin_l": 10, "thigh_r": 10, "shin_r": 10, "z": -0.02},
+    {"yaw": 30, "spine": -25, "arm_l": 55, "arm_r": -55, "thigh_l": -15, "shin_l": 15, "thigh_r": 15, "shin_r": 15, "z": -0.04},
+    {"yaw": 35, "spine": 12, "arm_l": -35, "arm_r": 35, "thigh_l": 12, "shin_l": 18, "thigh_r": -12, "shin_r": 18, "z": -0.03},
+    {"yaw": 35, "spine": 15, "arm_l": -40, "arm_r": 40, "thigh_l": 15, "shin_l": 20, "thigh_r": -15, "shin_r": 20, "z": -0.04},
+    {"yaw": 15, "spine": -10, "arm_l": 30, "arm_r": -30, "thigh_l": -12, "shin_l": 18, "thigh_r": 12, "shin_r": 18, "z": -0.02},
+    {"yaw": 15, "spine": -12, "arm_l": 35, "arm_r": -35, "thigh_l": -15, "shin_l": 20, "thigh_r": 15, "shin_r": 20, "z": -0.03},
+    {"yaw": 25, "spine": 5, "arm_l": -10, "arm_r": 10, "thigh_l": 0, "shin_l": 5, "thigh_r": 0, "shin_r": 5, "z": -0.01},
+    {"yaw": 30, "spine": 0, "arm_l": -5, "arm_r": 5, "thigh_l": 0, "shin_l": 0, "thigh_r": 0, "shin_r": 0, "z": 0.0}
 ]
 
-# 9. FALL (8 frames) - Aerodynamic descent & falcon dive
+# 9. FALL (8 frames) - Aerodynamic descent & falcon dive facing right
 anims["fall"] = []
 for i in range(8):
     t = float(i) / 8.0 * math.tau
     w = math.sin(t)
     anims["fall"].append({
-        "yaw": -50,
+        "yaw": 70,
         "spine": 12.0 + 2.0 * w,
-        "arm_l": 28.0 + 4.0 * w,
-        "arm_r": -28.0 - 4.0 * w,
-        "thigh_l": 15.0 + 2.0 * math.cos(t),
-        "shin_l": 10.0,
-        "thigh_r": 18.0 - 2.0 * math.cos(t),
-        "shin_r": 12.0,
+        "arm_r": 28.0 + 4.0 * w,
+        "arm_l": -28.0 - 4.0 * w,
+        "thigh_r": 15.0 + 2.0 * math.cos(t),
+        "shin_r": 10.0,
+        "thigh_l": 18.0 - 2.0 * math.cos(t),
+        "shin_l": 12.0,
         "z": 0.01 * w
     })
 
-# 10. ROLL (8 frames) - Parkour tuck & 360-degree combat roll
+# 10. ROLL (8 frames) - Parkour tuck & 360-degree combat roll facing right
 anims["roll"] = []
 for i in range(8):
     ang = float(i) / 8.0 * 360.0
     anims["roll"].append({
-        "yaw": -90,
-        "roll": -ang,
+        "yaw": 90,
+        "roll": ang,
         "spine": 35.0,
-        "arm_l": -60.0,
-        "arm_r": 60.0,
+        "arm_l": 60.0,
+        "arm_r": -60.0,
         "thigh_l": -80.0,
         "shin_l": 110.0,
         "thigh_r": -80.0,
@@ -425,7 +427,7 @@ pack_spritesheet.pack_spritesheet(
     frame_width=128,
     frame_height=128,
     fps=12,
-    flip_horizontal=True,
+    flip_horizontal=False,
     cartoon_fx=True
 )
 print("SUCCESS: Packed 70-frame animated Meshy Djura sheet, frames.tres and manifest.json!")
