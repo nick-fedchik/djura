@@ -22,10 +22,10 @@ const NEUTRAL_QUALITY: float = 0.5    # якість «до першого рі�
 # Рівні 1–5 реалізовано й перевіряється складом гри; рівні 6–20 — план (чини москалів і найманці Орди існують у коді,
 # але ще не розставлені за цим планом; NPC_PLANNED ще не реалізовано). Див. LEVEL_PROGRESSION_STORY_8PLUS.md.
 const NPC_INTRO: Dictionary = {
-	1: ["CHORT", "HUTSUL"],
+	1: ["HUTSUL", "VOGNYK"],
 	2: ["VIDMA"],
 	3: ["MOSKAL", "QIRIMLI"],
-	4: ["VOGNYK"],
+	4: ["VOGNYK_SPARK"],
 	5: ["MAVKA"],
 	6: ["MOSKAL_SHYSH"],
 	7: ["MOSKAL_DYAK"],

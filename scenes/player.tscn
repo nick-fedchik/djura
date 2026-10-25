@@ -24,4 +24,3 @@ shape = SubResource("RectangleShape2D_1")
 
 [node name="SpeechBubble" parent="." instance=ExtResource("3_bubble")]
 position = Vector2(0, -28)
-

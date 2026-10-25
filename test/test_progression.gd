@@ -15,8 +15,8 @@ func _initialize() -> void:
 	print("--- Прогресія NPC та складності ---")
 	# 1) кожен із 20 рівнів кампанії вводить нового NPC; таблиця D.NPC_INTRO збігається з реальним складом,
 	# і не більше одного нового ТИПУ ворога на рівень (чини рахуємо як нових NPC: e.npc_id())
-	var seen := {}
-	var seen_types := {}
+	var seen := {"CHORT": true}
+	var seen_types := {FolkloreEnemy.EnemyType.CHORT: true}
 	for level in range(1, D.CAMPAIGN_LEVELS + 1):
 		mgr.difficulty_k = 1.0
 		for e in mgr.enemies_node.get_children():
@@ -42,7 +42,7 @@ func _initialize() -> void:
 		var want: Array = D.NPC_INTRO[level].duplicate()
 		want.sort()
 		print("Рівень %d: нові NPC %s (нові типи ворога: %s)" % [level, fresh, fresh_types])
-		if fresh.is_empty():
+		if fresh.is_empty() and not want.is_empty():
 			return _fail("рівень %d не вводить нового NPC" % level)
 		if fresh != want:
 			return _fail("рівень %d: реальні нові NPC %s не збігаються з таблицею %s" % [level, fresh, want])

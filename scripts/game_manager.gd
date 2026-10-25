@@ -885,8 +885,7 @@ func _show_level_lore_tip() -> void:
 # і завжди зберігає інваріант I-6: (відьми + відьмаки) * 2 <= чортики. Після рівня 20 нових NPC немає.
 const LEVEL_COMPOSITIONS: Dictionary = {
 	1: [
-		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
-		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
+		{"pos": Vector2(480, 200), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
 	2: [
 		{"pos": Vector2(200, 210), "type": FolkloreEnemy.EnemyType.CHORT},

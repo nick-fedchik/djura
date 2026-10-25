@@ -111,6 +111,41 @@ func _ready() -> void:
 	audio_player = AudioStreamPlayer.new()
 	audio_player.bus = "Master"
 	add_child(audio_player)
+	_init_animated_sprite()
+
+func _init_animated_sprite() -> void:
+	if not animated_sprite:
+		return
+	
+	if ResourceLoader.exists("res://assets/sprites/djura_frames.tres"):
+		var tres = load("res://assets/sprites/djura_frames.tres") as SpriteFrames
+		if tres != null:
+			animated_sprite.sprite_frames = tres
+			animated_sprite.play("idle")
+			return
+
+	# Фолбек на пряме завантаження з assets/sprites/djura_sheet.png
+	if FileAccess.file_exists("res://assets/sprites/djura_sheet.png") and FileAccess.file_exists("res://assets/sprites/djura_manifest.json"):
+		var img := Image.load_from_file("res://assets/sprites/djura_sheet.png")
+		var json_str := FileAccess.get_file_as_string("res://assets/sprites/djura_manifest.json")
+		var manifest = JSON.parse_string(json_str)
+		if img != null and manifest is Dictionary and manifest.has("frames"):
+			var tex := ImageTexture.create_from_image(img)
+			var sf := SpriteFrames.new()
+			var fps: float = float(manifest.get("fps", 12))
+			for fr in manifest["frames"]:
+				var anim_name: String = fr["animation"]
+				if not sf.has_animation(anim_name):
+					sf.add_animation(anim_name)
+					sf.set_animation_speed(anim_name, fps)
+					sf.set_animation_loop(anim_name, (anim_name != "bonk"))
+				var at := AtlasTexture.new()
+				at.atlas = tex
+				at.region = Rect2(float(fr["x"]), float(fr["y"]), float(fr["w"]), float(fr["h"]))
+				sf.add_frame(anim_name, at)
+			animated_sprite.sprite_frames = sf
+			animated_sprite.play("idle")
+			return
 
 func _play_sfx(stream: AudioStream, pitch_scale: float = 1.0) -> void:
 	var sfx := AudioStreamPlayer2D.new()

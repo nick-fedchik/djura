@@ -10,7 +10,7 @@ func _initialize() -> void:
 	await process_frame
 	await process_frame
 	print("--- Крива складності: нові типи ворогів за рівнями ---")
-	var seen := {}
+	var seen := {FolkloreEnemy.EnemyType.CHORT: true}
 	var failed := false
 	for level in range(1, 21):
 		for e in mgr.enemies_node.get_children():

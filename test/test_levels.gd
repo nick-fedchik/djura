@@ -21,11 +21,11 @@ func _physics_process(delta: float) -> bool:
 			mgr.platforms_node.get_child_count(),
 			mgr.enemies_node.get_child_count()
 		])
-		assert(mgr.enemies_node.get_child_count() == 2, "Level 1 must have exactly 2 enemies (Chorty)")
+		assert(mgr.enemies_node.get_child_count() == 1, "Level 1 must have exactly 1 enemy (Vohnyk)")
 		for e in mgr.enemies_node.get_children():
-			assert(e.enemy_type == FolkloreEnemy.EnemyType.CHORT, "Level 1 enemies must be CHORT")
+			assert(e.enemy_type == FolkloreEnemy.EnemyType.VOGNYK, "Level 1 enemies must be VOGNYK")
 		
-		print("[OK] Level 1 enemies verified: Only Chorty imps for 8+ kids friendliness!")
+		print("[OK] Level 1 enemies verified: Only Vohnyk for 8+ kids friendliness and Meshy 3D showcase!")
 		
 		# Simulate level 1 completion to test Level 2 transition
 		print("Simulating transition to Level 2...")

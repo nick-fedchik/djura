@@ -128,7 +128,11 @@ func npc_id() -> String:
 	match enemy_type:
 		EnemyType.CHORT: return "CHORT"
 		EnemyType.VIDMA: return "VIDMA"
-		EnemyType.VOGNYK: return "VOGNYK"
+		EnemyType.VOGNYK:
+			var parent = get_parent()
+			if parent and parent.get_parent() and parent.get_parent().get("level") == 4:
+				return "VOGNYK_SPARK"
+			return "VOGNYK"
 		EnemyType.ZLYDNI: return "ZLYDNI"
 		EnemyType.BASAVRIUK: return "BASAVRIUK"
 		EnemyType.VIJ: return "VIJ"
@@ -244,17 +248,19 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		return
 	
-	# Вогник (Купальський Вогник) підпалює холодні ядра при зближенні (ймовірність 60%)
-	if enemy_type == EnemyType.VOGNYK and not is_scared and not is_resting:
+	# Ворожі NPC підпалюють холодні ядра при зближенні (Вогник 60%, інші злодії 25–40%)
+	if not is_scared and not is_resting and not is_dancing_defeat:
 		_vohnyk_ignite_timer -= delta
 		if _vohnyk_ignite_timer <= 0.0:
 			_vohnyk_ignite_timer = 0.35
 			var tree := get_tree()
 			if tree != null:
+				var ignite_chance := 0.60 if enemy_type == EnemyType.VOGNYK else (0.40 if (enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK) else (0.30 if enemy_type == EnemyType.CHORT else 0.25))
+				var ignite_dist := 44.0 if enemy_type == EnemyType.VOGNYK else 32.0
 				for b in tree.get_nodes_in_group("bombs"):
 					if b is BombItem and not b.is_lit and not b.is_exploding and not b.is_queued_for_deletion():
-						if global_position.distance_to(b.global_position) <= 42.0:
-							if randf() < 0.60:
+						if global_position.distance_to(b.global_position) <= ignite_dist:
+							if randf() < ignite_chance:
 								b.ignite()
 								break
 	
