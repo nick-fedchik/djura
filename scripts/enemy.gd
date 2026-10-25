@@ -49,6 +49,18 @@ var has_stolen_artifact: bool = false
 var artifact_buff_timer: float = 0.0
 
 var snd_poof = preload("res://assets/audio/chort_poof.wav")
+static var _vohnyk_sheet_cache: Texture2D = null
+
+static func get_vohnyk_sheet() -> Texture2D:
+	if _vohnyk_sheet_cache != null:
+		return _vohnyk_sheet_cache
+	if ResourceLoader.exists("res://assets/sprites/vohnyk_sheet.png"):
+		_vohnyk_sheet_cache = load("res://assets/sprites/vohnyk_sheet.png") as Texture2D
+	if _vohnyk_sheet_cache == null and FileAccess.file_exists("res://assets/sprites/vohnyk_sheet.png"):
+		var img := Image.load_from_file("res://assets/sprites/vohnyk_sheet.png")
+		if img != null:
+			_vohnyk_sheet_cache = ImageTexture.create_from_image(img)
+	return _vohnyk_sheet_cache
 
 static func get_moskal_rank_armor(rank: MoskalRank) -> int:
 	match rank:
@@ -901,33 +913,65 @@ func _draw_vognyk() -> void:
 
 	# 2. Ефірне смарагдово-блакитне сяйво ядра
 	draw_circle(Vector2.ZERO, 15.5 * pulse, c_outer)
-	draw_circle(Vector2(0, -1.0), 10.2 * pulse, c_mid)
-	draw_circle(Vector2(0, -0.5), 6.2 * pulse, c_core)
-	
-	# 3. Живі містичні оченята духа-потерчати всередині ядра!
+
 	var look_dir := signf(velocity.x) if absf(velocity.x) > 5.0 else 1.0
-	if is_resting:
-		# Сонно прикриті оченята Купальського Вогника під час короткого перепочинку
-		draw_arc(Vector2(-2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
-		draw_arc(Vector2(2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
-		_draw_sweat_and_breath(Vector2(0.0, -10.5), Vector2(4.5 * look_dir, 1.5), look_dir, "ХУХ...")
-	elif not is_scared:
-		_draw_oval(Vector2(-2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
-		_draw_oval(Vector2(2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
-		draw_circle(Vector2(-1.9 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
-		draw_circle(Vector2(2.5 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
+
+	# 3. Високодеталізований 3D Meshy-спрайт Вогника (або фолбек на процедурні овали)
+	var spr_sheet := get_vohnyk_sheet()
+	if spr_sheet != null:
+		var frame_col := 0
+		var frame_row := 1 # idle
+		if is_dancing_defeat:
+			frame_row = 0 # fizzle
+			frame_col = int(defeat_dance_time * 8.0) % 4
+		elif absf(velocity.y) > 20.0 or is_scared:
+			frame_row = 2 # jump
+			frame_col = int(time_passed * 10.0) % 4
+		else:
+			frame_row = 1 # idle
+			frame_col = int(time_passed * 8.0) % 4
+		
+		var src_rect := Rect2(frame_col * 128.0, frame_row * 128.0, 128.0, 128.0)
+		var flip_sprite := (look_dir < 0.0)
+		var spr_w := 38.0 * pulse
+		var spr_h := 38.0 * pulse
+		var dest_rect := Rect2(-spr_w * 0.5, -spr_h * 0.65, spr_w, spr_h)
+		if flip_sprite:
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2(-1.0, 1.0))
+			draw_texture_rect_region(spr_sheet, dest_rect, src_rect)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			draw_texture_rect_region(spr_sheet, dest_rect, src_rect)
+		
+		if is_resting:
+			_draw_sweat_and_breath(Vector2(0.0, -10.5), Vector2(4.5 * look_dir, 1.5), look_dir, "ХУХ...")
 	else:
-		# Перелякані круглі оченята
-		draw_circle(Vector2(-2.4, -0.5), 2.2, Color.WHITE)
-		draw_circle(Vector2(2.4, -0.5), 2.2, Color.WHITE)
-		draw_circle(Vector2(-2.4, -0.5), 0.9, Color(0.08, 0.15, 0.35))
-		draw_circle(Vector2(2.4, -0.5), 0.9, Color(0.08, 0.15, 0.35))
-	
-	# 3.5. Купальський віночок із папороті та польових квітів на голівці духа!
-	draw_arc(Vector2(0.0, -5.2), 6.2, PI + 0.2, TAU - 0.2, 8, Color(0.16, 0.62, 0.30), 2.2)
-	draw_circle(Vector2(-3.8, -5.8), 1.6, Color(1.0, 0.32, 0.42))
-	draw_circle(Vector2(0.0, -6.6), 1.7, Color(1.0, 0.88, 0.22))
-	draw_circle(Vector2(3.8, -5.8), 1.6, Color(0.32, 0.68, 1.0))
+		draw_circle(Vector2(0, -1.0), 10.2 * pulse, c_mid)
+		draw_circle(Vector2(0, -0.5), 6.2 * pulse, c_core)
+		
+		# 3. Живі містичні оченята духа-потерчати всередині ядра!
+		if is_resting:
+			# Сонно прикриті оченята Купальського Вогника під час короткого перепочинку
+			draw_arc(Vector2(-2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
+			draw_arc(Vector2(2.2 + look_dir * 0.5, -0.5), 1.7, 0.2, PI - 0.2, 6, Color(0.06, 0.28, 0.22), 1.8)
+			_draw_sweat_and_breath(Vector2(0.0, -10.5), Vector2(4.5 * look_dir, 1.5), look_dir, "ХУХ...")
+		elif not is_scared:
+			_draw_oval(Vector2(-2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
+			_draw_oval(Vector2(2.2 + look_dir * 0.8, -0.5), 1.4, 2.0, Color(0.06, 0.28, 0.22))
+			draw_circle(Vector2(-1.9 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
+			draw_circle(Vector2(2.5 + look_dir * 0.8, -1.1), 0.55, Color.WHITE)
+		else:
+			# Перелякані круглі оченята
+			draw_circle(Vector2(-2.4, -0.5), 2.2, Color.WHITE)
+			draw_circle(Vector2(2.4, -0.5), 2.2, Color.WHITE)
+			draw_circle(Vector2(-2.4, -0.5), 0.9, Color(0.08, 0.15, 0.35))
+			draw_circle(Vector2(2.4, -0.5), 0.9, Color(0.08, 0.15, 0.35))
+		
+		# 3.5. Купальський віночок із папороті та польових квітів на голівці духа!
+		draw_arc(Vector2(0.0, -5.2), 6.2, PI + 0.2, TAU - 0.2, 8, Color(0.16, 0.62, 0.30), 2.2)
+		draw_circle(Vector2(-3.8, -5.8), 1.6, Color(1.0, 0.32, 0.42))
+		draw_circle(Vector2(0.0, -6.6), 1.7, Color(1.0, 0.88, 0.22))
+		draw_circle(Vector2(3.8, -5.8), 1.6, Color(0.32, 0.68, 1.0))
 	
 	# 4. Орбітальні купальські світлячки навколо вогника
 	for sp in range(3):
