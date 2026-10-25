@@ -367,7 +367,7 @@ func _perform_champion_punch() -> void:
 		if ChampionSkill.USYK_SLIP_COUNTER in unlocked_skills:
 			punch_active_skill = ChampionSkill.USYK_SLIP_COUNTER
 			_play_sfx(snd_hopak_punch, 1.35)
-			say("Усик: Човник та ухил!", 1.4)
+			say("Козацький Човник та ухил!", 1.4)
 			_spawn_strike_effect(Vector2(28.0 * punch_facing, -9.0), Color(0.20, 0.95, 0.85), false, false)
 			combat_move_performed.emit("usyk_slip_counter")
 		else:
@@ -389,7 +389,7 @@ func _perform_champion_punch() -> void:
 		elif ChampionSkill.IRONFIST_HOOK in unlocked_skills:
 			punch_active_skill = ChampionSkill.IRONFIST_HOOK
 			_play_sfx(snd_hopak_punch, 0.95)
-			say("Віталій: Залізний оверхенд!", 1.4)
+			say("Козацький Залізний Хрест!", 1.4)
 			_spawn_strike_effect(Vector2(24.0 * punch_facing, 4.0), Color(1.0, 0.55, 0.15), false, false)
 			combat_move_performed.emit("ironfist_hook")
 		else:
@@ -410,7 +410,7 @@ func _perform_champion_punch() -> void:
 	elif ChampionSkill.UNDISPUTED_TRIO in unlocked_skills:
 		punch_active_skill = ChampionSkill.UNDISPUTED_TRIO
 		_play_sfx(snd_hopak_punch, 1.25)
-		say("Абсолютна чемпіонська серія!", 1.4)
+		say("Незламна богатирська сила!", 1.4)
 		_spawn_strike_effect(Vector2(32.0 * punch_facing, -8.0), Color(1.0, 0.92, 0.25), false, false)
 		combat_move_performed.emit("basic_strike")
 		combat_move_performed.emit("steelhammer_jab")
@@ -418,7 +418,7 @@ func _perform_champion_punch() -> void:
 	elif ChampionSkill.STEELHAMMER_JAB in unlocked_skills:
 		punch_active_skill = ChampionSkill.STEELHAMMER_JAB
 		_play_sfx(snd_hopak_punch, 1.10)
-		say("Володимир: Сталевий джеб!", 1.4)
+		say("Сталевий прямий тичок!", 1.4)
 		_spawn_strike_effect(Vector2(28.0 * punch_facing, -10.0), Color(0.35, 0.82, 1.0), false, false)
 		combat_move_performed.emit("basic_strike")
 		combat_move_performed.emit("steelhammer_jab")

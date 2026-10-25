@@ -74,20 +74,20 @@ const COMBAT_HINTS: Dictionary = {
 		"hint": "КОМБО «ПОВЗУНЕЦЬ»: затисни [Вниз + X/C] або Геймпад [Стік вниз + X / B] — перекат і підсічка!"
 	},
 	"steelhammer_jab": {
-		"title": "СТАЛЕВИЙ ДЖЕБ ВОЛОДИМИРА КЛИЧКА",
-		"hint": "СУПЕРУДАР (В. КЛИЧКО): Клавіатура [X / J] або Геймпад [X / RB] — далекобійний «Сталевий Джеб»!"
+		"title": "СТАЛЕВИЙ ПРЯМИЙ ТИЧОК",
+		"hint": "БОГАТИРСЬКИЙ УДАР: Клавіатура [X / J] або Геймпад [X / RB] — далекобійний «Сталевий Тичок»!"
 	},
 	"ironfist_hook": {
-		"title": "ЗАЛІЗНИЙ ОВЕРХЕНД ВІТАЛІЯ КЛИЧКА",
-		"hint": "КОМБО (ВІТАЛІЙ КЛИЧКО): у стрибку [Вниз + X] або Геймпад [Стрибок A + X] — «Залізний Оверхенд»!"
+		"title": "ЗАЛІЗНИЙ КОЗАЦЬКИЙ ХРЕСТ",
+		"hint": "БОГАТИРСЬКИЙ УДАР: у стрибку [Вниз + X] або Геймпад [Стрибок A + X] — удар згори «Залізний Хрест»!"
 	},
 	"usyk_slip_counter": {
-		"title": "ЧОВНИК ТА КОНТРАТАКА ОЛЕКСАНДРА УСИКА",
-		"hint": "КОМБО (О. УСИК): [Вниз + Вбік + X] або Геймпад [Стік вниз + X] — «Човник Усика»!"
+		"title": "КОЗАЦЬКИЙ ЧОВНИК ТА ВІДПОВІДЬ",
+		"hint": "БОГАТИРСЬКИЙ УДАР: [Вниз + Вбік + X] або Геймпад [Стік вниз + X] — стрімкий ухил і відповідь!"
 	},
 	"undisputed_trio": {
-		"title": "АБСОЛЮТНА СЕРІЯ ТРЬОХ ЧЕМПІОНІВ",
-		"hint": "СУПЕР-КОМБО ЧЕМПІОНІВ: Клавіатура [X / J] або Геймпад [X / RB] — «Золота Хвиля Тризуба»!"
+		"title": "ЗОЛОТА ХВИЛЯ ТРИЗУБА",
+		"hint": "БОГАТИРСЬКА СИЛА: Клавіатура [X / J] або Геймпад [X / RB] — нищівний вихор козацьких ударів!"
 	}
 }
 
@@ -1513,19 +1513,19 @@ func _on_level_complete() -> void:
 	if prev_lvl == 1:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.STEELHAMMER_JAB)
 		_queue_combat_hint_front("steelhammer_jab")
-		hud.show_message("НОВИЙ НАВИК: СТАЛЕВИЙ ДЖЕБ ВОЛОДИМИРА КЛИЧКА! [X / J / CTRL] ДЛЯ УДАРУ!", 3.8, Color(1.0, 0.88, 0.25))
+		hud.show_message("КОЗАЦЬКА СИЛА: СТАЛЕВИЙ ПРЯМИЙ ТИЧОК! [X / J / CTRL] ДЛЯ УДАРУ!", 3.8, Color(1.0, 0.88, 0.25))
 	elif prev_lvl == 2:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.IRONFIST_HOOK)
 		_queue_combat_hint_front("ironfist_hook")
-		hud.show_message("НОВИЙ НАВИК: ЗАЛІЗНИЙ ОВЕРХЕНД ВІТАЛІЯ КЛИЧКА! УДАР ЗГОРИ!", 3.8, Color(1.0, 0.88, 0.25))
+		hud.show_message("КОЗАЦЬКА СИЛА: ЗАЛІЗНИЙ ХРЕСТ ЗГОРИ! [ВНИЗ + X]!", 3.8, Color(1.0, 0.88, 0.25))
 	elif prev_lvl == 3:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.USYK_SLIP_COUNTER)
 		_queue_combat_hint_front("usyk_slip_counter")
-		hud.show_message("НОВИЙ НАВИК: ЧОВНИК ТА УХИЛ ОЛЕКСАНДРА УСИКА! ПЕРЕКАТ + КОНТРАТАКА!", 3.8, Color(1.0, 0.88, 0.25))
+		hud.show_message("КОЗАЦЬКА СИЛА: СТРІМКИЙ ЧОВНИК ТА УХИЛ! ПЕРЕКАТ + ВІДПОВІДЬ!", 3.8, Color(1.0, 0.88, 0.25))
 	elif prev_lvl == 4:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.UNDISPUTED_TRIO)
 		_queue_combat_hint_front("undisputed_trio")
-		hud.show_message("ТИ АБСОЛЮТНИЙ ЧЕМПІОН! ЗОЛОТІ ПОЯСИ ТРЬОХ ЛЕГЕНД УКРАЇНИ!", 4.2, Color(1.0, 0.95, 0.35))
+		hud.show_message("СИЛА ТРИЗУБА: НЕЗЛАМНИЙ БОГАТИРСЬКИЙ ВИХОР!", 4.2, Color(1.0, 0.95, 0.35))
 	elif prev_lvl == 5:
 		player.unlock_kotyhoroshko_mace(12)
 		hud.show_message("РЕЛІКВІЯ КОТИГОРОШКА! ТИ ЗДОБУВ БОГАТИРСЬКУ БУЛАВУ!", 4.5, Color(1.0, 0.85, 0.2))
