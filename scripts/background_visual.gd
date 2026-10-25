@@ -14,18 +14,75 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var stage := (current_level - 1) % 5
+	var stage := ((current_level - 1) % 20) + 1
 	match stage:
-		0:
-			_draw_zaporizhia_sich()
-		1:
-			_draw_chumak_stars_and_khutir()
-		2:
-			_draw_kamianets_fortress()
-		3:
-			_draw_baturyn_hetmanate()
-		4:
-			_draw_perekop_bakhchysarai()
+		1: _draw_zaporizhia_sich()
+		2: _draw_chumak_stars_and_khutir()
+		3: _draw_kamianets_fortress()
+		4: _draw_baturyn_hetmanate()
+		5: _draw_perekop_bakhchysarai()
+		6: _draw_bakhchysarai_palace()
+		7: _draw_konotop_crossing()
+		8: _draw_polotsk_castle()
+		9: _draw_chornohora_dovbush()
+		10: _draw_kyiv_golden_gate()
+		11: _draw_lutsk_lubart_castle()
+		12: _draw_khotyn_fortress()
+		13: _draw_ostroh_academy()
+		14: _draw_bilovezha_pushcha()
+		15: _draw_zadunayska_sich()
+		16: _draw_danube_estuary()
+		17: _draw_kalinowski_pushcha()
+		18: _draw_verkhovyna_pysanyi_kamin()
+		19: _draw_kezlev_khan_jami()
+		20: _draw_kaniv_taras_hill()
+		_: _draw_zaporizhia_sich()
+
+# -------------------------------------------------------------------------
+# ДОПОМІЖНІ ХУДОЖНІ ФУНКЦІЇ СТИЛЮ «КИЇВНАУКФІЛЬМ» (Кирич / Дахно)
+# -------------------------------------------------------------------------
+
+# Плавна акварельно-гуашева розтяжка неба з каліброваною яскравістю (Value Separation)
+func _draw_painterly_sky(top_c: Color, mid_c: Color, bot_c: Color, h: float = 340.0) -> void:
+	draw_rect(Rect2(0, 0, 960, 540), top_c)
+	var steps := int(h / 6.0)
+	for i in range(steps):
+		var y := float(i) * 6.0
+		var t := y / h
+		var c := top_c.lerp(mid_c, t * 1.6) if t < 0.6 else mid_c.lerp(bot_c, (t - 0.6) / 0.4)
+		draw_rect(Rect2(0, y, 960, 6.0), c)
+
+# М'яке кругле світлове сяйво вікон, каганців чи сигнальних ватр
+func _draw_warm_glow(pos: Vector2, r: float, col: Color) -> void:
+	draw_circle(pos, r * 1.8, Color(col.r, col.g, col.b, col.a * 0.14))
+	draw_circle(pos, r * 1.2, Color(col.r, col.g, col.b, col.a * 0.32))
+	draw_circle(pos, r * 0.6, Color(col.r, col.g, col.b, col.a * 0.85))
+	draw_circle(pos, r * 0.25, Color.WHITE)
+
+# Силует хвойної смереки або сосни з характерними ярусами
+func _draw_pine_silhouette(base_pos: Vector2, h: float, w: float, col: Color) -> void:
+	var trunk_w := maxf(2.0, w * 0.18)
+	draw_rect(Rect2(base_pos.x - trunk_w * 0.5, base_pos.y - h * 0.25, trunk_w, h * 0.25), Color(col.r * 0.8, col.g * 0.8, col.b * 0.8))
+	for tier in 4:
+		var ty := base_pos.y - h * (0.2 + float(tier) * 0.22)
+		var tw := w * (1.0 - float(tier) * 0.22)
+		var th := h * 0.28
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(base_pos.x - tw * 0.5, ty),
+			Vector2(base_pos.x + tw * 0.5, ty),
+			Vector2(base_pos.x, ty - th)
+		]), col)
+
+# Козацький місяць (повний або серпик) із м'яким подвійним ореолом
+func _draw_cossack_moon(pos: Vector2, r: float = 22.0, crescent: bool = false) -> void:
+	draw_circle(pos, r * 1.8, Color(0.98, 0.94, 0.72, 0.12))
+	draw_circle(pos, r * 1.3, Color(0.98, 0.94, 0.72, 0.22))
+	draw_circle(pos, r, Color(0.98, 0.96, 0.84, 0.95))
+	if crescent:
+		draw_circle(pos + Vector2(r * 0.45, -r * 0.15), r * 0.82, Color(0.04, 0.07, 0.16)) # Тінь серпика
+	else:
+		draw_circle(pos + Vector2(-r * 0.25, -r * 0.15), r * 0.22, Color(0.88, 0.85, 0.70, 0.35))
+		draw_circle(pos + Vector2(r * 0.30, r * 0.25), r * 0.18, Color(0.88, 0.85, 0.70, 0.35))
 
 # Допоміжна функція для малювання еліпсів/овалів
 func _draw_oval(center: Vector2, rx: float, ry: float, col: Color) -> void:
@@ -708,3 +765,266 @@ func _draw_perekop_bakhchysarai() -> void:
 	
 	# Глибокий Перекопський рів із водою Сиваша внизу
 	draw_rect(Rect2(0, 370, 960, 170), Color(0.08, 0.14, 0.24))
+
+# -------------------------------------------------------------------------
+# АКТ 2: РІВНІ 6–10 (СІВЕРЩИНА, ВОЛЯ ВКЛ ТА КАРПАТИ)
+# -------------------------------------------------------------------------
+
+# Рівень 6: Ханський Бахчисарай та скелі Чуфут-Кале
+func _draw_bakhchysarai_palace() -> void:
+	_draw_painterly_sky(Color(0.04, 0.06, 0.16), Color(0.12, 0.16, 0.32), Color(0.24, 0.20, 0.35))
+	_draw_cossack_moon(Vector2(830, 75), 20.0, true)
+	# Скелі Чуфут-Кале на дальньому плані
+	var rocks := PackedVector2Array([
+		Vector2(0, 290), Vector2(160, 240), Vector2(340, 255), Vector2(510, 225),
+		Vector2(680, 245), Vector2(850, 220), Vector2(960, 250), Vector2(960, 370), Vector2(0, 370)
+	])
+	draw_colored_polygon(rocks, Color(0.18, 0.17, 0.25))
+	# Хан-Сарай: Велика Ханська мечеть (Бююк Хан Джамі) та 2 стрункі мінарети
+	var pal_x := 480.0
+	draw_rect(Rect2(pal_x - 90, 275, 180, 55), Color(0.78, 0.74, 0.65)) # Вапнякові стіни
+	for m_off: float in [-82.0, 82.0]:
+		var mx: float = pal_x + m_off
+		draw_rect(Rect2(mx - 4.5, 175, 9.0, 100), Color(0.88, 0.85, 0.78))
+		draw_colored_polygon(PackedVector2Array([Vector2(mx - 6, 175), Vector2(mx + 6, 175), Vector2(mx, 142)]), Color(0.24, 0.35, 0.38)) # Шпиль
+		_draw_warm_glow(Vector2(mx, 195), 4.0, Color(1.0, 0.88, 0.35))
+	# Фонтанний дворик і стрункі кипариси
+	for c_x: float in [320.0, 360.0, 600.0, 640.0]:
+		_draw_pine_silhouette(Vector2(c_x, 330), 65.0, 14.0, Color(0.10, 0.22, 0.18))
+	draw_rect(Rect2(0, 330, 960, 210), Color(0.12, 0.11, 0.16))
+
+# Рівень 7: Конотопська переправа
+func _draw_konotop_crossing() -> void:
+	_draw_painterly_sky(Color(0.03, 0.05, 0.14), Color(0.08, 0.14, 0.26), Color(0.15, 0.22, 0.25))
+	_draw_cossack_moon(Vector2(140, 70), 18.0, false)
+	# Туманні заплавні ліси річки Соснівки
+	for fx: float in [100.0, 260.0, 700.0, 860.0]:
+		_draw_pine_silhouette(Vector2(fx, 305), 55.0, 32.0, Color(0.08, 0.14, 0.15))
+	# Козацькі мостові настили та земляні редути Виговського
+	draw_rect(Rect2(0, 305, 960, 45), Color(0.18, 0.14, 0.10))
+	for bx in range(20, 940, 30):
+		draw_rect(Rect2(bx, 300, 20, 10), Color(0.28, 0.19, 0.12))
+	# Плесо річки Соснівки з очеретами й зоряними бліками
+	draw_rect(Rect2(0, 350, 960, 190), Color(0.05, 0.10, 0.18))
+	for w_i in 6:
+		var wy := 365.0 + float(w_i) * 22.0
+		draw_line(Vector2(80 + float(w_i * 40), wy), Vector2(880 - float(w_i * 30), wy), Color(0.20, 0.40, 0.55, 0.35), 2.0)
+
+# Рівень 8: Стародавній Полоцьк і Пуща ВКЛ
+func _draw_polotsk_castle() -> void:
+	_draw_painterly_sky(Color(0.02, 0.04, 0.12), Color(0.07, 0.12, 0.24), Color(0.12, 0.18, 0.28))
+	_draw_cossack_moon(Vector2(810, 68), 21.0, false)
+	# Кручі Західної Двіни та соснова пуща
+	for px: float in [60.0, 150.0, 800.0, 890.0]:
+		_draw_pine_silhouette(Vector2(px, 300), 75.0, 24.0, Color(0.06, 0.12, 0.14))
+	# Білокам'яний Софійський собор із бароковими шпилями
+	var sof_x := 480.0
+	draw_rect(Rect2(sof_x - 55, 240, 110, 70), Color(0.85, 0.86, 0.90))
+	for sp_off: float in [-42.0, 42.0]:
+		var sx: float = sof_x + sp_off
+		draw_rect(Rect2(sx - 8, 190, 16, 50), Color(0.90, 0.92, 0.95))
+		_draw_cossack_dome(sx, 190, 18.0, 24.0, Color(0.78, 0.65, 0.22), Color(0.85, 0.86, 0.90))
+		_draw_warm_glow(Vector2(sx, 215), 4.0, Color(1.0, 0.85, 0.30))
+	draw_rect(Rect2(0, 310, 960, 230), Color(0.10, 0.13, 0.18))
+
+# Рівень 9: Чорногора — Скелі Довбуша
+func _draw_chornohora_dovbush() -> void:
+	_draw_painterly_sky(Color(0.01, 0.03, 0.10), Color(0.05, 0.10, 0.22), Color(0.10, 0.18, 0.25))
+	_draw_cossack_moon(Vector2(160, 65), 22.0, false)
+	# Величні гранітні скелі Довбуша та карпатські урвища
+	var dov_rocks := PackedVector2Array([
+		Vector2(0, 310), Vector2(120, 220), Vector2(250, 245), Vector2(380, 185),
+		Vector2(500, 235), Vector2(640, 175), Vector2(780, 230), Vector2(960, 205),
+		Vector2(960, 360), Vector2(0, 360)
+	])
+	draw_colored_polygon(dov_rocks, Color(0.14, 0.16, 0.22))
+	# Смерековий карпатський бір
+	for tx: float in [80.0, 210.0, 340.0, 580.0, 720.0, 880.0]:
+		_draw_pine_silhouette(Vector2(tx, 325), 65.0, 26.0, Color(0.05, 0.12, 0.10))
+	# Вогнище опришків біля скелі
+	_draw_warm_glow(Vector2(480, 315), 9.0, Color(1.0, 0.45, 0.10))
+	draw_rect(Rect2(0, 330, 960, 210), Color(0.08, 0.10, 0.14))
+
+# Рівень 10: Золоті Ворота Києва
+func _draw_kyiv_golden_gate() -> void:
+	_draw_painterly_sky(Color(0.03, 0.05, 0.15), Color(0.09, 0.15, 0.30), Color(0.18, 0.22, 0.38))
+	_draw_cossack_moon(Vector2(820, 65), 22.0, false)
+	# Могутня кам'яна брама з золоченим надбрамним храмом Благовіщення
+	var gate_x := 480.0
+	draw_rect(Rect2(gate_x - 75, 230, 150, 85), Color(0.72, 0.58, 0.42)) # Плінфа
+	# Арка воріт
+	draw_rect(Rect2(gate_x - 22, 265, 44, 50), Color(0.12, 0.08, 0.06))
+	draw_circle(Vector2(gate_x, 265), 22.0, Color(0.12, 0.08, 0.06))
+	# Надбрамна церква та золотий купол
+	draw_rect(Rect2(gate_x - 42, 190, 84, 40), Color(0.78, 0.65, 0.48))
+	_draw_cossack_dome(gate_x, 190, 32.0, 30.0, Color(1.0, 0.86, 0.22), Color(0.78, 0.65, 0.48))
+	_draw_warm_glow(Vector2(gate_x, 205), 6.0, Color(1.0, 0.90, 0.45))
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.12, 0.10, 0.08))
+
+# -------------------------------------------------------------------------
+# АКТ 3: РІВНІ 11–15 (ВОЛИНЬ, ПОДІЛЛЯ ТА ЗАДУНАЙСЬКА СІЧ)
+# -------------------------------------------------------------------------
+
+# Рівень 11: Луцький замок Любарта
+func _draw_lutsk_lubart_castle() -> void:
+	_draw_painterly_sky(Color(0.02, 0.04, 0.12), Color(0.06, 0.12, 0.25), Color(0.14, 0.18, 0.28))
+	_draw_cossack_moon(Vector2(150, 70), 20.0, true)
+	# В'їзна вежа з червоної цегли із зубцями-мерлонами
+	var v_x := 480.0
+	draw_rect(Rect2(v_x - 45, 175, 90, 140), Color(0.58, 0.22, 0.18))
+	for bx in range(int(v_x - 45), int(v_x + 45), 18):
+		draw_rect(Rect2(bx, 162, 10, 13), Color(0.64, 0.25, 0.20))
+	_draw_warm_glow(Vector2(v_x, 220), 5.0, Color(1.0, 0.85, 0.35))
+	# Зубчасті стіни замку ліворуч і праворуч
+	draw_rect(Rect2(80, 255, 355, 60), Color(0.50, 0.18, 0.15))
+	draw_rect(Rect2(525, 255, 355, 60), Color(0.50, 0.18, 0.15))
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.08, 0.12, 0.18))
+
+# Рівень 12: Хотинська фортеця над Дністром
+func _draw_khotyn_fortress() -> void:
+	_draw_painterly_sky(Color(0.03, 0.05, 0.14), Color(0.08, 0.16, 0.30), Color(0.15, 0.24, 0.36))
+	_draw_cossack_moon(Vector2(840, 68), 22.0, false)
+	# 40-метрові кам'яні мури Хотина з червоними цегляними візерунками
+	var h_x := 480.0
+	draw_rect(Rect2(h_x - 120, 185, 240, 130), Color(0.72, 0.68, 0.62))
+	for wy in range(200, 300, 20):
+		draw_line(Vector2(h_x - 110, wy), Vector2(h_x + 110, wy), Color(0.68, 0.22, 0.20), 2.5) # Червоний орнамент
+	# Башти фортеці
+	for bx: float in [h_x - 130.0, h_x + 110.0]:
+		draw_rect(Rect2(bx, 155, 35, 160), Color(0.76, 0.72, 0.66))
+		draw_colored_polygon(PackedVector2Array([Vector2(bx - 3, 155), Vector2(bx + 38, 155), Vector2(bx + 17, 120)]), Color(0.35, 0.15, 0.12))
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.06, 0.14, 0.24)) # Дністер
+
+# Рівень 13: Острозька академія та кругла вежа
+func _draw_ostroh_academy() -> void:
+	_draw_painterly_sky(Color(0.02, 0.04, 0.13), Color(0.07, 0.13, 0.26), Color(0.16, 0.20, 0.32))
+	_draw_cossack_moon(Vector2(140, 72), 19.0, false)
+	# Мурована ренесансна Кругла вежа Острога
+	_draw_oval(Vector2(480, 270), 75.0, 50.0, Color(0.55, 0.42, 0.32))
+	draw_rect(Rect2(405, 220, 150, 55), Color(0.62, 0.48, 0.36))
+	# Аттик із ренесансними зубцями
+	for ax in range(410, 550, 16):
+		draw_rect(Rect2(ax, 208, 10, 12), Color(0.68, 0.54, 0.42))
+	_draw_warm_glow(Vector2(480, 245), 6.0, Color(1.0, 0.88, 0.40)) # Вікно друкарні Федорова
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.10, 0.12, 0.16))
+
+# Рівень 14: Біловезька пуща
+func _draw_bilovezha_pushcha() -> void:
+	_draw_painterly_sky(Color(0.01, 0.03, 0.10), Color(0.04, 0.08, 0.18), Color(0.09, 0.15, 0.20))
+	_draw_cossack_moon(Vector2(800, 70), 20.0, true)
+	# Вікові дуби-велетні та силует зубра
+	for ox: float in [120.0, 280.0, 680.0, 840.0]:
+		_draw_oval(Vector2(ox, 250), 45.0, 55.0, Color(0.06, 0.12, 0.08))
+		draw_rect(Rect2(ox - 8, 250, 16, 65), Color(0.16, 0.10, 0.06))
+	# Силует зубра біля пущі
+	_draw_oval(Vector2(480, 290), 22.0, 15.0, Color(0.08, 0.07, 0.08))
+	_draw_oval(Vector2(462, 282), 12.0, 14.0, Color(0.08, 0.07, 0.08)) # Голова з рогами
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.06, 0.09, 0.10))
+
+# Рівень 15: Задунайська Січ
+func _draw_zadunayska_sich() -> void:
+	_draw_painterly_sky(Color(0.03, 0.06, 0.16), Color(0.09, 0.16, 0.32), Color(0.18, 0.26, 0.36))
+	_draw_cossack_moon(Vector2(160, 68), 21.0, false)
+	# Козацькі курені під очеретом на дунайських косах
+	for kx: float in [240.0, 480.0, 720.0]:
+		draw_rect(Rect2(kx - 35, 275, 70, 35), Color(0.32, 0.22, 0.14))
+		draw_colored_polygon(PackedVector2Array([Vector2(kx - 42, 275), Vector2(kx + 42, 275), Vector2(kx, 245)]), Color(0.48, 0.38, 0.20))
+		_draw_warm_glow(Vector2(kx, 285), 4.0, Color(1.0, 0.85, 0.30))
+	# Дунайські очерети та причали козацьких чайок
+	draw_rect(Rect2(0, 310, 960, 230), Color(0.06, 0.13, 0.22))
+	for ox in range(20, 940, 18):
+		draw_line(Vector2(ox, 320), Vector2(ox + 4, 292), Color(0.24, 0.36, 0.22), 2.0)
+
+# -------------------------------------------------------------------------
+# АКТ 4: РІВНІ 16–20 (ДУНАЙ, ВЕРХОВИНА, КРИМ ТА ВЕЛИКИЙ СОБОР)
+# -------------------------------------------------------------------------
+
+# Рівень 16: Дунайські гирла
+func _draw_danube_estuary() -> void:
+	_draw_painterly_sky(Color(0.02, 0.05, 0.14), Color(0.07, 0.14, 0.28), Color(0.14, 0.22, 0.34))
+	_draw_cossack_moon(Vector2(820, 65), 22.0, false)
+	# Сторожові каланчі козаків-пластунів на палях
+	for cx: float in [220.0, 740.0]:
+		draw_line(Vector2(cx - 10, 315), Vector2(cx - 5, 235), Color(0.30, 0.20, 0.12), 3.0)
+		draw_line(Vector2(cx + 10, 315), Vector2(cx + 5, 235), Color(0.30, 0.20, 0.12), 3.0)
+		draw_rect(Rect2(cx - 18, 220, 36, 16), Color(0.40, 0.28, 0.16))
+		_draw_warm_glow(Vector2(cx, 212), 6.0, Color(1.0, 0.55, 0.15)) # Сигнальний каганець
+	draw_rect(Rect2(0, 315, 960, 225), Color(0.04, 0.10, 0.20)) # Морське гирло
+
+# Рівень 17: Білоруська пуща Кастуся Калиновського
+func _draw_kalinowski_pushcha() -> void:
+	_draw_painterly_sky(Color(0.01, 0.03, 0.11), Color(0.05, 0.10, 0.22), Color(0.11, 0.16, 0.25))
+	_draw_cossack_moon(Vector2(150, 70), 20.0, true)
+	# Партизанські лісові вежі та соснові засеки
+	for px: float in [100.0, 250.0, 710.0, 860.0]:
+		_draw_pine_silhouette(Vector2(px, 305), 70.0, 28.0, Color(0.06, 0.11, 0.12))
+	# Біло-червоно-білий прапор свободи Калиновського біля лісової ватри
+	var fx := 480.0
+	draw_line(Vector2(fx, 310), Vector2(fx, 240), Color(0.42, 0.28, 0.16), 2.5)
+	draw_rect(Rect2(fx, 245, 32, 7), Color.WHITE)
+	draw_rect(Rect2(fx, 252, 32, 7), Color(0.85, 0.15, 0.18))
+	draw_rect(Rect2(fx, 259, 32, 7), Color.WHITE)
+	_draw_warm_glow(Vector2(fx - 15, 305), 8.0, Color(1.0, 0.50, 0.12))
+	draw_rect(Rect2(0, 310, 960, 230), Color(0.08, 0.10, 0.12))
+
+# Рівень 18: Верховина й Писаний Камінь
+func _draw_verkhovyna_pysanyi_kamin() -> void:
+	_draw_painterly_sky(Color(0.02, 0.04, 0.14), Color(0.06, 0.12, 0.28), Color(0.13, 0.20, 0.32))
+	_draw_cossack_moon(Vector2(830, 68), 22.0, false)
+	# Священний Писаний Камінь мольфарів із петрогліфами
+	var kamin := PackedVector2Array([
+		Vector2(380, 310), Vector2(420, 230), Vector2(540, 220), Vector2(580, 310)
+	])
+	draw_colored_polygon(kamin, Color(0.28, 0.26, 0.32))
+	# Золоті солярні знаки (петрогліфи) на камені
+	draw_arc(Vector2(480, 255), 12.0, 0.0, TAU, 16, Color(1.0, 0.88, 0.30, 0.85), 1.8)
+	draw_line(Vector2(480, 240), Vector2(480, 270), Color(1.0, 0.88, 0.30, 0.85), 1.8)
+	draw_line(Vector2(465, 255), Vector2(495, 255), Color(1.0, 0.88, 0.30, 0.85), 1.8)
+	# Гуцульські смереки обабіч полонини
+	for tx: float in [80.0, 200.0, 760.0, 880.0]:
+		_draw_pine_silhouette(Vector2(tx, 320), 75.0, 30.0, Color(0.05, 0.13, 0.10))
+	draw_rect(Rect2(0, 310, 960, 230), Color(0.09, 0.11, 0.14))
+
+# Рівень 19: Гезльов (Євпаторія) та Хан-Джамі
+func _draw_kezlev_khan_jami() -> void:
+	_draw_painterly_sky(Color(0.04, 0.06, 0.18), Color(0.12, 0.18, 0.35), Color(0.22, 0.25, 0.42))
+	_draw_cossack_moon(Vector2(150, 70), 20.0, true)
+	# Величні куполи мечеті Джума-Джамі (архітектор Мімар Сінан) та приморська гавань
+	var j_x := 480.0
+	draw_rect(Rect2(j_x - 70, 245, 140, 65), Color(0.82, 0.80, 0.74))
+	_draw_oval(Vector2(j_x, 245), 45.0, 30.0, Color(0.35, 0.48, 0.52)) # Головний купол
+	for mx: float in [j_x - 68.0, j_x + 68.0]:
+		draw_rect(Rect2(mx - 4, 180, 8, 90), Color(0.88, 0.86, 0.80))
+		draw_colored_polygon(PackedVector2Array([Vector2(mx - 5, 180), Vector2(mx + 5, 180), Vector2(mx, 150)]), Color(0.28, 0.42, 0.45))
+		_draw_warm_glow(Vector2(mx, 195), 3.5, Color(1.0, 0.88, 0.35))
+	draw_rect(Rect2(0, 310, 960, 230), Color(0.06, 0.14, 0.26)) # Чорне море
+
+# Рівень 20: Тарасова Гора у Каневі — Великий Собор Народів
+func _draw_kaniv_taras_hill() -> void:
+	# Урочисте золотисто-волошкове небо свободи
+	_draw_painterly_sky(Color(0.03, 0.05, 0.18), Color(0.10, 0.18, 0.36), Color(0.22, 0.26, 0.45))
+	_draw_cossack_moon(Vector2(820, 65), 24.0, false)
+	# Дніпровські кручі та пагорби Канева
+	var hills := PackedVector2Array([
+		Vector2(0, 300), Vector2(160, 250), Vector2(340, 265), Vector2(480, 215),
+		Vector2(620, 255), Vector2(800, 240), Vector2(960, 275), Vector2(960, 360), Vector2(0, 360)
+	])
+	draw_colored_polygon(hills, Color(0.12, 0.16, 0.25))
+	# Віковічний дуб єднання на верхівці Чернечої Гори
+	var tree_x := 480.0
+	_draw_oval(Vector2(tree_x, 195), 45.0, 38.0, Color(0.15, 0.32, 0.20))
+	draw_rect(Rect2(tree_x - 6, 195, 12, 40), Color(0.32, 0.20, 0.12))
+	# Три стяги братерства на вершині (Козацький малиновий, Кримський блакитний, Литвинський біло-червоний)
+	var flag_y := 170.0
+	draw_line(Vector2(tree_x - 30, flag_y + 35), Vector2(tree_x - 30, flag_y), Color(0.50, 0.40, 0.25), 2.0)
+	draw_rect(Rect2(tree_x - 30, flag_y, 22, 14), Color(0.82, 0.12, 0.22)) # Козацький
+	draw_line(Vector2(tree_x, flag_y + 30), Vector2(tree_x, flag_y - 8), Color(0.50, 0.40, 0.25), 2.0)
+	draw_rect(Rect2(tree_x, flag_y - 8, 22, 14), Color(0.18, 0.54, 0.88)) # Кримськотатарський
+	draw_line(Vector2(tree_x + 30, flag_y + 35), Vector2(tree_x + 30, flag_y), Color(0.50, 0.40, 0.25), 2.0)
+	draw_rect(Rect2(tree_x + 30, flag_y, 22, 14), Color(0.92, 0.92, 0.95)) # Литвинський
+	draw_line(Vector2(tree_x + 30, flag_y + 7), Vector2(tree_x + 52, flag_y + 7), Color(0.85, 0.15, 0.18), 4.5)
+	# Широкий величний Дніпро-Славутич унизу з місячною стежкою
+	draw_rect(Rect2(0, 325, 960, 215), Color(0.04, 0.12, 0.24))
+	for mi in 8:
+		var my := 340.0 + float(mi) * 18.0
+		draw_line(Vector2(320 - float(mi * 15), my), Vector2(640 + float(mi * 25), my), Color(0.40, 0.65, 0.85, 0.35), 2.2)

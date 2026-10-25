@@ -43,7 +43,7 @@ const NPC_INTRO: Dictionary = {
 	19: ["VIDMAK"],
 	20: ["FINAL_BOSS"],
 }
-const NPC_PLANNED: Array[String] = ["ZLYDNI", "BASAVRIUK", "DOMOVYK", "KOBZAR", "VAKULA", "VIJ", "VIDMAK", "FINAL_BOSS"]
+const NPC_PLANNED: Array[String] = []
 
 static func series_index(level: int) -> int:
 	return maxi(0, (level - 1) / SERIES_LENGTH)

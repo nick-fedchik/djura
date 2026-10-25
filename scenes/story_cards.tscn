@@ -77,5 +77,5 @@ autowrap_mode = 2
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.95, 0.45, 1)
 theme_override_font_sizes/font_size = 12
-text = "[ ПРОБІЛ : ДАЛІ ➔ ] • [ ESC : ПРОПУСТИТИ ]"
+text = "[ ПРОБІЛ : ДАЛІ -> ]  |  [ ESC : ПРОПУСТИТИ ]"
 horizontal_alignment = 1

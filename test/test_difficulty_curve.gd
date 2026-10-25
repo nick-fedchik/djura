@@ -12,7 +12,7 @@ func _initialize() -> void:
 	print("--- Крива складності: нові типи ворогів за рівнями ---")
 	var seen := {}
 	var failed := false
-	for level in range(1, 6):
+	for level in range(1, 21):
 		for e in mgr.enemies_node.get_children():
 			mgr.enemies_node.remove_child(e)
 			e.free()

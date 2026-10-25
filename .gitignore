@@ -28,3 +28,4 @@ mono_crash.*.json
 /android/
 __pycache__/
 build/
+*.blend1

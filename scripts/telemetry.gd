@@ -11,7 +11,7 @@ const ALLOWED_TYPES: Array[String] = ["session_start", "level_start", "hit", "bo
 const ALLOWED_KEYS: Array[String] = [
 	"v", "t", "sid", "pid", "type", "level", "k", "time_s", "hits", "streak", "quality", "bonus", "enemies",
 	"age_band", "experience", "mu", "sigma", "p_pred", "reward", "arm", "target", "lit", "points", "enemy",
-	"frustration", "boredom", "completed", "reason",
+	"frustration", "boredom", "completed", "reason", "persona", "near_misses", "strikes", "rhythm_cv", "idle_ratio",
 ]
 
 var enabled: bool = true

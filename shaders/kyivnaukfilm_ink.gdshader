@@ -14,11 +14,16 @@ void fragment() {
 	// Контур лише навколо щільних частин: прозоре сяйво (a < 0.5) не обводиться
 	float solid = step(0.5, c.a);
 	float around = 0.0;
-	for (int i = 0; i < 12; i++) {
-		float a = 6.2831853 * float(i) / 12.0;
-		around = max(around, step(0.5, texture(group_tex, SCREEN_UV + vec2(cos(a), sin(a)) * ink_width * px).a));
+	const vec2 offsets[8] = vec2[](
+		vec2(1.0, 0.0), vec2(0.7071, 0.7071),
+		vec2(0.0, 1.0), vec2(-0.7071, 0.7071),
+		vec2(-1.0, 0.0), vec2(-0.7071, -0.7071),
+		vec2(0.0, -1.0), vec2(0.7071, -0.7071)
+	);
+	for (int i = 0; i < 8; i++) {
+		around = max(around, step(0.5, texture(group_tex, SCREEN_UV + offsets[i] * ink_width * px).a));
 	}
-	float edge_light = c.a * (1.0 - texture(group_tex, SCREEN_UV + vec2(-0.7, -0.7) * rim_width * px).a);
+	float edge_light = c.a * (1.0 - texture(group_tex, SCREEN_UV + vec2(-0.7071, -0.7071) * rim_width * px).a);
 	vec3 lit = mix(c.rgb, rim_color.rgb, rim_strength * edge_light);
 	float outline_a = around * (1.0 - solid);
 	COLOR = mix(vec4(lit, c.a), vec4(ink_color.rgb, 1.0), outline_a);

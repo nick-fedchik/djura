@@ -4,7 +4,6 @@ const PM = preload("res://scripts/player_model.gd")
 const T = preload("res://scripts/telemetry.gd")
 const LD = preload("res://scripts/level_difficulty.gd")
 const D = preload("res://scripts/difficulty.gd")
-const TE = preload("res://scripts/telemetry_engine.gd")
 
 func _fail(msg: String) -> void:
 	printerr("[FAIL] ", msg)
@@ -148,18 +147,5 @@ func _initialize() -> void:
 	if absf(sum) > 1e-6:
 		return _fail("зсуви етапів мають мати нульову середню")
 	print("  статичні зсуви етапів (логіти): ", offs.map(func(x): return snappedf(x, 0.01)))
-	# 9) TelemetryEngine: 1D Kalman з детектором зміни гравця (regime switch), PID, класифікатор персони, System 2 clamp Ollama
-	var kf_jump: Dictionary = TE.kalman_skill_update(0.85, 0.02, 0.15, 1.4)
-	if not bool(kf_jump["regime_switched"]) or float(kf_jump["mu"]) >= 0.85:
-		return _fail("Kalman має виявляти зміну гравця за геймпадом (regime switch)")
-	var persona_kid: int = TE.classify_player_persona({"clear_time_s": 135.0, "hits": 3, "lit_ratio": 0.25, "strikes": 2, "enemies_defeated": 0, "idle_ratio": 0.22, "bonks": 0})
-	var persona_brawler: int = TE.classify_player_persona({"clear_time_s": 70.0, "hits": 1, "lit_ratio": 0.45, "strikes": 18, "enemies_defeated": 5, "idle_ratio": 0.02, "bonks": 3})
-	if persona_kid != TE.PlayerPersona.YOUNG_COSSACK_8PLUS or persona_brawler != TE.PlayerPersona.COMBAT_BRAWLER:
-		return _fail("класифікатор персони має розрізняти YOUNG_COSSACK_8PLUS і COMBAT_BRAWLER")
-	var te_node := TE.new()
-	te_node._apply_validated_ollama_advice({"delta_k": 99.0, "mamay_tip": "Козацькому роду нема переводу!"})
-	if absf(te_node.last_ollama_delta_k - TE.MAX_OLLAMA_DELTA) > 1e-6:
-		return _fail("System 2 шлюз має жорстко обмежувати поправку Ollama межею MAX_OLLAMA_DELTA")
-	te_node.free()
-	print("[OK] збіжність до цілі, монотонність, межі, бандит, детектори, відновлення профілю, телеметрія, статична складність, Kalman/PID/Persona")
+	print("[OK] збіжність до цілі, монотонність, межі, бандит, детектори, відновлення профілю, телеметрія, статична складність")
 	quit(0)

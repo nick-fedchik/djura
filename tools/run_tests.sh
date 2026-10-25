@@ -26,6 +26,14 @@ if command -v python3 >/dev/null 2>&1 && [ -f tools/test_tools.py ]; then
 		failed+=("test_tools")
 	fi
 fi
+if command -v python3 >/dev/null 2>&1 && [ -f tools/test_sprite_generator.py ]; then
+	if python3 tools/test_sprite_generator.py >/dev/null 2>&1; then
+		echo "PASS  test_sprite_generator (python)"
+	else
+		echo "FAIL  test_sprite_generator (python)"
+		failed+=("test_sprite_generator")
+	fi
+fi
 if [ ${#failed[@]} -gt 0 ]; then
 	echo "Провалено: ${failed[*]}"
 	exit 1

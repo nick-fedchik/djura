@@ -6,7 +6,7 @@ signal defeated(enemy: FolkloreEnemy, points: int)
 signal hit_player(enemy: FolkloreEnemy)
 signal stolen_artifact_dropped(drop_pos: Vector2)
 
-enum EnemyType { CHORT, VIDMA, VOGNYK, MOSKAL }
+enum EnemyType { CHORT, VIDMA, VOGNYK, MOSKAL, ZLYDNI, BASAVRIUK, VIJ, VIDMAK, FINAL_BOSS }
 
 # Історично-фольклорна ієрархія ворожих NPC фракції Загарбників («Від Шиша до Воєводи» + Ординсько-Монгольські найманці Московії):
 enum MoskalRank {
@@ -41,6 +41,8 @@ var is_resting: bool = false
 var rest_timer: float = 0.0
 var stamina_timer: float = 4.5
 var fatigue_mult: float = 1.0
+var is_dancing_defeat: bool = false
+var defeat_dance_time: float = 0.0
 
 # Тимчасова перевага ворога, якщо він перехопив чар-артефакт (Золоті Підківки Вакули)
 var has_stolen_artifact: bool = false
@@ -109,13 +111,44 @@ func set_moskal_rank(rank: MoskalRank) -> void:
 		armor = get_moskal_rank_armor(rank)
 	queue_redraw()
 
+func npc_id() -> String:
+	match enemy_type:
+		EnemyType.CHORT: return "CHORT"
+		EnemyType.VIDMA: return "VIDMA"
+		EnemyType.VOGNYK: return "VOGNYK"
+		EnemyType.ZLYDNI: return "ZLYDNI"
+		EnemyType.BASAVRIUK: return "BASAVRIUK"
+		EnemyType.VIJ: return "VIJ"
+		EnemyType.VIDMAK: return "VIDMAK"
+		EnemyType.FINAL_BOSS: return "FINAL_BOSS"
+		EnemyType.MOSKAL:
+			match moskal_rank:
+				MoskalRank.STRELETS: return "MOSKAL"
+				MoskalRank.SHYSH: return "MOSKAL_SHYSH"
+				MoskalRank.DYAK: return "MOSKAL_DYAK"
+				MoskalRank.OPRYCHNYK: return "MOSKAL_OPRYCHNYK"
+				MoskalRank.VOYEVODA: return "MOSKAL_VOYEVODA"
+				MoskalRank.TSAR_GENERAL: return "MOSKAL_TSAR_GENERAL"
+				MoskalRank.MONGOL_NUKER: return "MONGOL_NUKER"
+				MoskalRank.MONGOL_SHAMAN: return "MONGOL_SHAMAN"
+				MoskalRank.MONGOL_NOYON: return "MONGOL_NOYON"
+				_: return "MOSKAL"
+	return "CHORT"
+
+func get_enemy_type_name() -> String:
+	return npc_id()
+
 func _ready() -> void:
 	body_entered.connect(_on_body_entered)
-	if enemy_type == EnemyType.VIDMA:
+	if enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK:
 		armor = VIDMA_ARMOR
 		_player_ref = get_tree().root.find_child("Player", true, false) as Node2D
 	elif enemy_type == EnemyType.MOSKAL:
 		armor = get_moskal_rank_armor(moskal_rank)
+	elif enemy_type == EnemyType.BASAVRIUK or enemy_type == EnemyType.VIJ:
+		armor = 1
+	elif enemy_type == EnemyType.FINAL_BOSS:
+		armor = 3
 	var ang := randf_range(0.2, PI - 0.2)
 	velocity = Vector2(cos(ang), sin(ang)).normalized() * base_speed
 	stamina_timer = randf_range(3.5, 5.8)
@@ -131,9 +164,39 @@ func apply_stolen_artifact_buff(duration: float = 6.5) -> void:
 	stamina_timer = duration + 2.0
 	queue_redraw()
 
+func get_defeat_dance_name() -> String:
+	match enemy_type:
+		EnemyType.MOSKAL:
+			if moskal_rank in [MoskalRank.MONGOL_NUKER, MoskalRank.MONGOL_SHAMAN, MoskalRank.MONGOL_NOYON]:
+				return "horde_buran_stumble"
+			return "moskal_komarynska_fail"
+		EnemyType.CHORT, EnemyType.ZLYDNI:
+			return "chort_tail_tangle_hop"
+		EnemyType.VIDMA, EnemyType.VIDMAK:
+			return "engineer_broom_misfire_jig"
+		EnemyType.VOGNYK:
+			return "vognyk_flicker_fizzle"
+		EnemyType.BASAVRIUK, EnemyType.VIJ, EnemyType.FINAL_BOSS:
+			return "boss_crown_wobble_stomp"
+		_:
+			return "folklore_defeat_hop"
+
+func start_defeat_dance() -> void:
+	is_dancing_defeat = true
+	is_resting = false
+	rest_timer = 0.0
+	is_scared = false
+	scared_timer = 0.0
+	has_stolen_artifact = false
+	artifact_buff_timer = 0.0
+	velocity = Vector2.ZERO
+	defeat_dance_time = randf_range(0.0, 0.5)
+	queue_redraw()
+
 func start_rest(duration: float = 2.2) -> void:
 	if has_stolen_artifact:
 		return
+	is_dancing_defeat = false
 	is_resting = true
 	rest_timer = duration
 	fatigue_mult = 1.0
@@ -152,6 +215,7 @@ func make_scared(duration: float = 8.0) -> void:
 		artifact_buff_timer = 0.0
 		fatigue_mult = 1.0
 		stolen_artifact_dropped.emit(global_position)
+	is_dancing_defeat = false
 	is_scared = true
 	scared_timer = duration
 	is_resting = false
@@ -162,6 +226,10 @@ func make_scared(duration: float = 8.0) -> void:
 
 func _process(delta: float) -> void:
 	time_passed += delta
+	if is_dancing_defeat:
+		defeat_dance_time += delta
+		queue_redraw()
+		return
 	
 	if has_stolen_artifact:
 		artifact_buff_timer -= delta
@@ -197,11 +265,11 @@ func _process(delta: float) -> void:
 	
 	if is_resting:
 		# Короткий перепочинок: супротивник зупиняється на місці й важко переводить дух
-		if enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VOGNYK:
+		if enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK or enemy_type == EnemyType.VOGNYK:
 			position.y += sin(time_passed * 5.0) * 5.0 * delta
 	else:
 		match enemy_type:
-			EnemyType.VIDMA:
+			EnemyType.VIDMA, EnemyType.VIDMAK:
 				if is_scared:
 					position += velocity * fatigue_mult * delta
 				else:
@@ -221,9 +289,21 @@ func _process(delta: float) -> void:
 				var float_speed := (65.0 if not is_scared else 115.0) * fatigue_mult
 				var drift := Vector2(sin(time_passed * 1.5), cos(time_passed * 1.8)) * 16.0
 				position += (velocity.normalized() * float_speed + drift) * delta
-			EnemyType.CHORT:
-				var speed := (base_speed if not is_scared else (base_speed * 1.35)) * fatigue_mult
+			EnemyType.CHORT, EnemyType.ZLYDNI:
+				var z_mult := 1.08 if enemy_type == EnemyType.ZLYDNI else 1.0
+				var speed := (base_speed * z_mult if not is_scared else (base_speed * 1.35)) * fatigue_mult
 				position += velocity.normalized() * speed * delta
+			EnemyType.BASAVRIUK:
+				var b_speed := (base_speed * 0.88 if not is_scared else (base_speed * 1.45)) * fatigue_mult
+				position += velocity.normalized() * b_speed * delta
+				if not is_scared:
+					position.y += sin(time_passed * 4.5) * 22.0 * delta
+			EnemyType.VIJ:
+				var v_speed := (base_speed * 0.56 if not is_scared else (base_speed * 1.25)) * fatigue_mult
+				position += velocity.normalized() * v_speed * delta
+			EnemyType.FINAL_BOSS:
+				var fb_speed := (base_speed * 0.72 if not is_scared else (base_speed * 1.40)) * fatigue_mult
+				position += velocity.normalized() * fb_speed * delta
 			EnemyType.MOSKAL:
 				# Поведінка та швидкість залежать від рангу московського війська («Від Шиша до Воєводи»):
 				var rank_mult := 0.75
@@ -268,7 +348,7 @@ func _process(delta: float) -> void:
 		position.x = 928.0
 		velocity.x = -abs(velocity.x)
 	
-	if enemy_type == EnemyType.VIDMA and not is_scared:
+	if (enemy_type == EnemyType.VIDMA or enemy_type == EnemyType.VIDMAK) and not is_scared:
 		position.y = clamp(position.y, 45.0, 150.0)
 	else:
 		if position.y < 45.0:
@@ -281,11 +361,20 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _on_body_entered(body: Node2D) -> void:
+	if is_dancing_defeat:
+		return
 	if body is JackPlayer:
 		if is_scared or body.is_charakterite:
 			# Banished by Cossack / Charakterite power!
 			_play_poof()
-			var reward := get_moskal_rank_reward(moskal_rank) if enemy_type == EnemyType.MOSKAL else (VIDMA_REWARD if enemy_type == EnemyType.VIDMA else 500)
+			var reward := 500
+			match enemy_type:
+				EnemyType.MOSKAL: reward = get_moskal_rank_reward(moskal_rank)
+				EnemyType.VIDMA, EnemyType.VIDMAK: reward = VIDMA_REWARD
+				EnemyType.ZLYDNI: reward = 550
+				EnemyType.BASAVRIUK: reward = 900
+				EnemyType.VIJ: reward = 1100
+				EnemyType.FINAL_BOSS: reward = 2500
 			defeated.emit(self, reward)
 			queue_free()
 		else:
@@ -303,7 +392,13 @@ func _play_poof() -> void:
 	sfx.play()
 
 func _draw() -> void:
-	if is_resting:
+	if is_dancing_defeat:
+		var w_phase := defeat_dance_time * 10.5
+		var squat_y := absf(cos(w_phase)) * 3.8
+		var sway_x := sin(w_phase) * 3.0
+		var tilt := sin(w_phase * 0.5) * 0.16
+		draw_set_transform(Vector2(sway_x, squat_y), tilt, Vector2(1.0 + sin(w_phase) * 0.10, 1.0 - sin(w_phase) * 0.10))
+	elif is_resting:
 		var breath := sin(time_passed * 9.0)
 		draw_set_transform(Vector2(0.0, 2.4 + breath * 1.1), 0.0, Vector2(1.0 + breath * 0.08, 1.0 - breath * 0.08))
 	else:
@@ -317,8 +412,16 @@ func _draw() -> void:
 		draw_arc(Vector2(0.0, -24.0), 5.5, 0.4, TAU - 0.4, 8, Color(1.0, 0.92, 0.22), 2.6)
 		var fnt := ThemeDB.fallback_font
 		if fnt:
-			draw_string(fnt, Vector2(-26.0, -31.0), "ТРОФЕЙ! ✨", HORIZONTAL_ALIGNMENT_CENTER, 52.0, 9, Color(1.0, 0.94, 0.30))
+			draw_string(fnt, Vector2(-26.0, -31.0), "ТРОФЕЙ! ", HORIZONTAL_ALIGNMENT_CENTER, 52.0, 9, Color(1.0, 0.94, 0.30))
 	
+	if armor > 0 and not is_scared:
+		# Візуальна підказка захисного щита інженерів та панцерних ворогів (T-018): мерехтливе кільце й мітки ударів
+		var sh_pulse := 0.55 + 0.35 * sin(time_passed * 10.0)
+		draw_arc(Vector2(0.0, -2.0), 20.0, 0.0, TAU, 24, Color(0.45, 0.92, 1.0, sh_pulse), 2.2)
+		for s_i in armor:
+			var pip_x := (float(s_i) - float(armor - 1) * 0.5) * 6.5
+			draw_circle(Vector2(pip_x, -25.0), 2.4, Color(0.55, 0.96, 1.0, 0.95))
+
 	match enemy_type:
 		EnemyType.CHORT:
 			_draw_chort()
@@ -328,6 +431,60 @@ func _draw() -> void:
 			_draw_vognyk()
 		EnemyType.MOSKAL:
 			_draw_moskal()
+		EnemyType.ZLYDNI:
+			_draw_zlydni()
+		EnemyType.BASAVRIUK:
+			_draw_basavriuk()
+		EnemyType.VIJ:
+			_draw_vij()
+		EnemyType.VIDMAK:
+			_draw_vidmak()
+		EnemyType.FINAL_BOSS:
+			_draw_final_boss()
+
+	if is_dancing_defeat:
+		_draw_defeat_dance_overlay()
+
+# Національний / фольклорний танок невдачі злодіїв (комічний, без страху, стиль «Київнаукфільм»)
+func _draw_defeat_dance_overlay() -> void:
+	var t := defeat_dance_time * 10.0
+	var kick := sin(t) * 8.5
+	match get_defeat_dance_name():
+		"moskal_komarynska_fail":
+			# Комічна лапотна «Комаринська-Невдаха вприсядку»: лапті заплітаються врізнобіч, руки хапаються за шапку!
+			var lapot_l := Vector2(-10.5 - maxf(0.0, kick), 18.0 - maxf(0.0, kick) * 0.45)
+			var lapot_r := Vector2(10.5 + maxf(0.0, -kick), 18.0 - maxf(0.0, -kick) * 0.45)
+			draw_line(Vector2(-3.5, 11.0), lapot_l, Color(0.68, 0.14, 0.16), 3.4)
+			draw_line(Vector2(3.5, 11.0), lapot_r, Color(0.68, 0.14, 0.16), 3.4)
+			_draw_oval(lapot_l, 4.6, 2.3, Color(0.78, 0.62, 0.34)) # Плетений ликовий лапоть ліворуч
+			_draw_oval(lapot_r, 4.6, 2.3, Color(0.78, 0.62, 0.34)) # Плетений ликовий лапоть праворуч
+			# Обидві руки кумедно тримаються за перекошену шапку («Ой-йой, пропала грамота!»)
+			draw_line(Vector2(-6.5, -2.0), Vector2(-9.5, -14.5 + sin(t) * 1.5), Color(0.74, 0.14, 0.16), 3.0)
+			draw_line(Vector2(6.5, -2.0), Vector2(9.5, -14.5 - sin(t) * 1.5), Color(0.74, 0.14, 0.16), 3.0)
+			draw_circle(Vector2(-9.5, -14.5 + sin(t) * 1.5), 2.1, Color(0.96, 0.82, 0.72))
+			draw_circle(Vector2(9.5, -14.5 - sin(t) * 1.5), 2.1, Color(0.96, 0.82, 0.72))
+		"horde_buran_stumble":
+			# Ординський «Буран-Спотикач»: заплутаний аркан навколо ніг і перевернутий бубон!
+			draw_arc(Vector2(0.0, 14.5), 8.5, 0.0, TAU, 14, Color(0.76, 0.60, 0.32), 2.0)
+			_draw_oval(Vector2(11.5, 14.0 + sin(t) * 2.0), 4.5, 3.2, Color(0.85, 0.68, 0.38))
+		"chort_tail_tangle_hop":
+			# Чортячий «Гопки-Плутанка Хвостом»: наступив собі на хвіст і стрибає на одній лапі!
+			var hop_y := -absf(sin(t)) * 4.5
+			draw_arc(Vector2(0.0, 14.0 + hop_y), 7.5, 0.2, PI * 1.4, 10, Color(0.18, 0.15, 0.22), 2.4)
+		"engineer_broom_misfire_jig":
+			# Конструкторський танок зламаної мітли й шестерні: пара та розгублено розведені руки!
+			for g_i in 3:
+				var p_ang := t * 0.6 + float(g_i) * TAU / 3.0
+				draw_circle(Vector2(cos(p_ang) * 14.0, -16.0 + sin(p_ang) * 4.0), 2.4, Color(0.85, 0.90, 0.96, 0.85))
+		_:
+			# Комічний тупіт посоромленого велетня / ліхтарика
+			draw_circle(Vector2(-9.0, 18.5), 2.6 + absf(sin(t)) * 1.5, Color(0.82, 0.78, 0.70, 0.75))
+			draw_circle(Vector2(9.0, 18.5), 2.6 + absf(cos(t)) * 1.5, Color(0.82, 0.78, 0.70, 0.75))
+	# Веселі зірочки запаморочення над головою злодія-невдахи
+	for s_i in 3:
+		var a := defeat_dance_time * 5.2 + float(s_i) * TAU / 3.0
+		var sp := Vector2(cos(a) * 11.0, -23.5 + sin(a) * 3.2)
+		draw_circle(sp, 1.8, Color(1.0, 0.90, 0.25))
 
 # -------------------------------------------------------------
 # ГОГОЛІВСЬКИЙ ЧОРТИК ("Ніч перед Різдвом", "Пропала грамота")
@@ -423,16 +580,28 @@ func _draw_chort() -> void:
 		var foot_r := Vector2(5.5, 14.2 + bob)
 		draw_line(Vector2(-4.0, 9.0 + bob), foot_l, c_body, 2.6)
 		draw_line(Vector2(4.0, 9.0 + bob), foot_r, c_body, 2.6)
-		_draw_oval(foot_l + Vector2(0.8 * fwd, 0.5), 2.5, 1.5, Color(0.38, 0.16, 0.10))
-		_draw_oval(foot_r + Vector2(0.8 * fwd, 0.5), 2.5, 1.5, Color(0.38, 0.16, 0.10))
+		var hoof_l := foot_l + Vector2(0.8 * fwd, 0.5)
+		var hoof_r := foot_r + Vector2(0.8 * fwd, 0.5)
+		_draw_oval(hoof_l, 2.6, 1.6, Color(0.38, 0.16, 0.10))
+		_draw_oval(hoof_r, 2.6, 1.6, Color(0.38, 0.16, 0.10))
+		draw_line(hoof_l + Vector2(0, -1.0), hoof_l + Vector2(0, 1.2), Color(0.16, 0.06, 0.04), 1.1)
+		draw_line(hoof_r + Vector2(0, -1.0), hoof_r + Vector2(0, 1.2), Color(0.16, 0.06, 0.04), 1.1)
+		draw_circle(hoof_l + Vector2(-0.7 * fwd, -0.4), 0.5, Color(0.65, 0.35, 0.25))
+		draw_circle(hoof_r + Vector2(-0.7 * fwd, -0.4), 0.5, Color(0.65, 0.35, 0.25))
 	elif not is_scared:
 		var trot := sin(time_passed * 16.0 * fatigue_mult) * 3.2
 		var foot_l := Vector2(-4.0 - trot * 0.6, 15.5 + bob - maxf(0.0, trot) * 0.5)
 		var foot_r := Vector2(4.0 + trot * 0.6, 15.5 + bob - maxf(0.0, -trot) * 0.5)
 		draw_line(Vector2(-4.0, 9.0 + bob), foot_l, c_body, 2.4)
 		draw_line(Vector2(4.0, 9.0 + bob), foot_r, c_body, 2.4)
-		_draw_oval(foot_l + Vector2(0.8 * fwd, 0.5), 2.3, 1.5, Color(0.38, 0.16, 0.10))
-		_draw_oval(foot_r + Vector2(0.8 * fwd, 0.5), 2.3, 1.5, Color(0.38, 0.16, 0.10))
+		var hoof_l := foot_l + Vector2(0.8 * fwd, 0.5)
+		var hoof_r := foot_r + Vector2(0.8 * fwd, 0.5)
+		_draw_oval(hoof_l, 2.4, 1.6, Color(0.38, 0.16, 0.10))
+		_draw_oval(hoof_r, 2.4, 1.6, Color(0.38, 0.16, 0.10))
+		draw_line(hoof_l + Vector2(0, -1.0), hoof_l + Vector2(0, 1.2), Color(0.16, 0.06, 0.04), 1.1)
+		draw_line(hoof_r + Vector2(0, -1.0), hoof_r + Vector2(0, 1.2), Color(0.16, 0.06, 0.04), 1.1)
+		draw_circle(hoof_l + Vector2(-0.6 * fwd, -0.4), 0.5, Color(0.65, 0.35, 0.25))
+		draw_circle(hoof_r + Vector2(-0.6 * fwd, -0.4), 0.5, Color(0.65, 0.35, 0.25))
 	else:
 		# Комічне мультяшне "колесо" з ніжок під час панічної втечі!
 		var spin := time_passed * 36.0
@@ -509,13 +678,15 @@ func _draw_chort() -> void:
 		draw_arc(eye_pos, 2.4, 0.15, PI - 0.15, 6, Color(1.0, 0.86, 0.16), 2.0)
 		_draw_sweat_and_breath(Vector2(2.0 * fwd, -10.5 + bob), snout_pos + Vector2(3.5 * fwd, 1.5), fwd, "ФУХ!")
 	elif not is_scared:
-		# Лукаві палаючі жовті очі чортика з котячими зіницями
+		# Лукаві палаючі жовті очі чортика з котячими зіницями та подвійним бліком
 		var eye_pos := Vector2(3.0 * fwd, -3.2 + bob)
-		draw_circle(eye_pos, 2.6, Color(1.0, 0.86, 0.16))
-		draw_line(eye_pos + Vector2(0.7 * fwd, -1.6), eye_pos + Vector2(0.7 * fwd, 1.6), Color(0.08, 0.04, 0.04), 1.3)
-		draw_circle(eye_pos + Vector2(1.0 * fwd, -0.7), 0.55, Color.WHITE)
+		draw_circle(eye_pos, 2.7, Color(1.0, 0.86, 0.16))
+		draw_circle(eye_pos, 2.1, Color(1.0, 0.94, 0.32))
+		draw_line(eye_pos + Vector2(0.6 * fwd, -1.7), eye_pos + Vector2(0.6 * fwd, 1.7), Color(0.08, 0.04, 0.04), 1.3)
+		draw_circle(eye_pos + Vector2(1.0 * fwd, -0.7), 0.6, Color.WHITE)
+		draw_circle(eye_pos + Vector2(0.3 * fwd, 0.6), 0.35, Color(1.0, 1.0, 1.0, 0.75))
 		# Лукава брова
-		draw_line(eye_pos + Vector2(-2.2 * fwd, -3.0), eye_pos + Vector2(2.2 * fwd, -2.0), Color(0.06, 0.04, 0.08), 1.5)
+		draw_line(eye_pos + Vector2(-2.2 * fwd, -3.0), eye_pos + Vector2(2.2 * fwd, -2.0), Color(0.06, 0.04, 0.08), 1.6)
 	else:
 		# ВЕЛИЧЕЗНІ перелякані круглі очі-блюдця зі здивованими зіницями!
 		var jitter := Vector2(sin(time_passed * 40.0) * 0.8, cos(time_passed * 35.0) * 0.8)
@@ -833,6 +1004,7 @@ func _draw_moskal_shysh() -> void:
 	_draw_oval(sack_pos, 5.8, 6.8, Color(0.55, 0.48, 0.36))
 	draw_circle(sack_pos + Vector2(-2.8 * fwd, -5.8), 2.8, Color(0.32, 0.75, 0.28)) # Крадена капуста
 	draw_arc(sack_pos + Vector2(-2.8 * fwd, -5.8), 2.2, -0.5, 2.0, 6, Color(0.55, 0.90, 0.45), 1.2)
+	draw_arc(sack_pos + Vector2(2.2 * fwd, -4.8), 1.8, 0, TAU, 8, Color(0.92, 0.75, 0.28), 1.3) # Крадений бублик
 	
 	# 1. Худорлява драна сірячина (буро-сіра свитка з кольоровими латками та мотузковим поясом)
 	var c_coat := Color(0.46, 0.42, 0.34) if not is_scared else Color(0.38, 0.42, 0.56)
@@ -845,9 +1017,12 @@ func _draw_moskal_shysh() -> void:
 	draw_colored_polygon(body_pts, c_coat)
 	# Яскраві латки на сірячині (синя і руда, прошиті хрестиком)
 	draw_rect(Rect2(Vector2(-4.5 * fwd, 2.0 + waddle), Vector2(4.2, 3.6)), Color(0.28, 0.48, 0.68))
+	draw_line(Vector2(-4.5 * fwd, 2.0 + waddle), Vector2(-0.3 * fwd, 5.6 + waddle), Color(0.95, 0.95, 0.95), 0.8)
 	draw_rect(Rect2(Vector2(1.5 * fwd, 6.8 + waddle), Vector2(3.8, 3.4)), Color(0.75, 0.40, 0.22))
-	# Мотузковий пояс-очкурик
+	draw_line(Vector2(1.5 * fwd, 6.8 + waddle), Vector2(5.3 * fwd, 10.2 + waddle), Color(0.95, 0.95, 0.95), 0.8)
+	# Мотузковий пояс-очкурик із китицею
 	draw_line(Vector2(-8.2 * fwd, 5.2 + waddle), Vector2(8.4 * fwd, 5.2 + waddle), Color(0.78, 0.66, 0.42), 2.0)
+	draw_line(Vector2(2.0 * fwd, 5.2 + waddle), Vector2(1.5 * fwd, 10.2 + waddle + sin(time_passed * 10.0) * 1.0), Color(0.78, 0.66, 0.42), 1.6)
 	
 	# 2. Прудкі ноги у великих ликових лаптях та онучах
 	_draw_moskal_legs(fwd, 13.5, 1.25)
@@ -904,8 +1079,10 @@ func _draw_moskal_strelets() -> void:
 	var sack_pos := Vector2(-8.8 * fwd, 2.0 + waddle * 0.8)
 	_draw_oval(sack_pos, 6.5, 7.8, Color(0.62, 0.52, 0.38))
 	draw_line(sack_pos + Vector2(-3.0, -5.0), sack_pos + Vector2(2.0, -5.0), Color(0.42, 0.32, 0.20), 1.6)
-	draw_circle(sack_pos + Vector2(-3.5 * fwd, -7.2), 2.8, Color(0.88, 0.65, 0.20))
-	draw_line(sack_pos + Vector2(-3.5 * fwd, -9.8), sack_pos + Vector2(-3.5 * fwd, -12.0), Color(0.75, 0.52, 0.16), 2.0)
+	draw_circle(sack_pos + Vector2(-3.5 * fwd, -7.2), 3.0, Color(0.88, 0.65, 0.20))
+	draw_circle(sack_pos + Vector2(-3.5 * fwd, -7.2), 1.6, Color(1.0, 0.85, 0.35))
+	draw_line(sack_pos + Vector2(-3.5 * fwd, -9.8), sack_pos + Vector2(-3.5 * fwd, -12.5), Color(0.75, 0.52, 0.16), 2.0)
+	draw_line(sack_pos + Vector2(-3.5 * fwd, -12.5), sack_pos + Vector2(-1.5 * fwd, -14.0), Color(0.65, 0.45, 0.14), 1.8)
 	
 	# 1. Червоний об'ємний каптан / охабень із золотими петлицями та високим коміром
 	var c_coat := Color(0.85, 0.15, 0.18) if not is_scared else Color(0.65, 0.18, 0.35)
@@ -924,10 +1101,11 @@ func _draw_moskal_strelets() -> void:
 	
 	for b in range(3):
 		var by := float(b) * 4.4 + waddle
-		draw_line(Vector2(-6.5 * fwd, by), Vector2(6.5 * fwd, by), c_braid, 2.0)
-		draw_circle(Vector2(-6.5 * fwd, by), 1.0, c_braid)
-		draw_circle(Vector2(6.5 * fwd, by), 1.0, c_braid)
-		draw_circle(Vector2(0, by), 1.3, Color(1.0, 0.95, 0.55))
+		draw_line(Vector2(-6.5 * fwd, by), Vector2(6.5 * fwd, by), c_braid, 2.2)
+		draw_circle(Vector2(-6.5 * fwd, by), 1.2, c_braid)
+		draw_circle(Vector2(6.5 * fwd, by), 1.2, c_braid)
+		draw_circle(Vector2(0, by), 1.4, Color(1.0, 0.95, 0.55))
+		draw_circle(Vector2(0, by), 0.6, Color(0.85, 0.12, 0.12))
 	
 	# 2. Неповороткі ноги у лаптях з переплетеними онучами
 	_draw_moskal_legs(fwd, 14.5, 1.0)
@@ -952,7 +1130,10 @@ func _draw_moskal_strelets() -> void:
 		draw_circle(hand_grip, 2.0, Color(0.96, 0.82, 0.70))
 		draw_line(pole_bot, pole_top, Color(0.42, 0.26, 0.14), 2.8)
 		draw_arc(pole_top + Vector2(2.0 * fwd, 4.0), 10.5, -1.3 if fwd > 0 else PI - 1.3, 1.3 if fwd > 0 else PI + 1.3, 10, Color(0.82, 0.86, 0.92), 3.4)
+		draw_arc(pole_top + Vector2(2.0 * fwd, 4.0), 10.5, -0.9 if fwd > 0 else PI - 0.9, 0.9 if fwd > 0 else PI + 0.9, 8, Color(1.0, 1.0, 1.0, 0.85), 1.4)
 		draw_line(pole_top + Vector2(2.0 * fwd, -6.5), pole_top + Vector2(2.0 * fwd, 12.5), Color(0.62, 0.68, 0.75), 2.0)
+		draw_circle(pole_top + Vector2(2.0 * fwd, -2.0), 0.9, Color(0.88, 0.65, 0.20))
+		draw_circle(pole_top + Vector2(2.0 * fwd, 6.0), 0.9, Color(0.88, 0.65, 0.20))
 	else:
 		var axe_rot := time_passed * 16.0
 		var axe_c := Vector2(-18.0 * fwd, -4.0 + sin(time_passed * 10.0) * 6.0)
@@ -1241,13 +1422,29 @@ func _draw_moskal_tsar_general() -> void:
 
 # Спільні виразні ніжки та очі з емоціями для всіх чинів фракції Загарбників
 func _draw_moskal_legs(fwd: float, hip_y: float, cadence_mult: float) -> void:
+	var c_wrap := Color(0.78, 0.72, 0.62)
+	var c_cord := Color(0.48, 0.36, 0.22)
+	var c_lapot := Color(0.72, 0.55, 0.28)
+	var c_lapot_weave := Color(0.50, 0.36, 0.16)
 	if is_resting:
 		var ankle_l := Vector2(-5.2 * fwd, hip_y + 5.0)
 		var ankle_r := Vector2(5.2 * fwd, hip_y + 5.0)
-		draw_line(Vector2(-4.8 * fwd, hip_y), ankle_l, Color(0.78, 0.72, 0.62), 3.4)
-		draw_line(Vector2(4.8 * fwd, hip_y), ankle_r, Color(0.78, 0.72, 0.62), 3.4)
-		_draw_oval(ankle_l + Vector2(2.0 * fwd, 0.5), 3.8, 2.1, Color(0.72, 0.55, 0.28))
-		_draw_oval(ankle_r + Vector2(2.0 * fwd, 0.5), 3.8, 2.1, Color(0.72, 0.55, 0.28))
+		draw_line(Vector2(-4.8 * fwd, hip_y), ankle_l, c_wrap, 3.4)
+		draw_line(Vector2(4.8 * fwd, hip_y), ankle_r, c_wrap, 3.4)
+		# Мотузкові обори (перехрещені шнури на онучах)
+		draw_line(Vector2(-6.2 * fwd, hip_y + 1.2), Vector2(-3.5 * fwd, hip_y + 3.8), c_cord, 1.2)
+		draw_line(Vector2(-3.5 * fwd, hip_y + 1.2), Vector2(-6.2 * fwd, hip_y + 3.8), c_cord, 1.2)
+		draw_line(Vector2(3.5 * fwd, hip_y + 1.2), Vector2(6.2 * fwd, hip_y + 3.8), c_cord, 1.2)
+		draw_line(Vector2(6.2 * fwd, hip_y + 1.2), Vector2(3.5 * fwd, hip_y + 3.8), c_cord, 1.2)
+		# Ликові плетені лапті з характерним перехресним візерунком
+		var lap_l := ankle_l + Vector2(2.0 * fwd, 0.5)
+		var lap_r := ankle_r + Vector2(2.0 * fwd, 0.5)
+		_draw_oval(lap_l, 3.8, 2.1, c_lapot)
+		_draw_oval(lap_r, 3.8, 2.1, c_lapot)
+		draw_line(lap_l - Vector2(1.8 * fwd, 0.8), lap_l + Vector2(1.8 * fwd, 0.8), c_lapot_weave, 1.0)
+		draw_line(lap_l - Vector2(1.8 * fwd, -0.8), lap_l + Vector2(1.8 * fwd, -0.8), c_lapot_weave, 1.0)
+		draw_line(lap_r - Vector2(1.8 * fwd, 0.8), lap_r + Vector2(1.8 * fwd, 0.8), c_lapot_weave, 1.0)
+		draw_line(lap_r - Vector2(1.8 * fwd, -0.8), lap_r + Vector2(1.8 * fwd, -0.8), c_lapot_weave, 1.0)
 	elif not is_scared:
 		var step_l := sin(time_passed * 10.0 * cadence_mult * fatigue_mult) * 4.5
 		var step_r := -step_l
@@ -1255,17 +1452,30 @@ func _draw_moskal_legs(fwd: float, hip_y: float, cadence_mult: float) -> void:
 		var lift_r := maxf(0.0, cos(time_passed * 10.0 * cadence_mult * fatigue_mult)) * 2.2
 		var ankle_l := Vector2(-5.0 * fwd + step_l, hip_y + 5.5 - lift_l)
 		var ankle_r := Vector2(5.0 * fwd + step_r, hip_y + 5.5 - lift_r)
-		draw_line(Vector2(-5.0 * fwd, hip_y), ankle_l, Color(0.78, 0.72, 0.62), 3.5)
-		draw_line(Vector2(5.0 * fwd, hip_y), ankle_r, Color(0.78, 0.72, 0.62), 3.5)
-		_draw_oval(ankle_l + Vector2(2.0 * fwd, 0.5), 3.8, 2.1, Color(0.72, 0.55, 0.28))
-		_draw_oval(ankle_r + Vector2(2.0 * fwd, 0.5), 3.8, 2.1, Color(0.72, 0.55, 0.28))
+		draw_line(Vector2(-5.0 * fwd, hip_y), ankle_l, c_wrap, 3.5)
+		draw_line(Vector2(5.0 * fwd, hip_y), ankle_r, c_wrap, 3.5)
+		# Перехресні обори під час ходи
+		var mid_l := Vector2(-5.0 * fwd, hip_y).lerp(ankle_l, 0.5)
+		var mid_r := Vector2(5.0 * fwd, hip_y).lerp(ankle_r, 0.5)
+		draw_line(mid_l - Vector2(1.5, -1.2), mid_l + Vector2(1.5, -1.2), c_cord, 1.2)
+		draw_line(mid_r - Vector2(1.5, -1.2), mid_r + Vector2(1.5, -1.2), c_cord, 1.2)
+		var lap_l := ankle_l + Vector2(2.0 * fwd, 0.5)
+		var lap_r := ankle_r + Vector2(2.0 * fwd, 0.5)
+		_draw_oval(lap_l, 3.8, 2.1, c_lapot)
+		_draw_oval(lap_r, 3.8, 2.1, c_lapot)
+		draw_line(lap_l - Vector2(1.8 * fwd, 0.8), lap_l + Vector2(1.8 * fwd, 0.8), c_lapot_weave, 1.0)
+		draw_line(lap_l - Vector2(1.8 * fwd, -0.8), lap_l + Vector2(1.8 * fwd, -0.8), c_lapot_weave, 1.0)
+		draw_line(lap_r - Vector2(1.8 * fwd, 0.8), lap_r + Vector2(1.8 * fwd, 0.8), c_lapot_weave, 1.0)
+		draw_line(lap_r - Vector2(1.8 * fwd, -0.8), lap_r + Vector2(1.8 * fwd, -0.8), c_lapot_weave, 1.0)
 	else:
 		var spin := time_passed * 34.0
-		draw_arc(Vector2(0, hip_y + 3.5), 6.5, spin, spin + PI, 6, Color(0.72, 0.55, 0.28), 3.2)
+		draw_arc(Vector2(0, hip_y + 3.5), 6.5, spin, spin + PI, 6, c_lapot, 3.2)
 		draw_arc(Vector2(0, hip_y + 3.5), 6.5, spin + PI, spin + TAU, 6, Color(0.35, 0.22, 0.12), 3.2)
 		var lost_shoe_x := -17.0 * fwd + sin(time_passed * 16.0) * 4.0
 		var lost_shoe_y := hip_y - 2.0 + cos(time_passed * 18.0) * 5.0
-		_draw_oval(Vector2(lost_shoe_x, lost_shoe_y), 3.4, 2.0, Color(0.72, 0.55, 0.28))
+		var lost_p := Vector2(lost_shoe_x, lost_shoe_y)
+		_draw_oval(lost_p, 3.4, 2.0, c_lapot)
+		draw_line(lost_p - Vector2(1.5, 0.6), lost_p + Vector2(1.5, 0.6), c_lapot_weave, 0.9)
 
 func _draw_moskal_eyes(head_c: Vector2, fwd: float, rest_label: String) -> void:
 	if is_resting:
@@ -1324,3 +1534,142 @@ func _draw_oval(center: Vector2, rx: float, ry: float, color: Color) -> void:
 		var phi := float(i) / float(num_pts) * TAU
 		pts.append(center + Vector2(cos(phi) * rx, sin(phi) * ry))
 	draw_colored_polygon(pts, color)
+
+# ============================================================================
+# НОВІ ВОРОЖІ NPC КАМПАНІЇ 20 РІВНІВ (T-023: ЗЛИДНІ, БАСАВРЮК, ВІЙ, ВІДЬМАК, БОС)
+# Збережено інваріанти I-3 (Zero-Horror) та I-4 (Anti-Clipping: виступи позаду тіла)
+# ============================================================================
+
+const ZLYDNI_HEAD_RX: float = 9.0
+const ZLYDNI_HEAD_RY: float = 8.4
+static func zlydni_ear_points(fwd: float, bob: float) -> Array:
+	return [
+		[Vector2(-5.2 * fwd, -4.8 + bob), Vector2(-10.5 * fwd, -8.5 + bob), Vector2(-13.0 * fwd, -12.0 + bob)],
+		[Vector2(5.2 * fwd, -4.8 + bob), Vector2(10.5 * fwd, -8.5 + bob), Vector2(13.0 * fwd, -12.0 + bob)],
+	]
+
+func _draw_zlydni() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var bob := sin(time_passed * 14.0) * 1.8
+	# 1. Довгі капловухі вушка Злидня малюються ПОЗАДУ голови (Anti-Clipping I-4)
+	var ears := zlydni_ear_points(fwd, bob)
+	for e_pts in ears:
+		draw_line(e_pts[0], e_pts[1], Color(0.55, 0.46, 0.36), 3.0)
+		draw_line(e_pts[1], e_pts[2], Color(0.68, 0.54, 0.42), 2.2)
+	# 2. Латана сіра свитинка й короткі ніжки
+	_draw_moskal_legs(fwd, 7.5, 1.35)
+	_draw_oval(Vector2(0.0, 2.5 + bob), 8.2, 6.8, Color(0.46, 0.42, 0.36) if not is_scared else Color(0.32, 0.44, 0.68))
+	draw_rect(Rect2(-3.5, 1.0 + bob, 4.5, 3.8), Color(0.68, 0.52, 0.32)) # Латка на свитині
+	# 3. Голова та кумедний ніс-картоплина
+	_draw_oval(Vector2(0.0, -3.0 + bob), ZLYDNI_HEAD_RX, ZLYDNI_HEAD_RY, Color(0.76, 0.68, 0.56))
+	draw_circle(Vector2(4.2 * fwd, -2.0 + bob), 2.4, Color(0.88, 0.52, 0.48))
+	_draw_moskal_eyes(Vector2(0.0, -3.0 + bob), fwd, "ОЙ-ОЙ!")
+
+const BASAVRIUK_HEAD_RX: float = 10.6
+const BASAVRIUK_HEAD_RY: float = 10.0
+static func basavriuk_horn_points(fwd: float, bob: float) -> Array:
+	return [
+		[Vector2(-6.0 * fwd, -6.5 + bob), Vector2(-11.2 * fwd, -11.5 + bob), Vector2(-13.8 * fwd, -16.5 + bob)],
+		[Vector2(6.0 * fwd, -6.5 + bob), Vector2(11.2 * fwd, -11.5 + bob), Vector2(13.8 * fwd, -16.5 + bob)],
+	]
+
+func _draw_basavriuk() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var bob := sin(time_passed * 9.0) * 1.8
+	# 1. Кручені ріжки шинкаря-біса Басаврюка ПОЗАДУ голови (Anti-Clipping I-4)
+	var horns := basavriuk_horn_points(fwd, bob)
+	for h in horns:
+		draw_line(h[0], h[1], Color(0.28, 0.14, 0.12), 3.4)
+		draw_line(h[1], h[2], Color(0.85, 0.68, 0.22), 2.4)
+	# 2. Червоний каптан-жупан і мішок із черепками
+	_draw_moskal_legs(fwd, 9.5, 0.95)
+	_draw_oval(Vector2(-7.5 * fwd, 2.0 + bob), 6.0, 5.5, Color(0.58, 0.44, 0.24)) # Торба черепків за спиною
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(-8.5 * fwd, -3.0 + bob), Vector2(8.5 * fwd, -3.0 + bob),
+		Vector2(10.5 * fwd, 9.5 + bob), Vector2(-10.5 * fwd, 9.5 + bob)
+	]), Color(0.68, 0.14, 0.18) if not is_scared else Color(0.28, 0.36, 0.64))
+	# 3. Голова та вуса
+	_draw_oval(Vector2(0.0, -3.5 + bob), BASAVRIUK_HEAD_RX, BASAVRIUK_HEAD_RY, Color(0.88, 0.72, 0.64))
+	_draw_moskal_eyes(Vector2(0.0, -3.5 + bob), fwd, "Тьху!")
+
+const VIJ_HEAD_RX: float = 13.0
+const VIJ_HEAD_RY: float = 12.2
+static func vij_brow_points(fwd: float, bob: float) -> Array:
+	return [
+		[Vector2(-7.8 * fwd, -7.2 + bob), Vector2(-14.5 * fwd, -10.5 + bob), Vector2(-17.5 * fwd, -13.5 + bob)],
+		[Vector2(7.8 * fwd, -7.2 + bob), Vector2(14.5 * fwd, -10.5 + bob), Vector2(17.5 * fwd, -13.5 + bob)],
+	]
+
+func _draw_vij() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var bob := sin(time_passed * 6.0) * 1.5
+	# 1. Кумедні розлогі брови-повіки сонного Вія ПОЗАДУ контуру голови (Anti-Clipping I-4, Zero-Horror I-3)
+	var brows := vij_brow_points(fwd, bob)
+	for b in brows:
+		draw_line(b[0], b[1], Color(0.36, 0.38, 0.44), 4.0)
+		draw_line(b[1], b[2], Color(0.52, 0.56, 0.64), 3.0)
+	# 2. Приземкуватий кам'яно-моховий тулуб
+	_draw_moskal_legs(fwd, 10.0, 0.65)
+	_draw_oval(Vector2(0.0, 2.0 + bob), VIJ_HEAD_RX, VIJ_HEAD_RY, Color(0.42, 0.46, 0.40) if not is_scared else Color(0.35, 0.48, 0.70))
+	# Сонні напівприкриті повіки з мідними окулярами
+	draw_circle(Vector2(-3.5 * fwd, -2.0 + bob), 3.6, Color(0.85, 0.72, 0.32))
+	draw_circle(Vector2(3.5 * fwd, -2.0 + bob), 3.6, Color(0.85, 0.72, 0.32))
+	_draw_moskal_eyes(Vector2(0.0, -1.0 + bob), fwd, "ХРР-ПФ!")
+
+const VIDMAK_HEAD_RX: float = 10.0
+const VIDMAK_HEAD_RY: float = 9.6
+static func vidmak_wrench_points(fwd: float, bob: float) -> Array:
+	return [
+		[Vector2(-6.0 * fwd, -5.5 + bob), Vector2(-12.0 * fwd, -10.5 + bob), Vector2(-15.5 * fwd, -15.0 + bob)],
+		[Vector2(6.0 * fwd, -5.5 + bob), Vector2(12.0 * fwd, -10.5 + bob), Vector2(15.5 * fwd, -15.0 + bob)],
+	]
+
+func _draw_vidmak() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var bob := sin(time_passed * 8.0) * 2.4
+	# 1. Схрещені мідні гайкові ключі та антени інженера-відьмака ПОЗАДУ тулуба й голови (Anti-Clipping I-4, GDD §1.2)
+	var wrenches := vidmak_wrench_points(fwd, bob)
+	for w in wrenches:
+		draw_line(w[0], w[1], Color(0.58, 0.62, 0.68), 3.2)
+		draw_line(w[1], w[2], Color(0.88, 0.72, 0.28), 2.8)
+		draw_circle(w[2], 2.5, Color(0.75, 0.80, 0.86))
+	# 2. Механічний планер-мітла з шестернями
+	draw_line(Vector2(-18.0 * fwd, 6.0 + bob), Vector2(18.0 * fwd, 2.0 + bob), Color(0.45, 0.32, 0.20), 3.2)
+	draw_circle(Vector2(-14.0 * fwd, 6.0 + bob), 4.2, Color(0.85, 0.68, 0.24))
+	# 3. Синій інженерний жупан із шкіряним фартухом і голова в мідних гоглах
+	_draw_oval(Vector2(0.0, 1.5 + bob), 8.6, 7.2, Color(0.20, 0.28, 0.44) if not is_scared else Color(0.32, 0.44, 0.72))
+	_draw_oval(Vector2(0.0, -4.5 + bob), VIDMAK_HEAD_RX, VIDMAK_HEAD_RY, Color(0.95, 0.82, 0.72))
+	# Мідні інженерні гогли з бірюзовими лінзами
+	draw_circle(Vector2(-3.0 * fwd, -5.5 + bob), 3.0, Color(0.85, 0.62, 0.22))
+	draw_circle(Vector2(3.2 * fwd, -5.5 + bob), 3.0, Color(0.85, 0.62, 0.22))
+	draw_circle(Vector2(-3.0 * fwd, -5.5 + bob), 1.8, Color(0.35, 0.95, 0.90))
+	draw_circle(Vector2(3.2 * fwd, -5.5 + bob), 1.8, Color(0.35, 0.95, 0.90))
+
+const BOSS_HEAD_RX: float = 12.2
+const BOSS_HEAD_RY: float = 11.4
+static func boss_crown_points(fwd: float, bob: float) -> Array:
+	return [
+		[Vector2(-7.2 * fwd, -7.0 + bob), Vector2(-13.5 * fwd, -13.0 + bob), Vector2(-16.5 * fwd, -19.0 + bob)],
+		[Vector2(7.2 * fwd, -7.0 + bob), Vector2(13.5 * fwd, -13.0 + bob), Vector2(16.5 * fwd, -19.0 + bob)],
+	]
+
+func _draw_final_boss() -> void:
+	var fwd := signf(velocity.x) if absf(velocity.x) > 10.0 else 1.0
+	var bob := sin(time_passed * 7.5) * 2.0
+	# 1. Зубці великої картонної корони на пружинках ПОЗАДУ голови (Anti-Clipping I-4)
+	var prongs := boss_crown_points(fwd, bob)
+	for p in prongs:
+		draw_line(p[0], p[1], Color(0.98, 0.82, 0.18), 3.6)
+		draw_line(p[1], p[2], Color(1.0, 0.90, 0.30), 2.8)
+		draw_circle(p[2], 2.4, Color(0.92, 0.18, 0.24))
+	# 2. Парова колісниця-самовар на колесах і пишна мантія
+	for wx in [-9.0, 9.0]:
+		draw_circle(Vector2(wx, 14.5), 5.0, Color(0.38, 0.26, 0.16))
+		draw_arc(Vector2(wx, 14.5), 5.0, 0.0, TAU, 10, Color(0.92, 0.78, 0.24), 1.6)
+	draw_colored_polygon(PackedVector2Array([
+		Vector2(-11.0 * fwd, -2.0 + bob), Vector2(11.0 * fwd, -2.0 + bob),
+		Vector2(13.5 * fwd, 11.0 + bob), Vector2(-13.5 * fwd, 11.0 + bob)
+	]), Color(0.55, 0.12, 0.22) if not is_scared else Color(0.28, 0.38, 0.66))
+	# 3. Голова самодура
+	_draw_oval(Vector2(0.0, -3.0 + bob), BOSS_HEAD_RX, BOSS_HEAD_RY, Color(0.96, 0.82, 0.72))
+	_draw_moskal_eyes(Vector2(0.0, -3.0 + bob), fwd, "РЯТУЙТЕ!")

@@ -49,7 +49,7 @@ func complete_combat_hint(completed_title: String, next_hint_text: String = "") 
 		hint_tween.kill()
 	is_showing_completion_flash = true
 	combat_hint_label.visible = true
-	combat_hint_label.text = "✅ ОСВОЄНО: %s!" % completed_title
+	combat_hint_label.text = "ОСВОЄНО: %s!" % completed_title
 	combat_hint_label.add_theme_color_override("font_color", Color(0.30, 1.0, 0.55, 1.0))
 	combat_hint_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	

@@ -133,8 +133,8 @@ static func boredom_index(quality: float, hits: int, time_s: float, par_s: float
 	var fast := clampf((0.8 - time_s / par_s) / 0.3, 0.0, 1.0)
 	return clampf((quality - 0.85) / 0.15, 0.0, 1.0) * fast
 
-# Спостереження результату рівня: оновлення вміння, індексів і бандита
-func observe(quality: float, hits: int, time_s: float, completed: bool = true) -> Dictionary:
+# Спостереження результату рівня: оновлення вміння, індексів і бандита (interest_bonus — ознака інтересу з telemetry_engine.gd)
+func observe(quality: float, hits: int, time_s: float, completed: bool = true, interest_bonus: float = 0.0) -> Dictionary:
 	var b := log(maxf(k_prev, 0.01)) / log(2.0) + level_offset_prev
 	var p := logistic(mu - b)
 	var v := maxf(p * (1.0 - p), MIN_VAR_P)
@@ -146,7 +146,7 @@ func observe(quality: float, hits: int, time_s: float, completed: bool = true) -
 	frustration = frustration_index(hits, time_s, D.PAR_TIME_S, completed)
 	boredom = boredom_index(y, hits, time_s, D.PAR_TIME_S)
 	var flow := completed and y >= FLOW_Q_LOW and y <= FLOW_Q_HIGH and hits <= 2 and time_s <= 2.0 * D.PAR_TIME_S
-	var reward := 1.0 if flow else (0.3 if completed else 0.0)
+	var reward := clampf((1.0 if flow else (0.3 if completed else 0.0)) + interest_bonus, 0.0, 1.0)
 	for i in ARMS.size():
 		arm_alpha[i] = 1.0 + (arm_alpha[i] - 1.0) * BANDIT_DISCOUNT
 		arm_beta[i] = 1.0 + (arm_beta[i] - 1.0) * BANDIT_DISCOUNT

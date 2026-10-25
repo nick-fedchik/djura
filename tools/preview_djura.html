@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Вітрина анімацій Джури (3D-to-2D Sprite Preview)</title>
+<style>
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #1e1e28;
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 { margin-bottom: 6px; color: #fbbf24; font-size: 24px; }
+  p.subtitle { color: #94a3b8; margin-top: 0; margin-bottom: 20px; font-size: 14px; }
+  .viewer-container {
+    background: #111827;
+    border: 2px solid #374151;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .canvas-stage {
+    background: repeating-conic-gradient(#1f2937 0% 25%, #111827 0% 50%) 50% / 20px 20px;
+    border: 2px solid #4b5563;
+    border-radius: 8px;
+    image-rendering: pixelated;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    max-width: 600px;
+  }
+  button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  button:hover { background: #1d4ed8; transform: translateY(-1px); }
+  button.active { background: #d97706; }
+  .playback-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #cbd5e1;
+  }
+  input[type="range"] { accent-color: #fbbf24; }
+  .info-card {
+    margin-top: 16px;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 600px;
+  }
+  .info-card span { color: #fbbf24; font-weight: 600; }
+  .sheet-preview {
+    margin-top: 24px;
+    text-align: center;
+  }
+  .sheet-preview img {
+    max-width: 384px;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    background: repeating-conic-gradient(#1f2937 0% 25%, #111827 0% 50%) 50% / 16px 16px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🇺🇦 Джура: Жива вітрина анімацій</h1>
+<p class="subtitle">3D Model (Blender 5.0.1 EEVEE Next + Inverted Hull) ➔ 2D Pixel Sprite Sheet (Godot 4)</p>
+
+<div class="viewer-container">
+  <canvas id="viewCanvas" class="canvas-stage" width="256" height="256"></canvas>
+
+  <div class="playback-bar">
+    <span>Анімація: <b id="currentAnimName" style="color: #fbbf24;">idle</b></span>
+    <span>Кадр: <b id="currentFrameNum">1/5</b></span>
+    <label>Швидкість:
+      <input type="range" id="fpsSlider" min="2" max="24" value="12">
+      <b id="fpsVal">12 FPS</b>
+    </label>
+  </div>
+
+  <div class="controls" id="animButtons"></div>
+</div>
+
+<div class="info-card">
+  <div>🎬 <span>Стиль:</span> «Київнаукфільм» (товстий чорний контур тушшю Inverted Hull, пласкі кольори)</div>
+  <div>🛡️ <span>Інваріант I-3 (Zero-Horror):</span> комічний тон, жодної крові, гумовий слепстік</div>
+  <div>⚓ <span>Інваріант I-4 (Anti-Clipping):</span> вісь опори Z=0 під п'ятами, нульове тремтіння на платформах</div>
+  <div>🤖 <span>VLM-аудит (Jetson J501, gemma3:12b):</span> контур 9/10, силует 9/10, схвалено ✅</div>
+</div>
+
+<div class="sheet-preview">
+  <p style="color: #94a3b8; font-size: 13px;">Повний текстурний атлас (<code>assets/sprites/djura_sheet.png</code>):</p>
+  <img src="../assets/sprites/djura_sheet.png" alt="Djura Sprite Sheet">
+</div>
+
+<script>
+const manifestPath = "../assets/sprites/djura_manifest.json";
+const sheetPath = "../assets/sprites/djura_sheet.png";
+
+const canvas = document.getElementById("viewCanvas");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+
+
+let sheetImg = new Image();
+let anims = {};
+let currentAnim = "idle";
+let frameIndex = 0;
+let fps = 12;
+let lastFrameTime = 0;
+
+const animNamesUa = {
+  "idle": "1. Очікування (Idle)",
+  "run": "2. Біг козака (Run)",
+  "jump": "3. Стрибок (Jump)",
+  "glide": "4. Ширяння (Glide)",
+  "hopak_kick": "5. Бойовий гопак / Щупак (Hopak)",
+  "bonk": "6. Комічний бонк (Bonk / Slapstick)",
+  "victory": "7. Перемога (Victory Dance)"
+};
+
+let manifest = {"format": "djura_spritesheet_v1", "sheet_width": 768, "sheet_height": 768, "frame_width": 128, "frame_height": 128, "fps": 12, "pivot_point": [64.0, 128.0], "total_frames": 32, "frames": [{"animation": "bonk", "frame_index": 0, "x": 0, "y": 0, "w": 128, "h": 128}, {"animation": "bonk", "frame_index": 1, "x": 128, "y": 0, "w": 128, "h": 128}, {"animation": "bonk", "frame_index": 2, "x": 256, "y": 0, "w": 128, "h": 128}, {"animation": "bonk", "frame_index": 3, "x": 384, "y": 0, "w": 128, "h": 128}, {"animation": "glide", "frame_index": 0, "x": 512, "y": 0, "w": 128, "h": 128}, {"animation": "glide", "frame_index": 1, "x": 640, "y": 0, "w": 128, "h": 128}, {"animation": "glide", "frame_index": 2, "x": 0, "y": 128, "w": 128, "h": 128}, {"animation": "glide", "frame_index": 3, "x": 128, "y": 128, "w": 128, "h": 128}, {"animation": "hopak_kick", "frame_index": 0, "x": 256, "y": 128, "w": 128, "h": 128}, {"animation": "hopak_kick", "frame_index": 1, "x": 384, "y": 128, "w": 128, "h": 128}, {"animation": "hopak_kick", "frame_index": 2, "x": 512, "y": 128, "w": 128, "h": 128}, {"animation": "hopak_kick", "frame_index": 3, "x": 640, "y": 128, "w": 128, "h": 128}, {"animation": "hopak_kick", "frame_index": 4, "x": 0, "y": 256, "w": 128, "h": 128}, {"animation": "idle", "frame_index": 0, "x": 128, "y": 256, "w": 128, "h": 128}, {"animation": "idle", "frame_index": 1, "x": 256, "y": 256, "w": 128, "h": 128}, {"animation": "idle", "frame_index": 2, "x": 384, "y": 256, "w": 128, "h": 128}, {"animation": "idle", "frame_index": 3, "x": 512, "y": 256, "w": 128, "h": 128}, {"animation": "idle", "frame_index": 4, "x": 640, "y": 256, "w": 128, "h": 128}, {"animation": "jump", "frame_index": 0, "x": 0, "y": 384, "w": 128, "h": 128}, {"animation": "jump", "frame_index": 1, "x": 128, "y": 384, "w": 128, "h": 128}, {"animation": "jump", "frame_index": 2, "x": 256, "y": 384, "w": 128, "h": 128}, {"animation": "jump", "frame_index": 3, "x": 384, "y": 384, "w": 128, "h": 128}, {"animation": "run", "frame_index": 0, "x": 512, "y": 384, "w": 128, "h": 128}, {"animation": "run", "frame_index": 1, "x": 640, "y": 384, "w": 128, "h": 128}, {"animation": "run", "frame_index": 2, "x": 0, "y": 512, "w": 128, "h": 128}, {"animation": "run", "frame_index": 3, "x": 128, "y": 512, "w": 128, "h": 128}, {"animation": "run", "frame_index": 4, "x": 256, "y": 512, "w": 128, "h": 128}, {"animation": "victory", "frame_index": 0, "x": 384, "y": 512, "w": 128, "h": 128}, {"animation": "victory", "frame_index": 1, "x": 512, "y": 512, "w": 128, "h": 128}, {"animation": "victory", "frame_index": 2, "x": 640, "y": 512, "w": 128, "h": 128}, {"animation": "victory", "frame_index": 3, "x": 0, "y": 640, "w": 128, "h": 128}, {"animation": "victory", "frame_index": 4, "x": 128, "y": 640, "w": 128, "h": 128}]};
+
+function init() {
+
+  // Group frames by animation
+  manifest.frames.forEach(f => {
+    if (!anims[f.animation]) anims[f.animation] = [];
+    anims[f.animation].push(f);
+  });
+
+  // Render buttons
+  const btnContainer = document.getElementById("animButtons");
+  Object.keys(anims).forEach(name => {
+    const btn = document.createElement("button");
+    btn.textContent = animNamesUa[name] || name;
+    btn.onclick = () => switchAnim(name);
+    if (name === currentAnim) btn.classList.add("active");
+    btnContainer.appendChild(btn);
+  });
+
+  sheetImg.onload = () => {
+    requestAnimationFrame(renderLoop);
+  };
+  sheetImg.src = sheetPath;
+}
+
+function switchAnim(name) {
+  currentAnim = name;
+  frameIndex = 0;
+  document.getElementById("currentAnimName").textContent = name;
+  document.querySelectorAll("#animButtons button").forEach(b => {
+    b.classList.toggle("active", b.textContent.includes(name) || b.textContent === (animNamesUa[name] || name));
+  });
+}
+
+document.getElementById("fpsSlider").oninput = (e) => {
+  fps = parseInt(e.target.value);
+  document.getElementById("fpsVal").textContent = fps + " FPS";
+};
+
+function renderLoop(timestamp) {
+  if (!lastFrameTime) lastFrameTime = timestamp;
+  const interval = 1000 / fps;
+  const elapsed = timestamp - lastFrameTime;
+
+  if (elapsed >= interval) {
+    lastFrameTime = timestamp - (elapsed % interval);
+
+    const frameList = anims[currentAnim] || [];
+    if (frameList.length > 0) {
+      const f = frameList[frameIndex];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw 2x scaled frame in canvas
+      ctx.drawImage(
+        sheetImg,
+        f.x, f.y, f.w, f.h,
+        0, 0, canvas.width, canvas.height
+      );
+
+      document.getElementById("currentFrameNum").textContent = `${frameIndex + 1}/${frameList.length}`;
+      frameIndex = (frameIndex + 1) % frameList.length;
+    }
+  }
+
+  requestAnimationFrame(renderLoop);
+}
+
+init();
+</script>
+</body>
+</html>

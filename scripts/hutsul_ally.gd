@@ -295,13 +295,29 @@ func say(text: String, duration: float = 2.0) -> void:
 	if speech_bubble:
 		speech_bubble.say(text, duration)
 
+func get_victory_dance_name() -> String:
+	match hutsul_rank:
+		HutsulRank.LITVIN_POHONIA:
+			return "litvin_liavonicha_pohonia"
+		HutsulRank.TREMBITAR:
+			return "hutsul_arkan_trembita"
+		HutsulRank.MOLFAR, HutsulRank.DOVBUSH:
+			return "hutsul_thunder_arkan_dovbush"
+		_:
+			return "hutsul_arkan_kolomyika"
+
 func celebrate_victory() -> void:
 	is_celebrating_victory = true
 	is_exiting_scene = false
 	velocity = Vector2.ZERO
 	squash_stretch = Vector2.ONE
 	dance_time = randf_range(0.0, 0.6) # Легкий зсув фази для живого гуртового танцю ватаги гуцулів!
-	say(PHRASES_VICTORY.pick_random(), 3.8)
+	if hutsul_rank == HutsulRank.LITVIN_POHONIA:
+		say("Жыве Воля! Танцюймо литвинську Лявоніху з Погонею!", 3.8)
+	elif hutsul_rank == HutsulRank.TREMBITAR:
+		say("Заграй, трембіто, на всі Карпати! Танцюймо Аркан!", 3.8)
+	else:
+		say(PHRASES_VICTORY.pick_random(), 3.8)
 	queue_redraw()
 
 func _draw() -> void:
@@ -529,6 +545,21 @@ func _draw_celebrating(_fwd: float) -> void:
 		b_top + b_dir * 1.0
 	]), Color(1.0, 0.88, 0.22))
 	draw_arc(hand_r, 15.0, -1.9, -0.3, 10, Color(1.0, 0.92, 0.35, 0.55), 2.0)
+	if hutsul_rank == HutsulRank.LITVIN_POHONIA:
+		# Особистий переможний танок Литвина («Лявоніха з Погонею»): крила гусара й високо піднятий щит «Погоня» у лівій руці!
+		draw_arc(Vector2(body_sway, -6.0 - jump_bob), 15.0, PI * 0.72, PI * 1.28, 10, Color(0.96, 0.98, 1.0, 0.92), 2.8)
+		_draw_oval(hand_l, 6.2, 7.0, Color(0.86, 0.14, 0.18))
+		draw_arc(hand_l, 6.2, 0.0, TAU, 10, Color(0.98, 0.85, 0.22), 1.6)
+		draw_line(hand_l + Vector2(-2.5, 1.5), hand_l + Vector2(2.5, -2.5), Color.WHITE, 2.0)
+	elif hutsul_rank == HutsulRank.TREMBITAR:
+		# Особистий переможний танок Трембітаря: золота карпатська трембіта сурмить угору!
+		var tr_end := hand_l + Vector2(-16.0, -14.0)
+		draw_line(hand_l, tr_end, Color(0.85, 0.62, 0.28), 3.0)
+		draw_circle(tr_end, 3.2, Color(0.98, 0.82, 0.22))
+		draw_arc(tr_end, 7.5 + fmod(dance_time * 10.0, 4.0), PI * 0.8, PI * 1.5, 8, Color(1.0, 0.92, 0.35, 0.85), 1.8)
+	elif hutsul_rank == HutsulRank.DOVBUSH or hutsul_rank == HutsulRank.MOLFAR:
+		# Громовий Аркан Олекси Довбуша / Мольфара
+		draw_arc(Vector2(body_sway, -2.0 - jump_bob), 21.0, 0.0, TAU, 18, Color(1.0, 0.88, 0.22, 0.55), 2.0)
 	
 	# 4. Голова, чорні кучері опришка, вуса та гуцульська кресаня з павиним пером!
 	var head_c := Vector2(body_sway, -9.0 - jump_bob)

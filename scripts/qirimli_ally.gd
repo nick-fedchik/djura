@@ -196,12 +196,26 @@ func say(text: String, duration: float = 2.0) -> void:
 	if speech_bubble:
 		speech_bubble.say(text, duration)
 
+func get_victory_dance_name() -> String:
+	match qirimli_rank:
+		QirimliRank.TOGANCHI:
+			return "qirimli_davul_qaytarma"
+		QirimliRank.MURZA, QirimliRank.TUGAY_BEY, QirimliRank.QALGA_SULTAN:
+			return "qirimli_horan_tamga"
+		_:
+			return "qirimli_qaytarma_falcon"
+
 func celebrate_victory() -> void:
 	is_celebrating_victory = true
 	velocity = Vector2.ZERO
 	squash_stretch = Vector2.ONE
 	dance_time = 0.0
-	say(PHRASES_VICTORY.pick_random(), 3.5)
+	if qirimli_rank == QirimliRank.TOGANCHI:
+		say("Вдаримо в даул! Танцюймо святкову Хайтарму!", 3.5)
+	elif qirimli_rank in [QirimliRank.TUGAY_BEY, QirimliRank.QALGA_SULTAN]:
+		say("Слава козакам і Киримли! Танцюймо Акъмесджит Хораны!", 3.5)
+	else:
+		say(PHRASES_VICTORY.pick_random(), 3.5)
 	queue_redraw()
 
 # Одноразовий запуск вірного степового Сокола (Şahin / Лачин) проти Нечистої Сили!
@@ -486,6 +500,15 @@ func _draw_celebrating(_fwd: float) -> void:
 	draw_line(elbow_r, hand_r, c_coat, 3.0)
 	draw_circle(hand_l, 2.2, Color(0.96, 0.84, 0.72))
 	draw_circle(hand_r, 2.2, Color(0.96, 0.84, 0.72))
+	if qirimli_rank == QirimliRank.TOGANCHI:
+		# Тоганчі-Баши у танці Хайтарма б'є у кримський барабан-даул!
+		var davul_c := Vector2(-9.5 + body_sway, 4.0 - jump_bob)
+		_draw_oval(davul_c, 5.5, 4.8, Color(0.58, 0.34, 0.16))
+		_draw_oval(davul_c, 4.2, 3.6, Color(0.96, 0.92, 0.82))
+		draw_line(hand_r, davul_c, Color(0.45, 0.25, 0.12), 2.0)
+	elif qirimli_rank in [QirimliRank.MURZA, QirimliRank.TUGAY_BEY, QirimliRank.QALGA_SULTAN]:
+		# Золотий ореол Акъмесджит Хораны із Тарак-Тамгою
+		draw_arc(Vector2(body_sway, -2.0 - jump_bob), 20.0, 0.0, TAU, 16, Color(1.0, 0.88, 0.22, 0.55), 1.8)
 	
 	# Голова, калпак із Тарак-Тамгою та соколиним пером
 	var head_c := Vector2(body_sway, -8.8 - jump_bob)

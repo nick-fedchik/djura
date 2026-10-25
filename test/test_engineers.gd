@@ -11,8 +11,8 @@ func _initialize() -> void:
 	root.add_child(main)
 	await process_frame
 	await process_frame
-	# 1) рідкість: на кожному рівні відьом не більше половини від чортиків
-	for level in range(1, 6):
+	# 1) рідкість: на кожному з 20 рівнів кампанії інженерів (відьом і відьмаків) не більше половини від чортиків
+	for level in range(1, 21):
 		for e in main.enemies_node.get_children():
 			main.enemies_node.remove_child(e)
 			e.free()
@@ -22,10 +22,10 @@ func _initialize() -> void:
 		var vidmas := 0
 		for e in main.enemies_node.get_children():
 			if e.enemy_type == FolkloreEnemy.EnemyType.CHORT: chorts += 1
-			elif e.enemy_type == FolkloreEnemy.EnemyType.VIDMA: vidmas += 1
-		print("Рівень %d: чортиків %d, відьом %d" % [level, chorts, vidmas])
+			elif e.enemy_type == FolkloreEnemy.EnemyType.VIDMA or e.enemy_type == FolkloreEnemy.EnemyType.VIDMAK: vidmas += 1
+		print("Рівень %d: чортиків %d, інженерів (відьом/відьмаків) %d" % [level, chorts, vidmas])
 		if vidmas * 2 > chorts:
-			return _fail("рівень %d: відьом (%d) більше половини чортиків (%d)" % [level, vidmas, chorts])
+			return _fail("рівень %d: інженерів (%d) більше половини чортиків (%d)" % [level, vidmas, chorts])
 	# 2) міцність: відьма поглинає удари щитом, чортик ні
 	var vidma := FolkloreEnemy.new()
 	vidma.enemy_type = FolkloreEnemy.EnemyType.VIDMA

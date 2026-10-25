@@ -191,7 +191,7 @@ func _display_current_slide() -> void:
 	var data: Dictionary = slides[current_slide_idx]
 	title_label.text = data["title"]
 	text_label.text = data["text"]
-	prompt_label.text = "КРОК %d з %d • [ ПРОБІЛ / 🎮 A : ДАЛІ ➔ ] • [ ESC / 🎮 START : ПРОПУСТИТИ ]" % [current_slide_idx + 1, slides.size()]
+	prompt_label.text = "КРОК %d з %d  |  [ ПРОБІЛ / A на геймпаді ] - ДАЛІ  |  [ ESC / START ] - ПРОПУСТИТИ" % [current_slide_idx + 1, slides.size()]
 	if visual_node:
 		visual_node.queue_redraw()
 

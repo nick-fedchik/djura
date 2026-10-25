@@ -1,0 +1,79 @@
+{
+  "format": "djura_spritesheet_v1",
+  "sheet_width": 384,
+  "sheet_height": 384,
+  "frame_width": 128,
+  "frame_height": 128,
+  "fps": 12,
+  "pivot_point": [
+    64.0,
+    128.0
+  ],
+  "total_frames": 8,
+  "frames": [
+    {
+      "animation": "idle",
+      "frame_index": 0,
+      "x": 0,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 1,
+      "x": 128,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 2,
+      "x": 256,
+      "y": 0,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 3,
+      "x": 0,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 4,
+      "x": 128,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 5,
+      "x": 256,
+      "y": 128,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 6,
+      "x": 0,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    },
+    {
+      "animation": "idle",
+      "frame_index": 7,
+      "x": 128,
+      "y": 256,
+      "w": 128,
+      "h": 128
+    }
+  ]
+}
