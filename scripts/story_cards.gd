@@ -22,86 +22,86 @@ var qirimli_texture: Texture2D = null
 const LEVEL_STORIES: Dictionary = {
 	1: [
 		{
-			"title": "КАЗКА 1: СВЯТО НА СІЧІ",
-			"text": "На славній Запорозькій Січі юний Джура ласував солодким яблуком. Козаки готували гармати до святкового салюту Перемоги!",
-			"visual": "sich_apple"
+			"title": "ЗУСТРІЧ З НАСТАВНИКОМ-ХАРАКТЕРНИКОМ",
+			"text": "Над сивим Дніпром біля стародавнього дуба сидить мудрий Козак-Характерник. Побачивши юнака з гарячим серцем і палаючим поглядом, старий майстер мовить:\n«Бачу в тобі лицарську душу, хлопче! Нечисть суне на нашу землю, прагнучи знищити Січ і спокій України. Чи маєш відвагу стати козацьким Джурою і пізнати таємниці характерництва?»",
+			"visual": "mentor_meeting"
 		},
 		{
-			"title": "ХИТРІ ЧОРТИКИ-БЕШКЕТНИКИ",
-			"text": "Аж тут із плавнів вискочили чортики-крутьки! Вони поцупили всі чарівні вогневі ядра і розкидали їх по високих помостах!",
-			"visual": "chort_steal"
+			"title": "ВИБІР СЕРЦЯ: «Я ГОТОВИЙ БУТИ ДЖУРОЮ!»",
+			"text": "Хлопчик без вагань схиляє голову, притискає правицю до грудей і дає щиру козацьку обітницю:\n«Я готовий, батьку-наставнику! Моє серце б'ється для рідної землі. Прийми мене за джуру — я вірно служитиму Січі й боронитиму край від темряви!»\nХарактерник благословляє його, оперізує золотим кушаком та нарікає Джурою.",
+			"visual": "dzhura_pledge"
 		},
 		{
-			"title": "НАСТАВНИК: УРОК 1 — РІВНОВАГА НА СІЧІ",
-			"text": "Старий Козак-Шабельник лагідно наставляє Джуру:\n«Козак починається з землі! Тримай твердо підошви на дошках, відчувай центр ваги і розправляй крилату кирею. Поверни всі ядра на Січ!»",
-			"visual": "mentor_portrait"
+			"title": "НАКАЗ НАСТАВНИКА: БОМБИ ТА ЧЕРГА ВОРОГІВ",
+			"text": "Характерник наставляє нового Джуру:\n«Темні сили розкидали по високих помостах вибухові ядра-бомби! Твоє завдання — зібрати їх усі, поки не здетонували!\nСтережися Нечисті: спочатку вийде підступний Вогник, що підпалює ґноти. Через два рівні приєднається хитрий Чортик, а ще через два — небезпечна Відьма з чарами. Захисти Січ, Джуро!»",
+			"visual": "mission_briefing"
 		}
 	],
 	2: [
 		{
-			"title": "ВІЙСЬКОВА ГРАМОТА ТА ВІСТКА З ПОЛЯ",
-			"text": "Січ у безпеці, гармати салютують вогнем! Але щойно прискакав захеканий вершник: чорти втекли в нічний Степ до Відьми Солохи!",
+			"title": "УРОК РІВНОВАГИ ТА ШВИДКИЙ ВОГНИК",
+			"text": "Вогник розлютився і став на 10% швидшим та спритнішим! Він метається по помостах і намагається підпалити порохові ґноти ще хутчіше.",
 			"visual": "cossack_scroll"
 		},
 		{
-			"title": "ЧУМАКИ КЛИЧУТЬ НА ПОМІЧ!",
-			"text": "Відьма Солоха вкрала місяць і задула зорі! Чумацький обоз із дорогоцінною сіллю заблукав у пітьмі біля Степового Хутора!",
+			"title": "ГАСІННЯ ПІДПАЛЕНИХ ЯДЕР",
+			"text": "Якщо підступний Вогник торкнеться бомби — ґніт засичить і почне танути! Встигни дістатися палаючого ядра за 4 секунди, щоб знешкодити його до вибуху!",
 			"visual": "chumak_cart"
 		},
 		{
-			"title": "НАСТАВНИК: УРОК 2 — СЛУЖІННЯ ТА ЧУМАЦЬКИЙ ШЛЯХ",
-			"text": "Біля нічного вогнища Козак-Шабельник наставляє:\n«Лицарська шабля кується не для чванства, а для захисту того, хто оре ниву й возить сіль. Вакула скував тобі золоті підківки — прострибуй крізь помости знизу вгору та освіти Шлях!»",
+			"title": "НАСТАВНИК: УРОК 2 — КРИЛАТА КИРЕЯ ТА ВІРА",
+			"text": "Біля вечірнього вогнища Характерник наставляє:\n«Не бійся висоти, Джуро! Коли земля йде з-під ніг — розправляй крилату кирею. Відчувай вітер і тримай спокій у серці — тоді жоден вогонь тебе не дістане!»",
 			"visual": "mentor_portrait"
 		}
 	],
 	3: [
 		{
-			"title": "КАМ'ЯНЕЦЬКА ТВЕРДИНЯ ТА БОЛОТНІ КИКИМОРИ",
-			"text": "Джура прибув до Кам'янецької фортеці над Смотричем! Стародавні подільські мури захищають край, але московські стрільці привели з собою болотних шишів та вередливих кикимор у лаптях!",
-			"visual": "kamianets_towers"
+			"title": "ПОЯВА ХИТРОГО ЧОРТИКА-БЕШКЕТНИКА!",
+			"text": "Як і попереджав Наставник, через два рівні до Вогника приєднався хитрий Чортик! Рогатий бешкетник скаче по ярусах, скидає бомби та розкидає липку смолу!",
+			"visual": "chort_steal"
 		},
 		{
-			"title": "СТЕПОВИЙ ПОБРАТИМ КИРИМЛИ ТА ГУЦУЛ",
-			"text": "На поміч Січі прискакав юний вершник Киримли, а з полонини спустився Гуцулик із барткою!\n«Селям алейкум, Джуро! Тримаймо оборону разом — сокіл розжене болотну імлу, а бартка розіб'є мури загарбників!»",
-			"visual": "qirimli_ally"
+			"title": "ПІДСТУПНИЙ ТАНДЕМ НЕЧИСТІ",
+			"text": "Чортик відволікає Джуру та перевертає помости, поки Вогник шукає нові бомби. Проти них потрібна козацька кмітливість та бойова виправка!",
+			"visual": "fortress_cannon"
 		},
 		{
-			"title": "НАСТАВНИК: УРОК 3 — СТЕПОВЕ ПОБРАТИМСТВО",
-			"text": "Радник оглядає мури Кам'янця й міцно обіймає Киримли та Гуцулика:\n«У степу немає чужої правди: хто стоїть поруч плечем до плеча — той тобі рідний брат! Зберіть усі 24 ядра на карнизах фортеці й покажіть силу братнього союзу!»",
+			"title": "НАСТАВНИК: УРОК 3 — ПЕРШІ БОЙОВІ УДАРИ",
+			"text": "Наставник навчає Джуру козацького бою:\n«Час пустити в хід кулаки! Натискай кнопку удару: прямий сталевий джеб зупиняє Чортика, а високий удар ногою «Тинок» відкидає нечисть геть від бомб!»",
 			"visual": "mentor_portrait"
 		}
 	],
 	4: [
 		{
-			"title": "КАЗКА 4: ГЕТЬМАНСЬКИЙ БАТУРИН ТА ЛИХО ОДНООКЕ",
-			"text": "Гетьманська столиця сяє золотими банями бароко та пишними палацами! Але з півночі суне жадібне Лихо Однооке разом із царськими опричниками та стрільцями в лаптях!",
+			"title": "НАВАЛА НЕЧИСТІ НА ВЕРХНІХ ЯРУСАХ",
+			"text": "Чортики зграєю обсіли дзвіницю Січі! Вони стають спритнішими й виставляють засідки на тонких перекладинах.",
 			"visual": "baturyn_palace"
 		},
 		{
-			"title": "НАВАЛА ЦАРСЬКИХ СТРІЛЬЦІВ І ШИШІВ",
-			"text": "Болотні шиші та стрільці з бородами намагаються вкрасти гетьманську скарбницю! «Караул, тримай козаків!» — кричать загарбники, гублячи соболині шапки.",
+			"title": "ПАРКУРНИЙ ПЕРЕКАТ ТА АЕРОБАТИКА",
+			"text": "Приземляючись із високих балок на бігу, Джура групується в щільний паркурний перекат, зберігаючи швидкість і не втрачаючи жодної секунди!",
 			"visual": "moskal_invaders"
 		},
 		{
-			"title": "НАСТАВНИК: УРОК 4 — ДУХОВНА СКАРБНИЦЯ РОДУ",
-			"text": "Козак-Шабельник тримає батуринські літописи:\n«Можна відбудувати спалений курінь, але втрачене слово й забуту пісню предків не повернути за все золото світу. Захисти клейноди й святині гетьманської столиці, Джуро!»",
+			"title": "НАСТАВНИК: УРОК 4 — ПОВІТРЯНИЙ ЩУПАК ТА ПОВЗУНЕЦЬ",
+			"text": "Характерник демонструє верхові прийоми:\n«У повітрі бий подвійною різножкою «Щупак», а внизу підсікай Чортиків косою-«Повзунцем»! Не дай ворогу наблизитися до бочок із порохом!»",
 			"visual": "mentor_portrait"
 		}
 	],
 	5: [
 		{
-			"title": "КАЗКА 5: ПЕРЕКОПСЬКИЙ ВАЛ — БРАМА ОР-КАПУ",
-			"text": "Неприступний вапняковий Перекопський вал та Золота Брама Ор-Капу! Сюди кружляє степовий вихор перевертня Обура та насилає туман кримська Албасти, а слідом суне царський воєвода!",
+			"title": "ФІНАЛ ЕТАПУ 1: ПОЯВА ВІДЬМИ СОЛОХИ!",
+			"text": "Ось і головна загроза першого етапу: на мітлі прилетіла підступна Відьма Солоха! Вона затуляє місяць чорними хмарами та огортає нечисть магічними щитами!",
+			"visual": "vidma_sky"
+		},
+		{
+			"title": "ВИРІШАЛЬНИЙ БІЙ ЗА ЗАПОРОЗЬКУ СІЧ",
+			"text": "Вогник палає на повну, Чортики крутять веремію, а Відьма насилає вихори! Джура має зібрати всі бомби на Січі та здолати ворожу навалу!",
 			"visual": "perekop_gate"
 		},
 		{
-			"title": "ПАНІЧНА ВТЕЧА ВОЄВОДИ БЕЗ ЛАПТІВ",
-			"text": "Влучні стріли Киримли, бартка Гуцула та удари Джури приборкують степового Обура! Воєвода губить соболину шапку й лапті та в паніці тікає від Ор-Капу!",
-			"visual": "moskal_retreat"
-		},
-		{
-			"title": "НАСТАВНИК: УРОК 5 — СПРАВЖНЯ ПЕРЕМОГА ТА ЛИЦАРСЬКИЙ ТРІУМФ",
-			"text": "На вершині Перекопського валу Наставник вручає Джурі срібну шаблю:\n«Справжня перемога — це коли після бою лунає не плач, а спільна пісня вільних людей! Віднині ти не просто кандидат, а повноправний Лицар Запорозької Січі!»",
+			"title": "НАСТАВНИК: ТРІУМФ НА СІЧІ ТА ПОГЛЯД НА ПІВДЕНЬ",
+			"text": "Відьму розвіяно ранковим світлом, Січ урятовано! Джура танцює повний Переможний Гопак! Наставник гордо мовить:\n«Ти справжній козак, Джуро! Січ очищено, але розбита нечисть утекла на Південь. Там починається наш Етап 2 — Крим, де на тебе чекає вірний побратим Киримли!»",
 			"visual": "mentor_portrait"
 		}
 	],
@@ -284,6 +284,12 @@ func _on_visual_draw() -> void:
 	visual_node.draw_rect(Rect2(Vector2.ZERO, size), Color(0.85, 0.70, 0.22), false, 2.5) # Gold frame
 	
 	match v_type:
+		"mentor_meeting":
+			_draw_mentor_meeting(center)
+		"dzhura_pledge":
+			_draw_dzhura_pledge(center)
+		"mission_briefing":
+			_draw_mission_briefing(center)
 		"sich_apple":
 			_draw_sich_apple(center)
 		"chort_steal":
@@ -320,6 +326,171 @@ func _on_visual_draw() -> void:
 			_draw_mentor_portrait(center)
 
 # --- Cartoon procedural illustrations ---
+
+func _draw_mentor_meeting(c: Vector2) -> void:
+	# Deep night sky over the Dnipro
+	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.06, 0.09, 0.16))
+	
+	# Twinkling stars
+	for i in range(12):
+		var sx := fposmod(float(i * 31 + 17), visual_node.size.x)
+		var sy := fposmod(float(i * 23 + 11), visual_node.size.y * 0.45)
+		var st_pulse := 0.4 + 0.6 * sin(time_passed * 4.0 + float(i))
+		visual_node.draw_circle(Vector2(sx, sy), 1.6, Color(1.0, 0.95, 0.7, st_pulse))
+	
+	# Ancient oak tree silhouette on the left
+	var oak_pts := PackedVector2Array([
+		Vector2(0, visual_node.size.y), Vector2(35, c.y - 10), Vector2(50, c.y - 45),
+		Vector2(20, c.y - 75), Vector2(70, c.y - 55), Vector2(100, c.y - 80),
+		Vector2(90, c.y - 40), Vector2(65, c.y), Vector2(70, visual_node.size.y)
+	])
+	visual_node.draw_colored_polygon(oak_pts, Color(0.03, 0.05, 0.08))
+	
+	# Warm golden campfire in center
+	var glow := 0.28 + 0.08 * sin(time_passed * 6.0)
+	visual_node.draw_circle(Vector2(c.x, c.y + 25), 65.0, Color(1.0, 0.50, 0.12, glow))
+	visual_node.draw_circle(Vector2(c.x, c.y + 25), 32.0, Color(1.0, 0.85, 0.25, 0.45))
+	# Campfire logs
+	visual_node.draw_line(Vector2(c.x - 18, c.y + 36), Vector2(c.x + 18, c.y + 28), Color(0.25, 0.14, 0.08), 5.0)
+	visual_node.draw_line(Vector2(c.x + 16, c.y + 36), Vector2(c.x - 16, c.y + 28), Color(0.30, 0.16, 0.10), 5.0)
+	# Flickering flame
+	var fl_h := 18.0 + sin(time_passed * 15.0) * 4.0
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		Vector2(c.x - 10, c.y + 30), Vector2(c.x, c.y + 30 - fl_h), Vector2(c.x + 10, c.y + 30)
+	]), Color(1.0, 0.65, 0.15))
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		Vector2(c.x - 5, c.y + 30), Vector2(c.x, c.y + 34 - fl_h), Vector2(c.x + 5, c.y + 30)
+	]), Color(1.0, 0.92, 0.40))
+	
+	# Wise Mentor sitting on the left
+	var m_pos := c + Vector2(-65, 20)
+	# Torso & Blue Zhupan
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		m_pos + Vector2(-22, -18), m_pos + Vector2(18, -18),
+		m_pos + Vector2(12, 16), m_pos + Vector2(-16, 16)
+	]), Color(0.14, 0.32, 0.65))
+	# Crossed sharovary legs
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		m_pos + Vector2(-24, 14), m_pos + Vector2(24, 14),
+		m_pos + Vector2(18, 26), m_pos + Vector2(-18, 26)
+	]), Color(0.78, 0.12, 0.16))
+	# Head with silver mustache & оселедець
+	var mh := m_pos + Vector2(0, -28)
+	visual_node.draw_circle(mh, 9.5, Color(0.92, 0.78, 0.65))
+	# Long Cossack mustache
+	visual_node.draw_line(mh + Vector2(-1, 2), mh + Vector2(-12, 8), Color(0.92, 0.92, 0.96), 2.5)
+	visual_node.draw_line(mh + Vector2(1, 2), mh + Vector2(12, 8), Color(0.92, 0.92, 0.96), 2.5)
+	# Silver hair оселедець
+	visual_node.draw_line(mh + Vector2(0, -9), mh + Vector2(-12, -14), Color(0.92, 0.92, 0.96), 3.0)
+	# Extended welcoming hand pointing to young boy
+	visual_node.draw_line(m_pos + Vector2(14, -6), m_pos + Vector2(36, -2), Color(0.14, 0.32, 0.65), 5.0)
+	visual_node.draw_circle(m_pos + Vector2(37, -2), 3.5, Color(0.92, 0.78, 0.65))
+	
+	# Young prospective boy standing attentively on the right
+	var b_pos := c + Vector2(62, 14)
+	# Simple village shirt & brown trousers
+	visual_node.draw_rect(Rect2(b_pos.x - 7, b_pos.y - 12, 14, 22), Color(0.88, 0.90, 0.95)) # shirt
+	visual_node.draw_line(b_pos + Vector2(-3, 10), b_pos + Vector2(-4, 28), Color(0.42, 0.28, 0.16), 4.5) # leg L
+	visual_node.draw_line(b_pos + Vector2(3, 10), b_pos + Vector2(4, 28), Color(0.42, 0.28, 0.16), 4.5) # leg R
+	# Young head with brown forelock, looking up with awe
+	var bh := b_pos + Vector2(0, -20)
+	visual_node.draw_circle(bh, 8.5, Color(0.94, 0.80, 0.68))
+	visual_node.draw_circle(bh + Vector2(-2, -1), 1.8, Color(0.15, 0.12, 0.12)) # eager eye
+	visual_node.draw_line(bh + Vector2(-6, -7), bh + Vector2(4, -9), Color(0.35, 0.22, 0.14), 3.0) # hair
+
+func _draw_dzhura_pledge(c: Vector2) -> void:
+	# Twilight hill with glowing golden aura
+	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.08, 0.06, 0.14))
+	
+	# Golden celestial blessing glow
+	var aura_pulse := 1.0 + sin(time_passed * 5.0) * 0.12
+	visual_node.draw_circle(Vector2(c.x, c.y - 10), 80.0 * aura_pulse, Color(1.0, 0.85, 0.25, 0.18))
+	visual_node.draw_circle(Vector2(c.x, c.y - 10), 45.0, Color(0.2, 0.75, 1.0, 0.22))
+	
+	# Floating Cossack Kyreya wing-cape in center
+	var k_pos := c + Vector2(0, -18 + sin(time_passed * 4.0) * 4.0)
+	var cape_pts := PackedVector2Array([
+		k_pos + Vector2(-26, 12), k_pos + Vector2(0, -15), k_pos + Vector2(26, 12),
+		k_pos + Vector2(16, 20), k_pos + Vector2(0, 10), k_pos + Vector2(-16, 20)
+	])
+	visual_node.draw_colored_polygon(cape_pts, Color(0.10, 0.38, 0.85))
+	visual_node.draw_polyline(cape_pts, Color(1.0, 0.85, 0.25), 2.2)
+	
+	# Golden sash ribbon
+	visual_node.draw_line(k_pos + Vector2(-14, 18), k_pos + Vector2(14, 18), Color(0.98, 0.84, 0.18), 3.5)
+	
+	# Mentor on the left raising hand in blessing
+	var m_pos := c + Vector2(-70, 18)
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		m_pos + Vector2(-16, -18), m_pos + Vector2(14, -18),
+		m_pos + Vector2(10, 16), m_pos + Vector2(-14, 16)
+	]), Color(0.14, 0.32, 0.65))
+	var mh := m_pos + Vector2(0, -28)
+	visual_node.draw_circle(mh, 9.5, Color(0.92, 0.78, 0.65))
+	visual_node.draw_line(mh + Vector2(1, 2), mh + Vector2(12, 8), Color(0.92, 0.92, 0.96), 2.5) # mustache
+	# Blessing arm raised
+	visual_node.draw_line(m_pos + Vector2(10, -10), m_pos + Vector2(30, -26), Color(0.14, 0.32, 0.65), 4.5)
+	visual_node.draw_circle(m_pos + Vector2(31, -27), 3.5, Color(0.92, 0.78, 0.65))
+	
+	# Young Djura on the right taking oath: hand over heart!
+	_draw_story_dzhura(c + Vector2(65, 20), -1.0, "horseshoe")
+
+func _draw_mission_briefing(c: Vector2) -> void:
+	# Night fortress silhouette & wooden platforms
+	visual_node.draw_rect(Rect2(0, 0, visual_node.size.x, visual_node.size.y), Color(0.07, 0.08, 0.12))
+	
+	# Defensive platforms of Sich
+	visual_node.draw_rect(Rect2(20, c.y + 20, 340, 10), Color(0.38, 0.24, 0.14)) # main beam
+	visual_node.draw_line(Vector2(20, c.y + 20), Vector2(360, c.y + 20), Color(0.60, 0.42, 0.22), 2.0)
+	visual_node.draw_rect(Rect2(80, c.y - 35, 220, 8), Color(0.38, 0.24, 0.14)) # upper beam
+	visual_node.draw_line(Vector2(80, c.y - 35), Vector2(300, c.y - 35), Color(0.60, 0.42, 0.22), 2.0)
+	
+	# Powder Bombs sitting on platforms
+	var b1 := Vector2(c.x - 60, c.y + 11)
+	visual_node.draw_circle(b1, 9.0, Color(0.12, 0.12, 0.15))
+	visual_node.draw_circle(b1 + Vector2(-2, -3), 2.5, Color(0.4, 0.4, 0.5, 0.6)) # shine
+	
+	var b2 := Vector2(c.x + 50, c.y - 43)
+	visual_node.draw_circle(b2, 9.0, Color(0.12, 0.12, 0.15))
+	visual_node.draw_circle(b2 + Vector2(-2, -3), 2.5, Color(0.4, 0.4, 0.5, 0.6))
+	
+	# Center bomb with burning sparkling fuse!
+	var b_center := Vector2(c.x, c.y + 11)
+	visual_node.draw_circle(b_center, 10.0, Color(0.15, 0.14, 0.18))
+	visual_node.draw_circle(b_center + Vector2(-3, -3), 2.8, Color(0.5, 0.5, 0.6, 0.7))
+	# Burning wick
+	var wick_end := b_center + Vector2(6, -14)
+	visual_node.draw_line(b_center + Vector2(2, -8), wick_end, Color(0.6, 0.4, 0.2), 2.0)
+	# Sparking fire
+	var spk_pulse := 1.0 + sin(time_passed * 24.0) * 0.3
+	visual_node.draw_circle(wick_end, 5.0 * spk_pulse, Color(1.0, 0.85, 0.2))
+	visual_node.draw_circle(wick_end, 2.5, Color.WHITE)
+	for s in range(4):
+		var sa := time_passed * 16.0 + float(s) * (PI * 0.5)
+		visual_node.draw_line(wick_end, wick_end + Vector2(cos(sa), sin(sa)) * 8.0, Color(1.0, 0.5, 0.1), 1.5)
+	
+	# Sneaky Vohnyk flame spirit sneaking up on the left beam!
+	var v_pos := Vector2(c.x - 110 + sin(time_passed * 6.0) * 6.0, c.y + 11)
+	# Flame body
+	visual_node.draw_circle(v_pos, 11.0, Color(1.0, 0.45, 0.10))
+	visual_node.draw_circle(v_pos + Vector2(2, -2), 7.0, Color(1.0, 0.82, 0.22))
+	# Glowing ember eyes
+	visual_node.draw_circle(v_pos + Vector2(4, -3), 2.2, Color(0.12, 0.05, 0.02))
+	visual_node.draw_circle(v_pos + Vector2(4, -3), 1.0, Color(1.0, 0.95, 0.4))
+	# Flame tail flick
+	var tail_x := v_pos.x - 12.0 - sin(time_passed * 18.0) * 4.0
+	visual_node.draw_colored_polygon(PackedVector2Array([
+		v_pos + Vector2(-6, -4), Vector2(tail_x, v_pos.y - 12), v_pos + Vector2(-4, 6)
+	]), Color(1.0, 0.35, 0.05))
+	
+	# Looming shadows of Chortik and Vidma in background clouds
+	var chort_eye := Vector2(c.x + 120, c.y - 65)
+	visual_node.draw_circle(chort_eye, 2.2, Color(1.0, 0.2, 0.2, 0.75))
+	visual_node.draw_circle(chort_eye + Vector2(8, 0), 2.2, Color(1.0, 0.2, 0.2, 0.75))
+	# Little horns
+	visual_node.draw_line(chort_eye + Vector2(-1, -3), chort_eye + Vector2(-4, -9), Color(0.2, 0.15, 0.25, 0.8), 2.0)
+	visual_node.draw_line(chort_eye + Vector2(9, -3), chort_eye + Vector2(12, -9), Color(0.2, 0.15, 0.25, 0.8), 2.0)
+
 
 func _draw_mentor_portrait(c: Vector2) -> void:
 	# Campfire night atmosphere background
