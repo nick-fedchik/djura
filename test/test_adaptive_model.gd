@@ -147,5 +147,25 @@ func _initialize() -> void:
 	if absf(sum) > 1e-6:
 		return _fail("зсуви етапів мають мати нульову середню")
 	print("  статичні зсуви етапів (логіти): ", offs.map(func(x): return snappedf(x, 0.01)))
+	# 9) T-C02: вік 8–10, рівні 1–2 — K у зоні комфорту 0.85..1.0, помилка лише м'яко знижує темп (не нижче 0.85)
+	for exp_i in ["novice", "casual", "experienced"]:
+		for sd in range(1, 9):
+			var mk := PM.new(); mk.setup("8-10", exp_i, sd)
+			var k1 := mk.recommend(1)
+			mk.observe(0.2, 3, 200.0, false)
+			var k2 := mk.recommend(2)
+			var me := PM.new(); me.setup("8-10", exp_i, sd)
+			var e1 := me.recommend(1)
+			me.observe(0.7, 0, 70.0)
+			var e2 := me.recommend(2)
+			for kv in [k1, k2, e1, e2]:
+				if kv < D.KID_COMFORT_K.x - 1e-9 or kv > D.KID_COMFORT_K.y + 1e-9:
+					return _fail("вік 8–10, рівні 1–2: K=%.3f поза зоною комфорту (%s, зерно %d)" % [kv, exp_i, sd])
+			if k2 > k1 + 1e-9:
+				return _fail("після помилки K на рівні 2 не має зростати (%.3f → %.3f)" % [k1, k2])
+	var mt := PM.new(); mt.setup("8-10", "casual", 3)
+	mt.recommend(1); mt.observe(0.2, 3, 200.0, false)
+	if mt.arm_beta[mt.arm] <= 1.0 or mt.arm_alpha[mt.arm] < 1.0:
+		return _fail("beta-розподіл бандита має оновлюватися після помилки")
 	print("[OK] збіжність до цілі, монотонність, межі, бандит, детектори, відновлення профілю, телеметрія, статична складність")
 	quit(0)

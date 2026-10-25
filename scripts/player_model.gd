@@ -112,6 +112,9 @@ func recommend(level: int, level_offset: float = 0.0) -> float:
 		if consecutive_up >= 2 and frustration > 0.5:
 			k = minf(k, k_prev)   # не підвищувати втретє поспіль, поки гравець фрустрований
 	k = clampf(k, D.K_MIN, cap)
+	if age_band == "8-10" and level <= D.KID_COMFORT_LEVELS:
+		# Плавний вхід (T-C02): помилка м'яко тягне K до низу зони комфорту, але не нижче (без каральних спадів і без стрибків угору)
+		k = clampf(k, D.KID_COMFORT_K.x, D.KID_COMFORT_K.y)
 	k_before = k_prev
 	if k_prev > 0.0 and k > k_prev + 1e-6:
 		consecutive_up += 1

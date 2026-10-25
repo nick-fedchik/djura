@@ -16,6 +16,8 @@ const QUALITY_DEAD_ZONE: float = 0.08 # навколо нейтральної я
 const MAX_EXTRA_ENEMIES: int = 4
 const MAX_ALIVE_ENEMIES: int = 12     # стеля одночасних ворогів у арені 960×540
 const RELIEF_BELOW_K: float = 0.85    # нижче цього K слабкому гравцеві прибирається один ворог
+const KID_COMFORT_K: Vector2 = Vector2(0.85, 1.0)  # зона комфорту для віку 8–10 на рівнях 1–2 (T-C02): K не нижче RELIEF_BELOW_K, не вище 1.0
+const KID_COMFORT_LEVELS: int = 2
 const NEUTRAL_QUALITY: float = 0.5    # якість «до першого рівня»: коефіцієнт рівня 1 = 1.0
 
 # План введення NPC базової кампанії: кожен із 20 рівнів вводить щонайменше одного нового NPC (ворога чи союзника).
