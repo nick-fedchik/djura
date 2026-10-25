@@ -16,6 +16,7 @@ var slides: Array = []
 var time_passed: float = 0.0
 var is_active: bool = false
 var mentor_texture: Texture2D = null
+var qirimli_texture: Texture2D = null
 
 # Pre-defined cartoon slide stories for levels
 const LEVEL_STORIES: Dictionary = {
@@ -195,6 +196,8 @@ func _ready() -> void:
 	visible = false
 	if ResourceLoader.exists("res://assets/sprites/mentor_portrait.png"):
 		mentor_texture = load("res://assets/sprites/mentor_portrait.png")
+	if ResourceLoader.exists("res://assets/sprites/qirimli_portrait.png"):
+		qirimli_texture = load("res://assets/sprites/qirimli_portrait.png")
 	if visual_node:
 		visual_node.draw.connect(_on_visual_draw)
 
@@ -951,6 +954,12 @@ func _draw_story_dzhura(origin: Vector2, dir: float, action: String) -> void:
 func _draw_story_qirimli(origin: Vector2, dir: float, action: String) -> void:
 	var bob := sin(time_passed * 4.5 + 1.2) * 2.2
 	var p := origin + Vector2(0.0, bob)
+	
+	if qirimli_texture:
+		var rect := Rect2(p.x - 26, p.y - 48, 52, 68)
+		visual_node.draw_texture_rect(qirimli_texture, rect, false)
+		return
+
 	var c_coat := Color(0.12, 0.44, 0.33)
 	var c_gold := Color(0.96, 0.82, 0.18)
 	

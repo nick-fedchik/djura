@@ -1,0 +1,111 @@
+{
+  "format": "djura_spritesheet_v1",
+  "sheet_width": 1024,
+  "sheet_height": 768,
+  "frame_width": 256,
+  "frame_height": 256,
+  "fps": 12,
+  "pivot_point": [
+    128.0,
+    256.0
+  ],
+  "total_frames": 12,
+  "frames": [
+    {
+      "animation": "idle",
+      "frame_index": 0,
+      "x": 0,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "idle",
+      "frame_index": 1,
+      "x": 256,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "idle",
+      "frame_index": 2,
+      "x": 512,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "idle",
+      "frame_index": 3,
+      "x": 768,
+      "y": 0,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "shoot",
+      "frame_index": 0,
+      "x": 0,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "shoot",
+      "frame_index": 1,
+      "x": 256,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "shoot",
+      "frame_index": 2,
+      "x": 512,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "shoot",
+      "frame_index": 3,
+      "x": 768,
+      "y": 256,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "victory",
+      "frame_index": 0,
+      "x": 0,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "victory",
+      "frame_index": 1,
+      "x": 256,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "victory",
+      "frame_index": 2,
+      "x": 512,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    },
+    {
+      "animation": "victory",
+      "frame_index": 3,
+      "x": 768,
+      "y": 512,
+      "w": 256,
+      "h": 256
+    }
+  ]
+}

@@ -38,3 +38,4 @@ docs/tasks.md
 
 # Turnaround raw frame dumps
 reports/turnarounds/*/*.png
+reports/sketches/*/*.glb

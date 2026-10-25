@@ -46,6 +46,7 @@ var rest_timer: float = 0.0
 var stamina_timer: float = 7.4
 
 @onready var speech_bubble: SpeechBubble = $SpeechBubble
+@onready var animated_sprite: AnimatedSprite2D = get_node_or_null("AnimatedSprite2D")
 var arrow_scene: PackedScene = preload("res://scenes/qirimli_arrow.tscn")
 var falcon_scene: PackedScene = preload("res://scenes/qirimli_falcon.tscn")
 
@@ -269,6 +270,11 @@ func _draw() -> void:
 	var fwd := facing_dir
 	if is_celebrating_victory:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if animated_sprite:
+			animated_sprite.play("victory")
+			animated_sprite.flip_h = (fwd < 0)
+			_draw_oval(Vector2(0.0, 21.5), 9.5, 2.8, Color(0.0, 0.0, 0.05, 0.35))
+			return
 		_draw_celebrating(fwd)
 		return
 	
@@ -281,6 +287,15 @@ func _draw() -> void:
 	if on_ground:
 		_draw_oval(Vector2(0.0, 21.5), 9.5, 2.8, Color(0.0, 0.0, 0.05, 0.35))
 	
+	# Якщо підключено AnimatedSprite2D з Meshy 3D моделі, керуємо анімацією та делегуємо рендер тіла!
+	if animated_sprite:
+		animated_sprite.flip_h = (fwd < 0)
+		if is_aiming:
+			animated_sprite.play("shoot")
+		else:
+			animated_sprite.play("idle")
+		return
+
 	# Золотий щит Тарак-Тамги для високих рангів (Тугай-Бей / Калга-Султан / Мурза)
 	if qirimli_rank in [QirimliRank.MURZA, QirimliRank.TUGAY_BEY, QirimliRank.QALGA_SULTAN]:
 		draw_circle(Vector2(0.0, 2.0 + bob), 18.0, Color(0.20, 0.85, 0.98, 0.16))
