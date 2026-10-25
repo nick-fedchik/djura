@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cw173cekbpvib"
-path="res://.godot/imported/djura_01_front.png-019cfffbb7934fb824207c066eb0fcd1.ctex"
+path="res://.godot/imported/djura_01_front.png-53521c25bb5c19e122a732cd01034686.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://reports/scetshers/djura_15yo/djura_01_front.png"
-dest_files=["res://.godot/imported/djura_01_front.png-019cfffbb7934fb824207c066eb0fcd1.ctex"]
+source_file="res://reports/sketches/djura_15yo/djura_01_front.png"
+dest_files=["res://.godot/imported/djura_01_front.png-53521c25bb5c19e122a732cd01034686.ctex"]
 
 [params]
 

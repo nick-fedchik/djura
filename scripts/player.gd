@@ -138,6 +138,9 @@ func _ready() -> void:
 func _init_animated_sprite() -> void:
 	if not animated_sprite:
 		return
+	if use_cartoon_character:
+		animated_sprite.visible = false
+		return
 	
 	if ResourceLoader.exists("res://assets/sprites/djura_frames.tres"):
 		var tres = load("res://assets/sprites/djura_frames.tres") as SpriteFrames
@@ -861,7 +864,8 @@ func _update_animated_sprite() -> void:
 	else:
 		animated_sprite.visible = true
 
-	animated_sprite.flip_h = (facing_direction < 0)
+	# Базовий спрайт запечений обличчям ліворуч, тому для руху праворуч (facing_direction > 0) потрібен flip_h = true
+	animated_sprite.flip_h = (facing_direction > 0)
 
 	if bonk_timer > 0.0:
 		if animated_sprite.animation != "bonk":
@@ -875,15 +879,15 @@ func _update_animated_sprite() -> void:
 		# Фаза 5 (2.72..3.44с): Низький повзунець та присядка (Повзунець)
 		# Фаза 6 (3.44..4.10с): Тріумфальний фінал із руками в боки та посмішкою
 		if hopak_time < 0.68:
-			animated_sprite.flip_h = true
+			animated_sprite.flip_h = false # Удар ліворуч (базовий спрайт обличчям вліво)
 			if animated_sprite.animation != "punch":
 				animated_sprite.play("punch")
 		elif hopak_time < 1.36:
-			animated_sprite.flip_h = false
+			animated_sprite.flip_h = true # Удар праворуч
 			if animated_sprite.animation != "punch":
 				animated_sprite.play("punch")
 		elif hopak_time < 2.04:
-			animated_sprite.flip_h = false
+			animated_sprite.flip_h = true # Удар ногою «Тинок» праворуч
 			if animated_sprite.animation != "hopak_kick":
 				animated_sprite.play("hopak_kick")
 		elif hopak_time < 2.72:
@@ -1471,25 +1475,33 @@ func _draw() -> void:
 		draw_colored_polygon(drop_pts, outer_blue)
 		draw_line(chest + Vector2(-5 * flip, -1.5), chest + Vector2(-10 * flip, -23.5 + wave), border_gold, 2.0)
 	elif animated_sprite == null or not animated_sprite.visible:
-		# Траєкторія киреї на землі малюється ЛИШЕ в мультиплікаційному режимі!
-		# Якщо активний AnimatedSprite2D, одежа вже намальована у спрайті, тому малювання
-		# цього полігону під спрайтом створювало дефект смуги ("рушник з пояса до підлоги кольором прапора").
-		var cape_x := pelvis.x - 16.0 * flip + (run_anim * 4.0 * flip if on_ground and not is_hopak else 0.0) + wave
-		var cape_bottom_y := pelvis.y + 12.5 + clampf(-pelvis.y * 0.25, 0.0, 6.0)
+		# Легка шовкова кирея за плечима Джури, що тріпоче на вітрі (Cossack Wing-Cape)
+		# Спадає від плечей і гордо розвівається позаду, ніколи не торкаючись підлоги.
+		var run_ratio := clampf(absf(velocity.x) / 180.0, 0.0, 1.0) if on_ground else 0.5
+		var cape_reach := (9.0 + run_ratio * 13.0)
+		var cape_tip_y := lerpf(6.0, 1.0, run_ratio) + wave * 0.5
+		var cape_tip := chest + Vector2(-cape_reach * flip, cape_tip_y)
+		var cape_mid := chest + Vector2(-cape_reach * 0.52 * flip, lerpf(8.0, 3.5, run_ratio) + wave * 0.3)
+		var cape_shoulder_top := chest + Vector2(-3.5 * flip, -2.2)
+		var cape_shoulder_bot := chest + Vector2(-1.2 * flip, 1.2)
+		
 		var cape_outer = PackedVector2Array([
-			chest + Vector2(-3 * flip, -2.5),
-			Vector2(cape_x, cape_bottom_y),
-			Vector2(cape_x + 5 * flip, cape_bottom_y + 3.0),
-			chest + Vector2(2 * flip, 1.5)
+			cape_shoulder_top,
+			cape_mid,
+			cape_tip,
+			cape_shoulder_bot
 		])
 		draw_colored_polygon(cape_outer, outer_blue)
+		# Золота шовкова виворітна підкладка на згині
 		var cape_inner = PackedVector2Array([
-			Vector2(cape_x, cape_bottom_y),
-			Vector2(cape_x + 5 * flip, cape_bottom_y + 3.0),
-			Vector2(cape_x + 2 * flip, cape_bottom_y - 2.0)
+			cape_mid,
+			cape_tip,
+			cape_tip + Vector2(2.5 * flip, -2.0)
 		])
 		draw_colored_polygon(cape_inner, inner_gold)
-		draw_line(chest + Vector2(-3 * flip, -2.5), Vector2(cape_x, cape_bottom_y), border_gold, 2.0)
+		# Золотий обвід киреї та китиця на краю
+		draw_line(cape_shoulder_top, cape_tip, border_gold, 2.0)
+		draw_circle(cape_tip, 1.3, border_gold)
 	
 	# If using high-fidelity AnimatedSprite2D, character body rendering is handled by the sprite!
 	if animated_sprite != null and animated_sprite.visible:
