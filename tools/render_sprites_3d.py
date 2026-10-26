@@ -77,7 +77,7 @@ def render_in_blender(args):
     if args.temp_dir:
         temp_dir = os.path.abspath(args.temp_dir)
     else:
-        temp_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "build", "render_tmp", args.name))
+        temp_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".tmp", "render_tmp", args.name))
     os.makedirs(temp_dir, exist_ok=True)
 
     # 1. Import Model
@@ -206,7 +206,7 @@ def main():
     # 1. Run Blender headless to render frames
     model_abs_path = os.path.abspath(args.model)
     script_abs_path = os.path.abspath(__file__)
-    temp_base = os.path.join(project_root, "build", "render_tmp", args.name)
+    temp_base = os.path.join(project_root, ".tmp", "render_tmp", args.name)
     os.makedirs(temp_base, exist_ok=True)
 
     cmd_render = [
@@ -228,7 +228,7 @@ def main():
     sys.path.insert(0, os.path.join(project_root, "tools/blender"))
     import pack_spritesheet
 
-    temp_base = os.path.join(project_root, "build", "render_tmp", args.name)
+    temp_base = os.path.join(project_root, ".tmp", "render_tmp", args.name)
     frames_by_anim = {}
     for anim_dir in sorted(os.listdir(temp_base)):
         full_dir = os.path.join(temp_base, anim_dir)

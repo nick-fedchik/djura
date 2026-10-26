@@ -39,3 +39,6 @@ docs/tasks.md
 # Turnaround raw frame dumps and source 3D archives
 reports/turnarounds/*/*.png
 sources/sketches/*/*.glb
+
+# Тимчасовий вивід рендера (BLD-06)
+.tmp/

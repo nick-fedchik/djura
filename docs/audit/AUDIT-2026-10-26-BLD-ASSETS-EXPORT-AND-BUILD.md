@@ -27,12 +27,12 @@
 
 | ID | Серйозність | Суть | Доказ | Статус |
 |---|---|---|---|---|
-| `BLD-01` | HIGH | Експорт пакує невикористані ресурси: `export_presets.cfg:9` `export_filter="all_resources"`, `exclude_filter=""` (рядок 11). `index.pck` = 401,9 МБ. Моделі `assets/models/*.glb` (269 МБ) у виконанні не завантажуються: `grep -rn "assets/models" scripts scenes` порожньо | `ls -l build/web/index.pck`; `du -sh assets/models` | open |
+| `BLD-01` | HIGH | Експорт пакує невикористані ресурси: `export_presets.cfg:9` `export_filter="all_resources"`, `exclude_filter=""` (рядок 11). `index.pck` = 401,9 МБ. Моделі `assets/models/*.glb` (269 МБ) у виконанні не завантажуються: `grep -rn "assets/models" scripts scenes` порожньо | `ls -l build/web/index.pck`; `du -sh assets/models` | fixed 2026-10-26 (e4f1ccb; index.pck 402 МБ → 26 МБ, перевірено експортом) |
 | `BLD-02` | HIGH | Великі бінарні файли у звичайному git без LFS: `mentor_cossack.blend` 54,8 МБ, `mentor_cossack.glb` 50,3 МБ, `qirimli.glb` 31,3 МБ, `vohnyk.glb` 28,9 МБ, `djura_meshy.blend` 24,5 МБ. Запис в історії необоротний без переписування. Окремо `reports/sketches/` = 100 МБ (JPEG від Meshy) | `git ls-files \| xargs -d '\n' du -k \| sort -rn \| head`; `git count-objects -vH` | open |
-| `BLD-03` | HIGH | `.blend` і `.glb` в `assets/` Godot автоматично імпортує (створює `.import` і копії в `.godot/imported/`) навіть якщо вони не використовуються: Імпортовані `.scn` із `.glb`/`.blend` займають 198 МБ із 525 МБ у `.godot/imported`, ще частину дають `.ctex` з JPEG-текстур моделей. Кожен новий клон і CI платять цей час і диск | `du -ch .godot/imported/*glb* .godot/imported/*blend*`; `git ls-files \| grep -c "\.import$"` → 141 | open |
-| `BLD-04` | MEDIUM | Untracked: 14 `.jpg` текстур у `assets/models/`, каталог `assets/models/textures/` та 20+ `*.import` для `assets/sprites/`. Частина `.import` відстежується (141), частина ні, тож стан залежить від того, хто останнім відкривав редактор | `git status --short \| grep '^??'` | open |
-| `BLD-05` | MEDIUM | `reports/` (102 МБ) містить вхідні ескізи (`reports/sketches/`), а не звіти; є прев'ю `reports/*_preview.png`, на які посилаються `.import`. Назва каталогу вводить в оману, а `reports/` не виключено з експорту | `du -sh reports/*` | open |
-| `BLD-06` | LOW | `build/render_tmp` (4,6 МБ) тимчасовий вивід рендера лежить у `build/` разом із релізною веб-збіркою; очищення `build/` для релізу знищить і його | `ls build` | open |
+| `BLD-03` | HIGH | `.blend` і `.glb` в `assets/` Godot автоматично імпортує (створює `.import` і копії в `.godot/imported/`) навіть якщо вони не використовуються: Імпортовані `.scn` із `.glb`/`.blend` займають 198 МБ із 525 МБ у `.godot/imported`, ще частину дають `.ctex` з JPEG-текстур моделей. Кожен новий клон і CI платять цей час і диск | `du -ch .godot/imported/*glb* .godot/imported/*blend*`; `git ls-files \| grep -c "\.import$"` → 141 | fixed 2026-10-26 (e4f1ccb: `sources/` + `.gdignore`) |
+| `BLD-04` | MEDIUM | Untracked: 14 `.jpg` текстур у `assets/models/`, каталог `assets/models/textures/` та 20+ `*.import` для `assets/sprites/`. Частина `.import` відстежується (141), частина ні, тож стан залежить від того, хто останнім відкривав редактор | `git status --short \| grep '^??'` | fixed 2026-10-26 (`.import` для `assets/sprites` закомічено; `assets/models` більше немає) |
+| `BLD-05` | MEDIUM | `reports/` (102 МБ) містить вхідні ескізи (`reports/sketches/`), а не звіти; є прев'ю `reports/*_preview.png`, на які посилаються `.import`. Назва каталогу вводить в оману, а `reports/` не виключено з експорту | `du -sh reports/*` | fixed 2026-10-26 (e4f1ccb: ескізи в `sources/sketches`) |
+| `BLD-06` | LOW | `build/render_tmp` (4,6 МБ) тимчасовий вивід рендера лежить у `build/` разом із релізною веб-збіркою; очищення `build/` для релізу знищить і його | `ls build` | fixed 2026-10-26 (`.tmp/render_tmp`, ігнорується) |
 
 ## 4. Пропозиції
 
@@ -57,3 +57,9 @@
 - Збірку не перезапускав (потрібен web-шаблон експорту і час); розмір `index.pck` береться з наявного `build/web` від 2026-10-25 21:22. Прогноз ≤ 40 МБ це оцінка за сумою `assets/sprites` (26 МБ) + `assets/audio` (3,8 МБ), не вимір.
 - Чи використовуються моделі у виконанні, перевірено пошуком шляху `assets/models` у `scripts/` і `scenes/`; динамічне завантаження за складеним шляхом (`"res://assets/" + name`) цей пошук не виявив би. Таких конкатенацій я не шукав.
 - Розмір `.git` після клону з нуля не вимірювався.
+
+## 7. Журнал виправлень (2026-10-26)
+
+- BLD-01/03/05: зроблено в `e4f1ccb`; я лише перевірив пробним експортом (`godot --headless --export-release Web`): `index.pck` 26 МБ замість 402 МБ.
+- BLD-04: закомічено `.import` для `assets/sprites/*`. BLD-06: тимчасовий рендер переїхав у `.tmp/`.
+- **BLD-02 лишається open:** 369 МБ у `sources/` усе ще звичайний git, а старі бінарники лишаються в історії. Потрібне рішення власника (LFS і/або переписування історії).
