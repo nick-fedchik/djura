@@ -37,7 +37,7 @@ const _PlayerModel = preload("res://scripts/player_model.gd")
 const _Telemetry = preload("res://scripts/telemetry.gd")
 const _LevelDifficulty = preload("res://scripts/level_difficulty.gd")
 const PROFILE_PATH: String = "user://player_profile.json"
-var adaptive_enabled: bool = true      # false: детермінована база difficulty.coefficient (для наборів тестів складу рівнів)
+var adaptive_enabled: bool = true  # false: детермінована база difficulty.coefficient (для наборів тестів складу рівнів)
 var player_model = null
 var telemetry = null
 var level_offset: float = 0.0
@@ -57,35 +57,37 @@ var hutsul_ally: Node2D = null
 var hutsul_allies: Array[Node2D] = []
 
 const COMBAT_HINTS: Dictionary = {
-	"basic_strike": {
-		"title": "ПРЯМИЙ УДАР КОЗАКА",
-		"hint": "УДАР РУКОЮ: Клавіатура [X / J / Ctrl] або Геймпад Logitech [X / RB] — прямий удар!"
-	},
-	"hopak_kick": {
+	"basic_strike":
+	{"title": "ПРЯМИЙ УДАР КОЗАКА", "hint": "УДАР РУКОЮ: Клавіатура [X / J / Ctrl] або Геймпад Logitech [X / RB] — прямий удар!"},
+	"hopak_kick":
+	{
 		"title": "КОЗАЦЬКИЙ УДАР НОГОЮ (ТИНОК / ЩУПАК)",
 		"hint": "УДАР НОГОЮ (ГОПАК): Клавіатура [C / K / Z] або Геймпад [B / Y / LB] — удар чоботом «Тинок» і «Щупак»!"
 	},
-	"air_slam_combo": {
-		"title": "УДАР СОКОЛА В СТРИБКУ",
-		"hint": "СЕРІЯ В ПОВІТРІ: у стрибку [Пробіл + X/C] або Геймпад [Стрибок A -> X / B] — удар з неба!"
-	},
-	"roll_strike_combo": {
+	"air_slam_combo":
+	{"title": "УДАР СОКОЛА В СТРИБКУ", "hint": "СЕРІЯ В ПОВІТРІ: у стрибку [Пробіл + X/C] або Геймпад [Стрибок A -> X / B] — удар з неба!"},
+	"roll_strike_combo":
+	{
 		"title": "КОЗАЦЬКИЙ ПОВЗУНЕЦЬ З УДАРОМ",
 		"hint": "ВОГНЕВА ЗВ’ЯЗКА «ПОВЗУНЕЦЬ»: затисни [Вниз + X/C] або Геймпад [Стік вниз + X / B] — перекат і підсічка!"
 	},
-	"steelhammer_jab": {
+	"steelhammer_jab":
+	{
 		"title": "СТАЛЕВИЙ ПРЯМИЙ ТИЧОК",
 		"hint": "БОГАТИРСЬКИЙ УДАР: Клавіатура [X / J] або Геймпад [X / RB] — далекобійний «Сталевий Тичок»!"
 	},
-	"ironfist_hook": {
+	"ironfist_hook":
+	{
 		"title": "ЗАЛІЗНИЙ КОЗАЦЬКИЙ ХРЕСТ",
 		"hint": "БОГАТИРСЬКИЙ УДАР: у стрибку [Вниз + X] або Геймпад [Стрибок A + X] — удар згори «Залізний Хрест»!"
 	},
-	"usyk_slip_counter": {
+	"usyk_slip_counter":
+	{
 		"title": "КОЗАЦЬКИЙ ЧОВНИК ТА ВІДПОВІДЬ",
 		"hint": "БОГАТИРСЬКИЙ УДАР: [Вниз + Вбік + X] або Геймпад [Стік вниз + X] — стрімкий ухил і відповідь!"
 	},
-	"undisputed_trio": {
+	"undisputed_trio":
+	{
 		"title": "ЗОЛОТА ХВИЛЯ ТРИЗУБА",
 		"hint": "БОГАТИРСЬКА СИЛА: Клавіатура [X / J] або Геймпад [X / RB] — нищівний вихор козацьких ударів!"
 	}
@@ -100,7 +102,9 @@ var snd_level_clear = preload("res://assets/audio/level_clear.wav")
 var snd_hopak_music = preload("res://assets/audio/hopak_music.wav")
 var snd_poof = preload("res://assets/audio/chort_poof.wav")
 
+
 func _ready() -> void:
+	add_to_group("level_root")
 	telemetry_engine = _TelemetryEngine.new()
 	telemetry_engine.name = "TelemetryEngine"
 	add_child(telemetry_engine)
@@ -123,13 +127,16 @@ func _ready() -> void:
 	hud.announce_level(level, 2.4)
 	level_started_ms = Time.get_ticks_msec()
 
+
 func _process(delta: float) -> void:
 	if telemetry_engine and not is_transitioning_level:
 		telemetry_engine.sample_frame(delta, player, enemies_node)
 
+
 func _on_mamay_tip_ready(mamay_tip: String) -> void:
 	if mamay_tip.length() > 0 and hud and not is_transitioning_level:
 		hud.show_message("КОЗАК МАМАЙ: «%s»" % mamay_tip, 3.6, Color(0.45, 0.96, 1.0))
+
 
 func _refresh_bottom_combat_hint() -> void:
 	if not hud:
@@ -141,12 +148,14 @@ func _refresh_bottom_combat_hint() -> void:
 	var info: Dictionary = COMBAT_HINTS.get(current_id, {})
 	hud.show_persistent_combat_hint(info.get("hint", ""))
 
+
 func _queue_combat_hint_front(move_id: String) -> void:
 	if completed_combat_moves.get(move_id, false):
 		return
 	pending_combat_moves.erase(move_id)
 	pending_combat_moves.push_front(move_id)
 	_refresh_bottom_combat_hint()
+
 
 func _on_player_combat_move_performed(move_id: String) -> void:
 	if telemetry_engine:
@@ -157,7 +166,7 @@ func _on_player_combat_move_performed(move_id: String) -> void:
 	if not pending_combat_moves.has(move_id):
 		return
 	completed_combat_moves[move_id] = true
-	var was_current_front := (pending_combat_moves[0] == move_id)
+	var was_current_front := pending_combat_moves[0] == move_id
 	pending_combat_moves.erase(move_id)
 	if was_current_front and hud:
 		var info: Dictionary = COMBAT_HINTS.get(move_id, {})
@@ -168,9 +177,11 @@ func _on_player_combat_move_performed(move_id: String) -> void:
 			next_hint = next_info.get("hint", "")
 		hud.complete_combat_hint(title, next_hint)
 
+
 func _setup_audio() -> void:
 	if bgm_player and not bgm_player.playing:
 		bgm_player.play()
+
 
 func _play_sfx(stream: AudioStream, pitch_scale: float = 1.0) -> void:
 	var sfx = AudioStreamPlayer.new()
@@ -180,6 +191,7 @@ func _play_sfx(stream: AudioStream, pitch_scale: float = 1.0) -> void:
 	sfx.finished.connect(sfx.queue_free)
 	add_child(sfx)
 	sfx.play()
+
 
 func _play_sfx_at(stream: AudioStream, pos: Vector2, pitch_scale: float = 1.0) -> void:
 	var sfx := AudioStreamPlayer2D.new()
@@ -193,6 +205,7 @@ func _play_sfx_at(stream: AudioStream, pos: Vector2, pitch_scale: float = 1.0) -
 	add_child(sfx)
 	sfx.play()
 
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_fullscreen") or (event is InputEventKey and event.pressed and event.keycode == KEY_F11):
 		_toggle_fullscreen()
@@ -200,14 +213,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 
+
 func _toggle_fullscreen() -> void:
 	if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 
+
 const LEVEL_PLATFORMS: Dictionary = {
-	1: [ # СІЧ НА ХОРТИЦІ (960x540 2K 16:9: просторі дубові помости, легкий підйом)
+	1:
+	[  # СІЧ НА ХОРТИЦІ (960x540 2K 16:9: просторі дубові помости, легкий підйом)
 		{"pos": Vector2(480, 425), "width": 260.0},
 		{"pos": Vector2(180, 350), "width": 180.0},
 		{"pos": Vector2(780, 350), "width": 180.0},
@@ -216,7 +232,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(750, 195), "width": 190.0},
 		{"pos": Vector2(480, 125), "width": 280.0}
 	],
-	2: [ # СТЕПОВИЙ ХУТІР (960x540 2K 16:9: стріхи, вітряк, міст через яр)
+	2:
+	[  # СТЕПОВИЙ ХУТІР (960x540 2K 16:9: стріхи, вітряк, міст через яр)
 		{"pos": Vector2(200, 430), "width": 200.0},
 		{"pos": Vector2(760, 420), "width": 200.0},
 		{"pos": Vector2(480, 340), "width": 180.0},
@@ -226,7 +243,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(220, 115), "width": 160.0},
 		{"pos": Vector2(740, 115), "width": 160.0}
 	],
-	3: [ # КАМ'ЯНЕЦЬКА ТВЕРДИНЯ (960x540 2K 16:9: кам'яні мури, башти над каньйоном)
+	3:
+	[  # КАМ'ЯНЕЦЬКА ТВЕРДИНЯ (960x540 2K 16:9: кам'яні мури, башти над каньйоном)
 		{"pos": Vector2(480, 125), "width": 260.0},
 		{"pos": Vector2(210, 195), "width": 180.0},
 		{"pos": Vector2(750, 195), "width": 180.0},
@@ -236,7 +254,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(340, 435), "width": 180.0},
 		{"pos": Vector2(620, 435), "width": 180.0}
 	],
-	4: [ # ГЕТЬМАНСЬКИЙ БАТУРИН (960x540: барокові палаци, скарбниця, колонади)
+	4:
+	[  # ГЕТЬМАНСЬКИЙ БАТУРИН (960x540: барокові палаци, скарбниця, колонади)
 		{"pos": Vector2(480, 135), "width": 260.0},
 		{"pos": Vector2(190, 205), "width": 180.0},
 		{"pos": Vector2(770, 205), "width": 180.0},
@@ -245,7 +264,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(750, 360), "width": 180.0},
 		{"pos": Vector2(480, 435), "width": 280.0}
 	],
-	5: [ # ПЕРЕКОПСЬКИЙ ВАЛ — БРАМА ОР-КАПУ (960x540: вапняковий мур Ор-Капу, кримська брама)
+	5:
+	[  # ПЕРЕКОПСЬКИЙ ВАЛ — БРАМА ОР-КАПУ (960x540: вапняковий мур Ор-Капу, кримська брама)
 		{"pos": Vector2(480, 120), "width": 280.0},
 		{"pos": Vector2(200, 190), "width": 170.0},
 		{"pos": Vector2(760, 190), "width": 170.0},
@@ -255,7 +275,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(340, 435), "width": 190.0},
 		{"pos": Vector2(620, 435), "width": 190.0}
 	],
-	6: [ # ХАНСЬКИЙ БАХЧИСАРАЙ ТА СКЕЛІ ЧУФУТ-КАЛЕ (тераси палацу й мінарети)
+	6:
+	[  # ХАНСЬКИЙ БАХЧИСАРАЙ ТА СКЕЛІ ЧУФУТ-КАЛЕ (тераси палацу й мінарети)
 		{"pos": Vector2(480, 430), "width": 240.0},
 		{"pos": Vector2(190, 355), "width": 180.0},
 		{"pos": Vector2(770, 355), "width": 180.0},
@@ -264,7 +285,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(740, 200), "width": 180.0},
 		{"pos": Vector2(480, 125), "width": 260.0}
 	],
-	7: [ # КОНОТОПСЬКА ПЕРЕПРАВА (мостові настили й греблі через річку Соснівку)
+	7:
+	[  # КОНОТОПСЬКА ПЕРЕПРАВА (мостові настили й греблі через річку Соснівку)
 		{"pos": Vector2(205, 428), "width": 205.0},
 		{"pos": Vector2(755, 422), "width": 205.0},
 		{"pos": Vector2(480, 342), "width": 185.0},
@@ -274,7 +296,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(225, 118), "width": 160.0},
 		{"pos": Vector2(735, 118), "width": 160.0}
 	],
-	8: [ # СТАРОДАВНІЙ ПОЛОЦЬК І ПУЩА (вежі замку ВКЛ та соснові помости)
+	8:
+	[  # СТАРОДАВНІЙ ПОЛОЦЬК І ПУЩА (вежі замку ВКЛ та соснові помости)
 		{"pos": Vector2(330, 435), "width": 180.0},
 		{"pos": Vector2(630, 435), "width": 180.0},
 		{"pos": Vector2(175, 355), "width": 175.0},
@@ -284,7 +307,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(755, 195), "width": 175.0},
 		{"pos": Vector2(480, 122), "width": 250.0}
 	],
-	9: [ # ЧОРНОГОРА — СКЕЛІ ДОВБУША (гірські карпатські плаї та скельні полиці)
+	9:
+	[  # ЧОРНОГОРА — СКЕЛІ ДОВБУША (гірські карпатські плаї та скельні полиці)
 		{"pos": Vector2(480, 432), "width": 270.0},
 		{"pos": Vector2(200, 358), "width": 175.0},
 		{"pos": Vector2(760, 358), "width": 175.0},
@@ -293,7 +317,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(775, 202), "width": 175.0},
 		{"pos": Vector2(480, 130), "width": 250.0}
 	],
-	10: [ # ЗОЛОТІ ВОРОТА КИЄВА (оборонні яруси та золочені склепіння)
+	10:
+	[  # ЗОЛОТІ ВОРОТА КИЄВА (оборонні яруси та золочені склепіння)
 		{"pos": Vector2(345, 435), "width": 185.0},
 		{"pos": Vector2(615, 435), "width": 185.0},
 		{"pos": Vector2(175, 352), "width": 165.0},
@@ -303,7 +328,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(755, 192), "width": 175.0},
 		{"pos": Vector2(480, 120), "width": 270.0}
 	],
-	11: [ # ОЛЕШКІВСЬКА СІЧ У ДНІПРОВСЬКИХ ПЛАВНЯХ (козацькі чайки та очеретяні кладки)
+	11:
+	[  # ОЛЕШКІВСЬКА СІЧ У ДНІПРОВСЬКИХ ПЛАВНЯХ (козацькі чайки та очеретяні кладки)
 		{"pos": Vector2(480, 428), "width": 250.0},
 		{"pos": Vector2(185, 352), "width": 185.0},
 		{"pos": Vector2(775, 352), "width": 185.0},
@@ -312,7 +338,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(745, 198), "width": 185.0},
 		{"pos": Vector2(480, 126), "width": 270.0}
 	],
-	12: [ # ЗАМКОВА ГОРА І ТРОКИ (озерні мости й червоні цегляні вежі Литви)
+	12:
+	[  # ЗАМКОВА ГОРА І ТРОКИ (озерні мости й червоні цегляні вежі Литви)
 		{"pos": Vector2(205, 428), "width": 195.0},
 		{"pos": Vector2(755, 422), "width": 195.0},
 		{"pos": Vector2(480, 342), "width": 185.0},
@@ -322,7 +349,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(225, 116), "width": 160.0},
 		{"pos": Vector2(735, 116), "width": 160.0}
 	],
-	13: [ # ХОЛОДНИЙ ЯР — ДУБ МАКСИМА ЗАЛІЗНЯКА (яруси лісових схилів та гілля тисячолітнього дуба)
+	13:
+	[  # ХОЛОДНИЙ ЯР — ДУБ МАКСИМА ЗАЛІЗНЯКА (яруси лісових схилів та гілля тисячолітнього дуба)
 		{"pos": Vector2(335, 435), "width": 185.0},
 		{"pos": Vector2(625, 435), "width": 185.0},
 		{"pos": Vector2(180, 355), "width": 180.0},
@@ -332,7 +360,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(750, 195), "width": 180.0},
 		{"pos": Vector2(480, 125), "width": 265.0}
 	],
-	14: [ # АККЕРМАНСЬКА ФОРТЕЦЯ НАД ЛИМАНОМ (білокам'яні зубці й вежа Овідія)
+	14:
+	[  # АККЕРМАНСЬКА ФОРТЕЦЯ НАД ЛИМАНОМ (білокам'яні зубці й вежа Овідія)
 		{"pos": Vector2(480, 434), "width": 275.0},
 		{"pos": Vector2(205, 360), "width": 180.0},
 		{"pos": Vector2(755, 360), "width": 180.0},
@@ -341,7 +370,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(770, 204), "width": 180.0},
 		{"pos": Vector2(480, 134), "width": 255.0}
 	],
-	15: [ # ПІДЗЕМЕЛЛЯ ХОТИНСЬКОЇ ФОРТЕЦІ (кам'яні склепіння та високі галереї)
+	15:
+	[  # ПІДЗЕМЕЛЛЯ ХОТИНСЬКОЇ ФОРТЕЦІ (кам'яні склепіння та високі галереї)
 		{"pos": Vector2(340, 435), "width": 190.0},
 		{"pos": Vector2(620, 435), "width": 190.0},
 		{"pos": Vector2(170, 350), "width": 165.0},
@@ -351,7 +381,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(760, 190), "width": 170.0},
 		{"pos": Vector2(480, 120), "width": 280.0}
 	],
-	16: [ # ЗАДУНАЙСЬКА СІЧ ТА ДУНАЙСЬКІ ГИРЛА (причали чайок і сторожові каланчі)
+	16:
+	[  # ЗАДУНАЙСЬКА СІЧ ТА ДУНАЙСЬКІ ГИРЛА (причали чайок і сторожові каланчі)
 		{"pos": Vector2(480, 426), "width": 255.0},
 		{"pos": Vector2(180, 350), "width": 180.0},
 		{"pos": Vector2(780, 350), "width": 180.0},
@@ -360,7 +391,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(750, 195), "width": 190.0},
 		{"pos": Vector2(480, 125), "width": 275.0}
 	],
-	17: [ # БІЛОРУСЬКА ПУЩА КАСТУСЯ КАЛИНОВСЬКОГО (партизанські засеки й лісові вежі)
+	17:
+	[  # БІЛОРУСЬКА ПУЩА КАСТУСЯ КАЛИНОВСЬКОГО (партизанські засеки й лісові вежі)
 		{"pos": Vector2(200, 430), "width": 200.0},
 		{"pos": Vector2(760, 420), "width": 200.0},
 		{"pos": Vector2(480, 340), "width": 185.0},
@@ -370,7 +402,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(220, 115), "width": 160.0},
 		{"pos": Vector2(740, 115), "width": 160.0}
 	],
-	18: [ # ВЕРХОВИНА Й ПИСАНИЙ КАМІНЬ (полонини, смерекові мости й скелі мольфарів)
+	18:
+	[  # ВЕРХОВИНА Й ПИСАНИЙ КАМІНЬ (полонини, смерекові мости й скелі мольфарів)
 		{"pos": Vector2(340, 435), "width": 180.0},
 		{"pos": Vector2(620, 435), "width": 180.0},
 		{"pos": Vector2(180, 355), "width": 180.0},
@@ -380,7 +413,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(750, 195), "width": 180.0},
 		{"pos": Vector2(480, 125), "width": 260.0}
 	],
-	19: [ # ГЕЗЛЬОВ (ЄВПАТОРІЯ) ТА ХАН-ДЖАМІ (морські бастіони й куполи Джума-Джамі)
+	19:
+	[  # ГЕЗЛЬОВ (ЄВПАТОРІЯ) ТА ХАН-ДЖАМІ (морські бастіони й куполи Джума-Джамі)
 		{"pos": Vector2(480, 435), "width": 280.0},
 		{"pos": Vector2(210, 360), "width": 180.0},
 		{"pos": Vector2(750, 360), "width": 180.0},
@@ -389,7 +423,8 @@ const LEVEL_PLATFORMS: Dictionary = {
 		{"pos": Vector2(770, 205), "width": 180.0},
 		{"pos": Vector2(480, 135), "width": 260.0}
 	],
-	20: [ # ТАРАСОВА ГОРА У КАНЕВІ — ВЕЛИКИЙ СОБОР НАРОДІВ (дніпровські кручі та арка свободи)
+	20:
+	[  # ТАРАСОВА ГОРА У КАНЕВІ — ВЕЛИКИЙ СОБОР НАРОДІВ (дніпровські кручі та арка свободи)
 		{"pos": Vector2(340, 435), "width": 190.0},
 		{"pos": Vector2(620, 435), "width": 190.0},
 		{"pos": Vector2(170, 350), "width": 160.0},
@@ -402,222 +437,567 @@ const LEVEL_PLATFORMS: Dictionary = {
 }
 
 const LEVEL_BOMBS: Dictionary = {
-	1: [
+	1:
+	[
 		# Січ: 24 ядра по широкій 16:9 фортеці (ергономічна висота, легкий доступ)
-		Vector2(440, 90), Vector2(480, 85), Vector2(520, 90),
-		Vector2(150, 155), Vector2(210, 150), Vector2(270, 155),
-		Vector2(690, 155), Vector2(750, 150), Vector2(810, 155),
-		Vector2(410, 235), Vector2(480, 230), Vector2(550, 235),
-		Vector2(120, 310), Vector2(180, 310), Vector2(240, 310),
-		Vector2(720, 310), Vector2(780, 310), Vector2(840, 310),
-		Vector2(410, 385), Vector2(480, 380), Vector2(550, 385),
-		Vector2(100, 480), Vector2(480, 475), Vector2(860, 480)
+		Vector2(440, 90),
+		Vector2(480, 85),
+		Vector2(520, 90),
+		Vector2(150, 155),
+		Vector2(210, 150),
+		Vector2(270, 155),
+		Vector2(690, 155),
+		Vector2(750, 150),
+		Vector2(810, 155),
+		Vector2(410, 235),
+		Vector2(480, 230),
+		Vector2(550, 235),
+		Vector2(120, 310),
+		Vector2(180, 310),
+		Vector2(240, 310),
+		Vector2(720, 310),
+		Vector2(780, 310),
+		Vector2(840, 310),
+		Vector2(410, 385),
+		Vector2(480, 380),
+		Vector2(550, 385),
+		Vector2(100, 480),
+		Vector2(480, 475),
+		Vector2(860, 480)
 	],
-	2: [
+	2:
+	[
 		# Хутір: Сяюча дуга Чумацького Шляху через усе 16:9 небо та ядра над хутором
-		Vector2(100, 70), Vector2(220, 60), Vector2(350, 75), Vector2(480, 95), Vector2(610, 75), Vector2(740, 60), Vector2(860, 70),
-		Vector2(400, 140), Vector2(480, 135), Vector2(560, 140),
-		Vector2(120, 210), Vector2(170, 210), Vector2(220, 210),
-		Vector2(740, 210), Vector2(790, 210), Vector2(840, 210),
-		Vector2(420, 300), Vector2(480, 295), Vector2(540, 300),
-		Vector2(150, 390), Vector2(200, 390), Vector2(250, 390),
-		Vector2(710, 380), Vector2(760, 380), Vector2(810, 380)
+		Vector2(100, 70),
+		Vector2(220, 60),
+		Vector2(350, 75),
+		Vector2(480, 95),
+		Vector2(610, 75),
+		Vector2(740, 60),
+		Vector2(860, 70),
+		Vector2(400, 140),
+		Vector2(480, 135),
+		Vector2(560, 140),
+		Vector2(120, 210),
+		Vector2(170, 210),
+		Vector2(220, 210),
+		Vector2(740, 210),
+		Vector2(790, 210),
+		Vector2(840, 210),
+		Vector2(420, 300),
+		Vector2(480, 295),
+		Vector2(540, 300),
+		Vector2(150, 390),
+		Vector2(200, 390),
+		Vector2(250, 390),
+		Vector2(710, 380),
+		Vector2(760, 380),
+		Vector2(810, 380)
 	],
-	3: [
+	3:
+	[
 		# Кам'янець: 24 ядра по бастіонах, баштах та каньйону
-		Vector2(440, 90), Vector2(480, 85), Vector2(520, 90),
-		Vector2(160, 155), Vector2(210, 150), Vector2(260, 155),
-		Vector2(700, 155), Vector2(750, 150), Vector2(800, 155),
-		Vector2(420, 235), Vector2(480, 230), Vector2(540, 235),
-		Vector2(130, 315), Vector2(180, 310), Vector2(230, 315),
-		Vector2(730, 315), Vector2(780, 310), Vector2(830, 315),
-		Vector2(340, 395), Vector2(480, 390), Vector2(620, 395),
-		Vector2(120, 480), Vector2(480, 475), Vector2(840, 480)
+		Vector2(440, 90),
+		Vector2(480, 85),
+		Vector2(520, 90),
+		Vector2(160, 155),
+		Vector2(210, 150),
+		Vector2(260, 155),
+		Vector2(700, 155),
+		Vector2(750, 150),
+		Vector2(800, 155),
+		Vector2(420, 235),
+		Vector2(480, 230),
+		Vector2(540, 235),
+		Vector2(130, 315),
+		Vector2(180, 310),
+		Vector2(230, 315),
+		Vector2(730, 315),
+		Vector2(780, 310),
+		Vector2(830, 315),
+		Vector2(340, 395),
+		Vector2(480, 390),
+		Vector2(620, 395),
+		Vector2(120, 480),
+		Vector2(480, 475),
+		Vector2(840, 480)
 	],
-	4: [
+	4:
+	[
 		# Батурин: 24 ядра по гетьманських палацах, скарбниці та барокових арках
-		Vector2(440, 100), Vector2(480, 95), Vector2(520, 100),
-		Vector2(150, 165), Vector2(190, 160), Vector2(230, 165),
-		Vector2(730, 165), Vector2(770, 160), Vector2(810, 165),
-		Vector2(420, 240), Vector2(480, 235), Vector2(540, 240),
-		Vector2(160, 320), Vector2(210, 315), Vector2(260, 320),
-		Vector2(700, 320), Vector2(750, 315), Vector2(800, 320),
-		Vector2(410, 395), Vector2(480, 390), Vector2(550, 395),
-		Vector2(130, 480), Vector2(480, 475), Vector2(830, 480)
+		Vector2(440, 100),
+		Vector2(480, 95),
+		Vector2(520, 100),
+		Vector2(150, 165),
+		Vector2(190, 160),
+		Vector2(230, 165),
+		Vector2(730, 165),
+		Vector2(770, 160),
+		Vector2(810, 165),
+		Vector2(420, 240),
+		Vector2(480, 235),
+		Vector2(540, 240),
+		Vector2(160, 320),
+		Vector2(210, 315),
+		Vector2(260, 320),
+		Vector2(700, 320),
+		Vector2(750, 315),
+		Vector2(800, 320),
+		Vector2(410, 395),
+		Vector2(480, 390),
+		Vector2(550, 395),
+		Vector2(130, 480),
+		Vector2(480, 475),
+		Vector2(830, 480)
 	],
-	5: [
+	5:
+	[
 		# Перекопський Вал (Ор-Капу): 24 ядра по валу та кримських бастіонах
-		Vector2(440, 85), Vector2(480, 80), Vector2(520, 85),
-		Vector2(150, 150), Vector2(200, 145), Vector2(250, 150),
-		Vector2(710, 150), Vector2(760, 145), Vector2(810, 150),
-		Vector2(420, 225), Vector2(480, 220), Vector2(540, 225),
-		Vector2(120, 310), Vector2(170, 305), Vector2(220, 310),
-		Vector2(740, 310), Vector2(790, 305), Vector2(840, 310),
-		Vector2(340, 395), Vector2(480, 390), Vector2(620, 395),
-		Vector2(110, 480), Vector2(480, 475), Vector2(850, 480)
+		Vector2(440, 85),
+		Vector2(480, 80),
+		Vector2(520, 85),
+		Vector2(150, 150),
+		Vector2(200, 145),
+		Vector2(250, 150),
+		Vector2(710, 150),
+		Vector2(760, 145),
+		Vector2(810, 150),
+		Vector2(420, 225),
+		Vector2(480, 220),
+		Vector2(540, 225),
+		Vector2(120, 310),
+		Vector2(170, 305),
+		Vector2(220, 310),
+		Vector2(740, 310),
+		Vector2(790, 305),
+		Vector2(840, 310),
+		Vector2(340, 395),
+		Vector2(480, 390),
+		Vector2(620, 395),
+		Vector2(110, 480),
+		Vector2(480, 475),
+		Vector2(850, 480)
 	],
-	6: [
-		Vector2(430, 88), Vector2(480, 82), Vector2(530, 88),
-		Vector2(160, 160), Vector2(220, 155), Vector2(280, 160),
-		Vector2(680, 160), Vector2(740, 155), Vector2(800, 160),
-		Vector2(415, 240), Vector2(480, 235), Vector2(545, 240),
-		Vector2(130, 315), Vector2(190, 312), Vector2(250, 315),
-		Vector2(710, 315), Vector2(770, 312), Vector2(830, 315),
-		Vector2(415, 390), Vector2(480, 385), Vector2(545, 390),
-		Vector2(120, 480), Vector2(480, 475), Vector2(840, 480)
+	6:
+	[
+		Vector2(430, 88),
+		Vector2(480, 82),
+		Vector2(530, 88),
+		Vector2(160, 160),
+		Vector2(220, 155),
+		Vector2(280, 160),
+		Vector2(680, 160),
+		Vector2(740, 155),
+		Vector2(800, 160),
+		Vector2(415, 240),
+		Vector2(480, 235),
+		Vector2(545, 240),
+		Vector2(130, 315),
+		Vector2(190, 312),
+		Vector2(250, 315),
+		Vector2(710, 315),
+		Vector2(770, 312),
+		Vector2(830, 315),
+		Vector2(415, 390),
+		Vector2(480, 385),
+		Vector2(545, 390),
+		Vector2(120, 480),
+		Vector2(480, 475),
+		Vector2(840, 480)
 	],
-	7: [
-		Vector2(170, 78), Vector2(230, 74), Vector2(290, 78),
-		Vector2(670, 78), Vector2(730, 74), Vector2(790, 78),
-		Vector2(410, 140), Vector2(480, 136), Vector2(550, 140),
-		Vector2(130, 215), Vector2(180, 210), Vector2(230, 215),
-		Vector2(730, 215), Vector2(780, 210), Vector2(830, 215),
-		Vector2(420, 305), Vector2(480, 300), Vector2(540, 305),
-		Vector2(160, 385), Vector2(210, 385), Vector2(260, 385),
-		Vector2(700, 385), Vector2(750, 385), Vector2(800, 385)
+	7:
+	[
+		Vector2(170, 78),
+		Vector2(230, 74),
+		Vector2(290, 78),
+		Vector2(670, 78),
+		Vector2(730, 74),
+		Vector2(790, 78),
+		Vector2(410, 140),
+		Vector2(480, 136),
+		Vector2(550, 140),
+		Vector2(130, 215),
+		Vector2(180, 210),
+		Vector2(230, 215),
+		Vector2(730, 215),
+		Vector2(780, 210),
+		Vector2(830, 215),
+		Vector2(420, 305),
+		Vector2(480, 300),
+		Vector2(540, 305),
+		Vector2(160, 385),
+		Vector2(210, 385),
+		Vector2(260, 385),
+		Vector2(700, 385),
+		Vector2(750, 385),
+		Vector2(800, 385)
 	],
-	8: [
-		Vector2(435, 86), Vector2(480, 82), Vector2(525, 86),
-		Vector2(155, 155), Vector2(205, 150), Vector2(255, 155),
-		Vector2(705, 155), Vector2(755, 150), Vector2(805, 155),
-		Vector2(420, 235), Vector2(480, 230), Vector2(540, 235),
-		Vector2(125, 315), Vector2(175, 310), Vector2(225, 315),
-		Vector2(735, 315), Vector2(785, 310), Vector2(835, 315),
-		Vector2(330, 395), Vector2(480, 390), Vector2(630, 395),
-		Vector2(130, 480), Vector2(480, 475), Vector2(830, 480)
+	8:
+	[
+		Vector2(435, 86),
+		Vector2(480, 82),
+		Vector2(525, 86),
+		Vector2(155, 155),
+		Vector2(205, 150),
+		Vector2(255, 155),
+		Vector2(705, 155),
+		Vector2(755, 150),
+		Vector2(805, 155),
+		Vector2(420, 235),
+		Vector2(480, 230),
+		Vector2(540, 235),
+		Vector2(125, 315),
+		Vector2(175, 310),
+		Vector2(225, 315),
+		Vector2(735, 315),
+		Vector2(785, 310),
+		Vector2(835, 315),
+		Vector2(330, 395),
+		Vector2(480, 390),
+		Vector2(630, 395),
+		Vector2(130, 480),
+		Vector2(480, 475),
+		Vector2(830, 480)
 	],
-	9: [
-		Vector2(435, 92), Vector2(480, 88), Vector2(525, 92),
-		Vector2(145, 162), Vector2(185, 158), Vector2(225, 162),
-		Vector2(735, 162), Vector2(775, 158), Vector2(815, 162),
-		Vector2(420, 242), Vector2(480, 236), Vector2(540, 242),
-		Vector2(155, 318), Vector2(200, 314), Vector2(245, 318),
-		Vector2(715, 318), Vector2(760, 314), Vector2(805, 318),
-		Vector2(410, 392), Vector2(480, 388), Vector2(550, 392),
-		Vector2(140, 480), Vector2(480, 475), Vector2(820, 480)
+	9:
+	[
+		Vector2(435, 92),
+		Vector2(480, 88),
+		Vector2(525, 92),
+		Vector2(145, 162),
+		Vector2(185, 158),
+		Vector2(225, 162),
+		Vector2(735, 162),
+		Vector2(775, 158),
+		Vector2(815, 162),
+		Vector2(420, 242),
+		Vector2(480, 236),
+		Vector2(540, 242),
+		Vector2(155, 318),
+		Vector2(200, 314),
+		Vector2(245, 318),
+		Vector2(715, 318),
+		Vector2(760, 314),
+		Vector2(805, 318),
+		Vector2(410, 392),
+		Vector2(480, 388),
+		Vector2(550, 392),
+		Vector2(140, 480),
+		Vector2(480, 475),
+		Vector2(820, 480)
 	],
-	10: [
-		Vector2(440, 85), Vector2(480, 80), Vector2(520, 85),
-		Vector2(155, 152), Vector2(205, 148), Vector2(255, 152),
-		Vector2(705, 152), Vector2(755, 148), Vector2(805, 152),
-		Vector2(420, 228), Vector2(480, 222), Vector2(540, 228),
-		Vector2(125, 312), Vector2(175, 306), Vector2(225, 312),
-		Vector2(735, 312), Vector2(785, 306), Vector2(835, 312),
-		Vector2(345, 395), Vector2(480, 390), Vector2(615, 395),
-		Vector2(115, 480), Vector2(480, 475), Vector2(845, 480)
+	10:
+	[
+		Vector2(440, 85),
+		Vector2(480, 80),
+		Vector2(520, 85),
+		Vector2(155, 152),
+		Vector2(205, 148),
+		Vector2(255, 152),
+		Vector2(705, 152),
+		Vector2(755, 148),
+		Vector2(805, 152),
+		Vector2(420, 228),
+		Vector2(480, 222),
+		Vector2(540, 228),
+		Vector2(125, 312),
+		Vector2(175, 306),
+		Vector2(225, 312),
+		Vector2(735, 312),
+		Vector2(785, 306),
+		Vector2(835, 312),
+		Vector2(345, 395),
+		Vector2(480, 390),
+		Vector2(615, 395),
+		Vector2(115, 480),
+		Vector2(480, 475),
+		Vector2(845, 480)
 	],
-	11: [
-		Vector2(440, 88), Vector2(480, 84), Vector2(520, 88),
-		Vector2(155, 158), Vector2(215, 152), Vector2(275, 158),
-		Vector2(685, 158), Vector2(745, 152), Vector2(805, 158),
-		Vector2(415, 236), Vector2(480, 230), Vector2(545, 236),
-		Vector2(125, 312), Vector2(185, 310), Vector2(245, 312),
-		Vector2(715, 312), Vector2(775, 310), Vector2(835, 312),
-		Vector2(410, 388), Vector2(480, 382), Vector2(550, 388),
-		Vector2(110, 480), Vector2(480, 475), Vector2(850, 480)
+	11:
+	[
+		Vector2(440, 88),
+		Vector2(480, 84),
+		Vector2(520, 88),
+		Vector2(155, 158),
+		Vector2(215, 152),
+		Vector2(275, 158),
+		Vector2(685, 158),
+		Vector2(745, 152),
+		Vector2(805, 158),
+		Vector2(415, 236),
+		Vector2(480, 230),
+		Vector2(545, 236),
+		Vector2(125, 312),
+		Vector2(185, 310),
+		Vector2(245, 312),
+		Vector2(715, 312),
+		Vector2(775, 310),
+		Vector2(835, 312),
+		Vector2(410, 388),
+		Vector2(480, 382),
+		Vector2(550, 388),
+		Vector2(110, 480),
+		Vector2(480, 475),
+		Vector2(850, 480)
 	],
-	12: [
-		Vector2(175, 76), Vector2(225, 72), Vector2(275, 76),
-		Vector2(685, 76), Vector2(735, 72), Vector2(785, 76),
-		Vector2(405, 138), Vector2(480, 134), Vector2(555, 138),
-		Vector2(125, 212), Vector2(175, 210), Vector2(225, 212),
-		Vector2(735, 212), Vector2(785, 210), Vector2(835, 212),
-		Vector2(420, 302), Vector2(480, 296), Vector2(540, 302),
-		Vector2(155, 388), Vector2(205, 388), Vector2(255, 388),
-		Vector2(705, 382), Vector2(755, 382), Vector2(805, 382)
+	12:
+	[
+		Vector2(175, 76),
+		Vector2(225, 72),
+		Vector2(275, 76),
+		Vector2(685, 76),
+		Vector2(735, 72),
+		Vector2(785, 76),
+		Vector2(405, 138),
+		Vector2(480, 134),
+		Vector2(555, 138),
+		Vector2(125, 212),
+		Vector2(175, 210),
+		Vector2(225, 212),
+		Vector2(735, 212),
+		Vector2(785, 210),
+		Vector2(835, 212),
+		Vector2(420, 302),
+		Vector2(480, 296),
+		Vector2(540, 302),
+		Vector2(155, 388),
+		Vector2(205, 388),
+		Vector2(255, 388),
+		Vector2(705, 382),
+		Vector2(755, 382),
+		Vector2(805, 382)
 	],
-	13: [
-		Vector2(440, 90), Vector2(480, 85), Vector2(520, 90),
-		Vector2(160, 155), Vector2(210, 150), Vector2(260, 155),
-		Vector2(700, 155), Vector2(750, 150), Vector2(800, 155),
-		Vector2(420, 235), Vector2(480, 230), Vector2(540, 235),
-		Vector2(130, 315), Vector2(180, 310), Vector2(230, 315),
-		Vector2(730, 315), Vector2(780, 310), Vector2(830, 315),
-		Vector2(335, 395), Vector2(480, 390), Vector2(625, 395),
-		Vector2(125, 480), Vector2(480, 475), Vector2(835, 480)
+	13:
+	[
+		Vector2(440, 90),
+		Vector2(480, 85),
+		Vector2(520, 90),
+		Vector2(160, 155),
+		Vector2(210, 150),
+		Vector2(260, 155),
+		Vector2(700, 155),
+		Vector2(750, 150),
+		Vector2(800, 155),
+		Vector2(420, 235),
+		Vector2(480, 230),
+		Vector2(540, 235),
+		Vector2(130, 315),
+		Vector2(180, 310),
+		Vector2(230, 315),
+		Vector2(730, 315),
+		Vector2(780, 310),
+		Vector2(830, 315),
+		Vector2(335, 395),
+		Vector2(480, 390),
+		Vector2(625, 395),
+		Vector2(125, 480),
+		Vector2(480, 475),
+		Vector2(835, 480)
 	],
-	14: [
-		Vector2(440, 98), Vector2(480, 94), Vector2(520, 98),
-		Vector2(150, 164), Vector2(190, 160), Vector2(230, 164),
-		Vector2(730, 164), Vector2(770, 160), Vector2(810, 164),
-		Vector2(420, 240), Vector2(480, 235), Vector2(540, 240),
-		Vector2(160, 320), Vector2(205, 315), Vector2(250, 320),
-		Vector2(710, 320), Vector2(755, 315), Vector2(800, 320),
-		Vector2(410, 394), Vector2(480, 390), Vector2(550, 394),
-		Vector2(135, 480), Vector2(480, 475), Vector2(825, 480)
+	14:
+	[
+		Vector2(440, 98),
+		Vector2(480, 94),
+		Vector2(520, 98),
+		Vector2(150, 164),
+		Vector2(190, 160),
+		Vector2(230, 164),
+		Vector2(730, 164),
+		Vector2(770, 160),
+		Vector2(810, 164),
+		Vector2(420, 240),
+		Vector2(480, 235),
+		Vector2(540, 240),
+		Vector2(160, 320),
+		Vector2(205, 315),
+		Vector2(250, 320),
+		Vector2(710, 320),
+		Vector2(755, 315),
+		Vector2(800, 320),
+		Vector2(410, 394),
+		Vector2(480, 390),
+		Vector2(550, 394),
+		Vector2(135, 480),
+		Vector2(480, 475),
+		Vector2(825, 480)
 	],
-	15: [
-		Vector2(440, 85), Vector2(480, 80), Vector2(520, 85),
-		Vector2(150, 150), Vector2(200, 145), Vector2(250, 150),
-		Vector2(710, 150), Vector2(760, 145), Vector2(810, 150),
-		Vector2(420, 225), Vector2(480, 220), Vector2(540, 225),
-		Vector2(120, 310), Vector2(170, 305), Vector2(220, 310),
-		Vector2(740, 310), Vector2(790, 305), Vector2(840, 310),
-		Vector2(340, 395), Vector2(480, 390), Vector2(620, 395),
-		Vector2(115, 480), Vector2(480, 475), Vector2(845, 480)
+	15:
+	[
+		Vector2(440, 85),
+		Vector2(480, 80),
+		Vector2(520, 85),
+		Vector2(150, 150),
+		Vector2(200, 145),
+		Vector2(250, 150),
+		Vector2(710, 150),
+		Vector2(760, 145),
+		Vector2(810, 150),
+		Vector2(420, 225),
+		Vector2(480, 220),
+		Vector2(540, 225),
+		Vector2(120, 310),
+		Vector2(170, 305),
+		Vector2(220, 310),
+		Vector2(740, 310),
+		Vector2(790, 305),
+		Vector2(840, 310),
+		Vector2(340, 395),
+		Vector2(480, 390),
+		Vector2(620, 395),
+		Vector2(115, 480),
+		Vector2(480, 475),
+		Vector2(845, 480)
 	],
-	16: [
-		Vector2(435, 90), Vector2(480, 85), Vector2(525, 90),
-		Vector2(150, 155), Vector2(210, 150), Vector2(270, 155),
-		Vector2(690, 155), Vector2(750, 150), Vector2(810, 155),
-		Vector2(410, 235), Vector2(480, 230), Vector2(550, 235),
-		Vector2(120, 310), Vector2(180, 310), Vector2(240, 310),
-		Vector2(720, 310), Vector2(780, 310), Vector2(840, 310),
-		Vector2(410, 385), Vector2(480, 380), Vector2(550, 385),
-		Vector2(105, 480), Vector2(480, 475), Vector2(855, 480)
+	16:
+	[
+		Vector2(435, 90),
+		Vector2(480, 85),
+		Vector2(525, 90),
+		Vector2(150, 155),
+		Vector2(210, 150),
+		Vector2(270, 155),
+		Vector2(690, 155),
+		Vector2(750, 150),
+		Vector2(810, 155),
+		Vector2(410, 235),
+		Vector2(480, 230),
+		Vector2(550, 235),
+		Vector2(120, 310),
+		Vector2(180, 310),
+		Vector2(240, 310),
+		Vector2(720, 310),
+		Vector2(780, 310),
+		Vector2(840, 310),
+		Vector2(410, 385),
+		Vector2(480, 380),
+		Vector2(550, 385),
+		Vector2(105, 480),
+		Vector2(480, 475),
+		Vector2(855, 480)
 	],
-	17: [
-		Vector2(105, 70), Vector2(220, 60), Vector2(350, 75), Vector2(480, 95), Vector2(610, 75), Vector2(740, 60), Vector2(855, 70),
-		Vector2(400, 140), Vector2(480, 135), Vector2(560, 140),
-		Vector2(120, 210), Vector2(170, 210), Vector2(220, 210),
-		Vector2(740, 210), Vector2(790, 210), Vector2(840, 210),
-		Vector2(420, 300), Vector2(480, 295), Vector2(540, 300),
-		Vector2(150, 390), Vector2(200, 390), Vector2(250, 390),
-		Vector2(710, 380), Vector2(760, 380), Vector2(810, 380)
+	17:
+	[
+		Vector2(105, 70),
+		Vector2(220, 60),
+		Vector2(350, 75),
+		Vector2(480, 95),
+		Vector2(610, 75),
+		Vector2(740, 60),
+		Vector2(855, 70),
+		Vector2(400, 140),
+		Vector2(480, 135),
+		Vector2(560, 140),
+		Vector2(120, 210),
+		Vector2(170, 210),
+		Vector2(220, 210),
+		Vector2(740, 210),
+		Vector2(790, 210),
+		Vector2(840, 210),
+		Vector2(420, 300),
+		Vector2(480, 295),
+		Vector2(540, 300),
+		Vector2(150, 390),
+		Vector2(200, 390),
+		Vector2(250, 390),
+		Vector2(710, 380),
+		Vector2(760, 380),
+		Vector2(810, 380)
 	],
-	18: [
-		Vector2(440, 90), Vector2(480, 85), Vector2(520, 90),
-		Vector2(160, 155), Vector2(210, 150), Vector2(260, 155),
-		Vector2(700, 155), Vector2(750, 150), Vector2(800, 155),
-		Vector2(420, 235), Vector2(480, 230), Vector2(540, 235),
-		Vector2(130, 315), Vector2(180, 310), Vector2(230, 315),
-		Vector2(730, 315), Vector2(780, 310), Vector2(830, 315),
-		Vector2(340, 395), Vector2(480, 390), Vector2(620, 395),
-		Vector2(120, 480), Vector2(480, 475), Vector2(840, 480)
+	18:
+	[
+		Vector2(440, 90),
+		Vector2(480, 85),
+		Vector2(520, 90),
+		Vector2(160, 155),
+		Vector2(210, 150),
+		Vector2(260, 155),
+		Vector2(700, 155),
+		Vector2(750, 150),
+		Vector2(800, 155),
+		Vector2(420, 235),
+		Vector2(480, 230),
+		Vector2(540, 235),
+		Vector2(130, 315),
+		Vector2(180, 310),
+		Vector2(230, 315),
+		Vector2(730, 315),
+		Vector2(780, 310),
+		Vector2(830, 315),
+		Vector2(340, 395),
+		Vector2(480, 390),
+		Vector2(620, 395),
+		Vector2(120, 480),
+		Vector2(480, 475),
+		Vector2(840, 480)
 	],
-	19: [
-		Vector2(440, 100), Vector2(480, 95), Vector2(520, 100),
-		Vector2(150, 165), Vector2(190, 160), Vector2(230, 165),
-		Vector2(730, 165), Vector2(770, 160), Vector2(810, 165),
-		Vector2(420, 240), Vector2(480, 235), Vector2(540, 240),
-		Vector2(160, 320), Vector2(210, 315), Vector2(260, 320),
-		Vector2(700, 320), Vector2(750, 315), Vector2(800, 320),
-		Vector2(410, 395), Vector2(480, 390), Vector2(550, 395),
-		Vector2(130, 480), Vector2(480, 475), Vector2(830, 480)
+	19:
+	[
+		Vector2(440, 100),
+		Vector2(480, 95),
+		Vector2(520, 100),
+		Vector2(150, 165),
+		Vector2(190, 160),
+		Vector2(230, 165),
+		Vector2(730, 165),
+		Vector2(770, 160),
+		Vector2(810, 165),
+		Vector2(420, 240),
+		Vector2(480, 235),
+		Vector2(540, 240),
+		Vector2(160, 320),
+		Vector2(210, 315),
+		Vector2(260, 320),
+		Vector2(700, 320),
+		Vector2(750, 315),
+		Vector2(800, 320),
+		Vector2(410, 395),
+		Vector2(480, 390),
+		Vector2(550, 395),
+		Vector2(130, 480),
+		Vector2(480, 475),
+		Vector2(830, 480)
 	],
-	20: [
-		Vector2(440, 85), Vector2(480, 80), Vector2(520, 85),
-		Vector2(150, 150), Vector2(200, 145), Vector2(250, 150),
-		Vector2(710, 150), Vector2(760, 145), Vector2(810, 150),
-		Vector2(420, 225), Vector2(480, 220), Vector2(540, 225),
-		Vector2(120, 310), Vector2(170, 305), Vector2(220, 310),
-		Vector2(740, 310), Vector2(790, 305), Vector2(840, 310),
-		Vector2(340, 395), Vector2(480, 390), Vector2(620, 395),
-		Vector2(110, 480), Vector2(480, 475), Vector2(850, 480)
+	20:
+	[
+		Vector2(440, 85),
+		Vector2(480, 80),
+		Vector2(520, 85),
+		Vector2(150, 150),
+		Vector2(200, 145),
+		Vector2(250, 150),
+		Vector2(710, 150),
+		Vector2(760, 145),
+		Vector2(810, 150),
+		Vector2(420, 225),
+		Vector2(480, 220),
+		Vector2(540, 225),
+		Vector2(120, 310),
+		Vector2(170, 305),
+		Vector2(220, 310),
+		Vector2(740, 310),
+		Vector2(790, 305),
+		Vector2(840, 310),
+		Vector2(340, 395),
+		Vector2(480, 390),
+		Vector2(620, 395),
+		Vector2(110, 480),
+		Vector2(480, 475),
+		Vector2(850, 480)
 	]
 }
+
 
 func _setup_level() -> void:
 	if background_visual:
 		background_visual.current_level = level
-	
+
 	_setup_platforms_for_level()
-	
+
 	# Clear existing bombs if any
 	for child in bombs_node.get_children():
 		bombs_node.remove_child(child)
 		child.queue_free()
-	
+
 	# Clear existing enemies and magical items
 	if enemies_node:
 		for child in enemies_node.get_children():
@@ -627,7 +1007,7 @@ func _setup_level() -> void:
 		for child in items_node.get_children():
 			items_node.remove_child(child)
 			child.queue_free()
-	
+
 	# Clear previous allies if any
 	if qirimli_ally and is_instance_valid(qirimli_ally):
 		qirimli_ally.queue_free()
@@ -639,7 +1019,7 @@ func _setup_level() -> void:
 	if hutsul_ally and is_instance_valid(hutsul_ally):
 		hutsul_ally.queue_free()
 	hutsul_ally = null
-	
+
 	if mavka_ally and is_instance_valid(mavka_ally):
 		mavka_ally.queue_free()
 	mavka_ally = null
@@ -659,67 +1039,84 @@ func _setup_level() -> void:
 	hutsul_spawned_this_level = false
 	hutsul_waves_spawned = 0
 	qirimli_spawned_this_level = false
-	
+
 	# Союзні NPC (Гуцули і Киримли) прибувають прогресивно по мірі перших успіхів Джури
 	# та пропорційно до кількості ворожих NPC для балансу сил (_check_progressive_ally_arrival)!
-	
+
 	# Spawn folklore enemies according to level theme & age 8+ clarity
 	_spawn_folklore_enemies()
 	level_enemy_count_start = enemies_node.get_child_count() if enemies_node else 0
 	level_in_progress = true
 	if telemetry != null:
-		telemetry.log_event("level_start", {"level": level, "k": difficulty_k, "enemies": level_enemy_count_start, "target": player_model.target_success() if player_model != null else 0.0})
-	
+		telemetry.log_event(
+			"level_start",
+			{
+				"level": level,
+				"k": difficulty_k,
+				"enemies": level_enemy_count_start,
+				"target": player_model.target_success() if player_model != null else 0.0
+			}
+		)
+
 	lit_streak = 1
 	if player and player.has_method("set_strike_level"):
 		player.set_strike_level(level)
 	_spawn_bomb_grid()
-	
+
 	# Friendly folklore lore tips for players
 	_show_level_lore_tip()
-	
+
 	# Guaranteed Horseshoe gift from Blacksmith Vakula on levels where Vakula is available (Stage 4+)
 	if _Difficulty.ally_available("VAKULA", level):
-		get_tree().create_timer(3.2).timeout.connect(func():
-			if not is_transitioning_level and items_node and items_node.get_children().is_empty() and player and not player.has_vakula_shoes:
-				_spawn_vakula_horseshoe()
+		get_tree().create_timer(3.2).timeout.connect(
+			func():
+				if (
+					not is_transitioning_level
+					and items_node
+					and items_node.get_children().is_empty()
+					and player
+					and not player.has_vakula_shoes
+				):
+					_spawn_vakula_horseshoe()
 		)
-	
+
+
 func _check_progressive_ally_arrival() -> void:
 	# На рівнях 1–5 (Етап 1: Запорозька Січ) союзники не прибувають: діє виключно Джура
 	if level <= 5:
 		return
 	var enemy_count := enemies_node.get_child_count() if enemies_node else 0
-	
+
 	# 1. Перший Карпатський Гуцул з барткою прибуває після перших успіхів Джури (2+ ядра або серія >= 2)
 	if not hutsul_spawned_this_level and enemy_count >= 1 and _Difficulty.ally_available("HUTSUL", level):
 		if bombs_collected_on_level >= _Difficulty.ally_threshold(2, difficulty_k, prev_quality) or lit_streak >= 2:
 			_spawn_hutsul_ally()
 			hud.show_message("ПІДМОГА З КАРПАТ! ГУЦУЛ З БАРТКОЮ ВСТУПАЄ В БІЙ!", 2.8, Color(1.0, 0.86, 0.25))
-	
+
 	# 2. Другий Гуцул прибуває лише на старших рівнях (рівні 3..5, коли ворогів багато) після 6+ ядер (на 30% менше союзників!)
 	if hutsul_waves_spawned == 1 and level >= 3 and enemy_count >= 3 and bombs_collected_on_level >= 6:
 		hutsul_waves_spawned = 2
 		_spawn_single_hutsul(Vector2(760, 220), -1.0)
 		hud.show_message("ЩЕ ОДИН ГУЦУЛ-ОПРИШОК ПРИБУВ З ЧОРНОГОРИ НА ПІДМОГУ!", 2.4, Color(1.0, 0.88, 0.30))
-	
+
 	# 3. Побратим Киримли з Луком і Соколом прибуває далі по ходу прогресу (4+ ядра або серія >= 3, рівні 3..5)
 	if not qirimli_spawned_this_level and _Difficulty.ally_available("QIRIMLI", level) and enemy_count >= 3:
 		if bombs_collected_on_level >= _Difficulty.ally_threshold(4, difficulty_k, prev_quality) or lit_streak >= 3:
 			_spawn_qirimli_ally()
 			hud.show_message("ПІДМОГА КИРИМЛИ! СТЕПОВИЙ ЛУЧНИК І СОКІЛ ПРИКРИВАЮТЬ ДЖУРУ!", 3.0, Color(0.28, 1.0, 0.56))
-	
+
 	# 4. Третій гуцул лише за високої складності (серії 2+ або дуже якісне проходження)
 	if hutsul_waves_spawned == 2 and _Difficulty.allows_third_hutsul(difficulty_k) and enemy_count >= 4 and bombs_collected_on_level >= 9:
 		hutsul_waves_spawned = 3
 		_spawn_single_hutsul(Vector2(200, 220), 1.0)
 		hud.show_message("ГУЦУЛИ ПРИВЕЛИ ЩЕ ОДНОГО ОПРИШКА!", 2.4, Color(1.0, 0.88, 0.30))
-	
+
 	# 5. Мавка (новий союзник рівня 5): лісова чарівниця лякає ворогів чарами
 	if not mavka_spawned_this_level and _Difficulty.ally_available("MAVKA", level) and enemy_count >= 3:
 		if bombs_collected_on_level >= _Difficulty.ally_threshold(3, difficulty_k, prev_quality):
 			_spawn_mavka_ally()
 			hud.show_message("МАВКА ПРИЙШЛА НА ДОПОМОГУ! ЇЇ ЧАРИ ЛЯКАЮТЬ ВОРОГІВ!", 3.0, Color(0.6, 1.0, 0.85))
+
 
 func _spawn_mavka_ally() -> void:
 	if mavka_spawned_this_level:
@@ -736,12 +1133,13 @@ func _spawn_mavka_ally() -> void:
 	cast_node.add_child(m)
 	mavka_ally = m
 
+
 func _spawn_hutsul_ally() -> void:
 	if hutsul_spawned_this_level:
 		return
 	hutsul_spawned_this_level = true
 	hutsul_waves_spawned = 1
-	
+
 	var pos_left := Vector2(190, 185)
 	if level == 2:
 		pos_left = Vector2(180, 220)
@@ -751,9 +1149,10 @@ func _spawn_hutsul_ally() -> void:
 		pos_left = Vector2(200, 330)
 	elif level >= 5:
 		pos_left = Vector2(200, 165)
-	
+
 	var first_hutsul := _spawn_single_hutsul(pos_left, 1.0)
 	hutsul_ally = first_hutsul
+
 
 func _spawn_single_hutsul(spawn_pos: Vector2, initial_dir: float = 1.0) -> Node2D:
 	var ally = hutsul_scene.instantiate()
@@ -767,17 +1166,20 @@ func _spawn_single_hutsul(spawn_pos: Vector2, initial_dir: float = 1.0) -> Node2
 	hutsul_ally = ally
 	return ally
 
+
 func _on_hutsul_exited_scene(exited_ally: Node2D) -> void:
 	hutsul_allies.erase(exited_ally)
 	# Якщо на сцені не залишилося жодного гуцула, через 5 секунд із гір неквапливо приходить один побратим на зміну
 	if not is_transitioning_level:
 		var current_lvl := level
-		get_tree().create_timer(5.0).timeout.connect(func():
-			if not is_transitioning_level and level == current_lvl and _get_valid_hutsul_count() == 0:
-				var side_x := 170.0 if randf() < 0.5 else 790.0
-				var dir := 1.0 if side_x < 480.0 else -1.0
-				_spawn_single_hutsul(Vector2(side_x, 220.0), dir)
+		get_tree().create_timer(5.0).timeout.connect(
+			func():
+				if not is_transitioning_level and level == current_lvl and _get_valid_hutsul_count() == 0:
+					var side_x := 170.0 if randf() < 0.5 else 790.0
+					var dir := 1.0 if side_x < 480.0 else -1.0
+					_spawn_single_hutsul(Vector2(side_x, 220.0), dir)
 		)
+
 
 func _get_valid_hutsul_count() -> int:
 	var cnt := 0
@@ -785,6 +1187,7 @@ func _get_valid_hutsul_count() -> int:
 		if h and is_instance_valid(h) and not h.is_queued_for_deletion():
 			cnt += 1
 	return cnt
+
 
 func _ensure_hutsul_victory_dancers() -> void:
 	# На Етапі 1 (рівні 1–5) або до відкриття Гуцула танцюристи не з'являються
@@ -796,7 +1199,7 @@ func _ensure_hutsul_victory_dancers() -> void:
 		if h and is_instance_valid(h) and not h.is_queued_for_deletion():
 			valid_list.append(h)
 	hutsul_allies = valid_list
-	
+
 	# На Переможний Аркан стають 1–2 гуцули (стримано та збалансовано!)
 	var target_dancers := 1 if level <= 2 else 2
 	var dance_spots: Array[Vector2] = [Vector2(340, 494), Vector2(620, 494)]
@@ -804,6 +1207,7 @@ func _ensure_hutsul_victory_dancers() -> void:
 		var spot := dance_spots[hutsul_allies.size() % dance_spots.size()]
 		var dancer := _spawn_single_hutsul(spot, 1.0 if spot.x < 480.0 else -1.0)
 		dancer.on_ground = true
+
 
 func _spawn_qirimli_ally() -> void:
 	if not _Difficulty.ally_available("QIRIMLI", level) or qirimli_spawned_this_level:
@@ -824,20 +1228,21 @@ func _spawn_qirimli_ally() -> void:
 	cast_node.add_child(ally)
 	qirimli_ally = ally
 
+
 func _setup_platforms_for_level() -> void:
 	if not platforms_node:
 		return
-	
+
 	var stage_key := ((level - 1) % 20) + 1
 	var plat_configs: Array = LEVEL_PLATFORMS.get(stage_key, LEVEL_PLATFORMS[1])
 	var style_idx := (level - 1) % 5
 	var shoes_active := player.has_vakula_shoes if player else false
-	
+
 	# Clear previous platforms
 	for child in platforms_node.get_children():
 		platforms_node.remove_child(child)
 		child.queue_free()
-	
+
 	for cfg in plat_configs:
 		var plat = platform_scene.instantiate() as BombJackPlatform
 		plat.position = cfg["pos"]
@@ -846,12 +1251,14 @@ func _setup_platforms_for_level() -> void:
 		plat.is_one_way = shoes_active
 		platforms_node.add_child(plat)
 
+
 func _on_vakula_shoes_state_changed(is_active: bool) -> void:
 	if not platforms_node:
 		return
 	for plat in platforms_node.get_children():
 		if plat is BombJackPlatform:
 			plat.is_one_way = is_active
+
 
 const LEVEL_LORE_20: Dictionary = {
 	1: "РІВЕНЬ 1 (ЗАПОРОЗЬКА СІЧ): «ЗБЕРИ БОМБИ Й ГАСИ ҐНОТИ ВОГНИКА! ПОРХАЙ НА КРИЛАТІЙ КИРЕЇ!»",
@@ -876,72 +1283,84 @@ const LEVEL_LORE_20: Dictionary = {
 	20: "РІВЕНЬ 20 (ТАРАСОВА ГОРА У КАНЕВІ): «СОБОР ЧОТИРЬОХ НАРОДІВ! І НА ОНОВЛЕНІЙ ЗЕМЛІ ВРАГА НЕ БУДЕ!»"
 }
 
+
 func _show_level_lore_tip() -> void:
 	var current_lvl := level
 	await get_tree().create_timer(2.4).timeout
 	if is_transitioning_level or level != current_lvl:
 		return
-	
+
 	var campaign_idx := ((level - 1) % 20) + 1
 	var msg: String = LEVEL_LORE_20.get(campaign_idx, LEVEL_LORE_20[1])
 	hud.show_message(msg, 4.2, Color(0.35, 0.96, 0.72))
+
 
 # Склад ворогів кампанії 20 рівнів як дані (T-021, T-023; SHR-001 I-1, I-6).
 # Кожен рівень 1–20 вводить рівно нових NPC із Difficulty.NPC_INTRO[level], не більше одного нового EnemyType на рівень,
 # і завжди зберігає інваріант I-6: (відьми + відьмаки) * 2 <= чортики. Після рівня 20 нових NPC немає.
 const LEVEL_COMPOSITIONS: Dictionary = {
-	1: [
+	1:
+	[
 		{"pos": Vector2(480, 200), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	2: [
+	2:
+	[
 		{"pos": Vector2(300, 210), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 210), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	3: [
+	3:
+	[
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	4: [
+	4:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	5: [
+	5:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 	],
-	6: [
+	6:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	7: [
+	7:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	8: [
+	8:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(750, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	9: [
+	9:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 165), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	10: [
+	10:
+	[
 		{"pos": Vector2(300, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(660, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 		{"pos": Vector2(200, 140), "type": FolkloreEnemy.EnemyType.CHORT},
@@ -949,7 +1368,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(760, 140), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 	],
-	11: [
+	11:
+	[
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_NUKER},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.OPRYCHNYK},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
@@ -957,7 +1377,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	12: [
+	12:
+	[
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_SHAMAN},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_NUKER},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
@@ -965,7 +1386,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	13: [
+	13:
+	[
 		{"pos": Vector2(300, 400), "type": FolkloreEnemy.EnemyType.ZLYDNI},
 		{"pos": Vector2(700, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_SHAMAN},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
@@ -973,7 +1395,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	14: [
+	14:
+	[
 		{"pos": Vector2(260, 400), "type": FolkloreEnemy.EnemyType.BASAVRIUK},
 		{"pos": Vector2(700, 400), "type": FolkloreEnemy.EnemyType.ZLYDNI},
 		{"pos": Vector2(210, 165), "type": FolkloreEnemy.EnemyType.CHORT},
@@ -981,7 +1404,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	15: [
+	15:
+	[
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.BASAVRIUK},
 		{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.ZLYDNI},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_NUKER},
@@ -990,7 +1414,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	16: [
+	16:
+	[
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.BASAVRIUK},
 		{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.ZLYDNI},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.MONGOL_SHAMAN},
@@ -999,7 +1424,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	17: [
+	17:
+	[
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.BASAVRIUK},
 		{"pos": Vector2(480, 235), "type": FolkloreEnemy.EnemyType.ZLYDNI},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.MOSKAL, "rank": FolkloreEnemy.MoskalRank.VOYEVODA},
@@ -1008,7 +1434,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	18: [
+	18:
+	[
 		{"pos": Vector2(480, 420), "type": FolkloreEnemy.EnemyType.VIJ},
 		{"pos": Vector2(240, 400), "type": FolkloreEnemy.EnemyType.BASAVRIUK},
 		{"pos": Vector2(720, 400), "type": FolkloreEnemy.EnemyType.ZLYDNI},
@@ -1017,7 +1444,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(480, 75), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 315), "type": FolkloreEnemy.EnemyType.VOGNYK},
 	],
-	19: [
+	19:
+	[
 		{"pos": Vector2(320, 85), "type": FolkloreEnemy.EnemyType.VIDMAK},
 		{"pos": Vector2(640, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
 		{"pos": Vector2(480, 420), "type": FolkloreEnemy.EnemyType.VIJ},
@@ -1027,7 +1455,8 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(580, 210), "type": FolkloreEnemy.EnemyType.CHORT},
 		{"pos": Vector2(780, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
-	20: [
+	20:
+	[
 		{"pos": Vector2(480, 410), "type": FolkloreEnemy.EnemyType.FINAL_BOSS},
 		{"pos": Vector2(320, 85), "type": FolkloreEnemy.EnemyType.VIDMAK},
 		{"pos": Vector2(640, 85), "type": FolkloreEnemy.EnemyType.VIDMA},
@@ -1038,6 +1467,7 @@ const LEVEL_COMPOSITIONS: Dictionary = {
 		{"pos": Vector2(780, 155), "type": FolkloreEnemy.EnemyType.CHORT},
 	],
 }
+
 
 # Склад рівня + коефіцієнт складності: додаткові вороги вже введених типів і швидкість (difficulty.gd)
 func _spawn_folklore_enemies() -> void:
@@ -1068,7 +1498,9 @@ func _spawn_folklore_enemies() -> void:
 		# Полегшення для слабкого гравця: прибрати до |extras| дублів, не порушуючи I-1 (новий NPC рівня) та I-6 (чортиків >= 2x інженерів)
 		var to_remove := -extras
 		var intro_list: Array = _Difficulty.NPC_INTRO.get(level, [])
-		for kind in [FolkloreEnemy.EnemyType.CHORT, FolkloreEnemy.EnemyType.MOSKAL, FolkloreEnemy.EnemyType.VOGNYK, FolkloreEnemy.EnemyType.ZLYDNI]:
+		for kind in [
+			FolkloreEnemy.EnemyType.CHORT, FolkloreEnemy.EnemyType.MOSKAL, FolkloreEnemy.EnemyType.VOGNYK, FolkloreEnemy.EnemyType.ZLYDNI
+		]:
 			while to_remove > 0:
 				var same: Array = []
 				for e in enemies_node.get_children():
@@ -1103,6 +1535,7 @@ func _spawn_folklore_enemies() -> void:
 	for e in enemies_node.get_children():
 		e.base_speed *= speed_mult
 
+
 func _spawn_base_enemies() -> void:
 	if not enemies_node:
 		return
@@ -1110,6 +1543,7 @@ func _spawn_base_enemies() -> void:
 	var configs: Array = LEVEL_COMPOSITIONS.get(comp_key, LEVEL_COMPOSITIONS[1])
 	for cfg in configs:
 		_create_enemy(cfg["pos"], cfg["type"], cfg.get("rank", FolkloreEnemy.MoskalRank.STRELETS))
+
 
 func _create_enemy(pos: Vector2, type: FolkloreEnemy.EnemyType, rank: FolkloreEnemy.MoskalRank = FolkloreEnemy.MoskalRank.STRELETS) -> void:
 	var enemy = enemy_scene.instantiate() as FolkloreEnemy
@@ -1123,6 +1557,7 @@ func _create_enemy(pos: Vector2, type: FolkloreEnemy.EnemyType, rank: FolkloreEn
 	if type == FolkloreEnemy.EnemyType.MOSKAL:
 		enemy.set_moskal_rank(rank)
 
+
 func _on_enemy_dropped_stolen_artifact(drop_pos: Vector2) -> void:
 	if not items_node:
 		return
@@ -1134,12 +1569,14 @@ func _on_enemy_dropped_stolen_artifact(drop_pos: Vector2) -> void:
 	items_node.add_child(shoe)
 	hud.show_message("АРТЕФАКТ ВИБИТО З РУК ЗЛОДІЯ! ЛОВИ ЙОГО!", 2.2, Color(1.0, 0.92, 0.25))
 
+
 func _on_artifact_stolen_by_enemy(_item: Node2D, _enemy: Node2D) -> void:
 	if telemetry_engine:
 		telemetry_engine.record_artifact_stolen()
 	if player:
 		player.say("Ах ти злодюжка! Віддай козацький скарб!", 2.2)
 	hud.show_message("ЗЛОДІЙ ПЕРЕХОПИВ АРТЕФАКТ! ВДАР ЙОГО, ЩОБ ВІДІБРАТИ!", 2.8, Color(1.0, 0.45, 0.25))
+
 
 func _spawn_fern_flower() -> void:
 	if not items_node or not items_node.get_children().is_empty():
@@ -1151,6 +1588,7 @@ func _spawn_fern_flower() -> void:
 	items_node.add_child(flower)
 	hud.show_message("З'ЯВИВСЯ ЦВІТ ПАПОРОТІ!", 2.2, Color(1.0, 0.85, 0.2))
 
+
 func _spawn_vakula_horseshoe() -> void:
 	if not items_node or not items_node.get_children().is_empty():
 		return
@@ -1160,6 +1598,7 @@ func _spawn_vakula_horseshoe() -> void:
 	shoe.stolen_by_enemy.connect(_on_artifact_stolen_by_enemy)
 	items_node.add_child(shoe)
 	hud.show_message("КОВАЛЬ ВАКУЛА НАДІСЛАВ ЗОЛОТУ ПІДКІВКУ!", 2.4, Color(1.0, 0.85, 0.2))
+
 
 func _on_horseshoe_collected(shoe: VakulaHorseshoeItem) -> void:
 	if telemetry_engine:
@@ -1171,6 +1610,7 @@ func _on_horseshoe_collected(shoe: VakulaHorseshoeItem) -> void:
 		high_score = score
 		hud.update_highscore(high_score)
 	hud.update_score(score)
+
 
 func _on_flower_collected(flower: FernFlowerItem) -> void:
 	if telemetry_engine:
@@ -1187,10 +1627,12 @@ func _on_flower_collected(flower: FernFlowerItem) -> void:
 			if e is FolkloreEnemy:
 				e.make_scared(8.0)
 
+
 func _on_player_hit_by_enemy(_enemy: FolkloreEnemy) -> void:
 	hits_this_level += 1
 	if telemetry != null:
 		telemetry.log_event("hit", {"level": level, "hits": hits_this_level})
+
 
 # Профіль, модель гравця й телеметрія (SHR-003, SWR-002). Вік і досвід задаються батьками: параметри запуску
 # `--age=8-10|11-14|15+` і `--exp=novice|casual|experienced` або збережений профіль; модель сама виправляє хибний апріор за 2–3 рівні.
@@ -1215,10 +1657,18 @@ func _init_adaptation() -> void:
 	telemetry = _Telemetry.new(player_model.player_id if loaded else "")
 	if not loaded:
 		player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id)
-	telemetry.log_event("session_start", {"age_band": player_model.age_band, "experience": player_model.experience,
-		"mu": player_model.mu, "sigma": sqrt(player_model.sigma2)})
+	telemetry.log_event(
+		"session_start",
+		{
+			"age_band": player_model.age_band,
+			"experience": player_model.experience,
+			"mu": player_model.mu,
+			"sigma": sqrt(player_model.sigma2)
+		}
+	)
 	if hud and hud.has_method("update_profile_display"):
 		hud.update_profile_display(player_model.age_band, player_model.experience)
+
 
 func _save_profile() -> void:
 	if player_model == null or _Telemetry.is_headless():
@@ -1228,20 +1678,25 @@ func _save_profile() -> void:
 		f.store_string(JSON.stringify(player_model.to_dict()))
 		f.close()
 
+
 func set_player_profile(age: String, exp_level: String) -> void:
 	if player_model == null:
 		player_model = _PlayerModel.new()
 	player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id if telemetry != null else "")
 	_save_profile()
 	if telemetry != null:
-		telemetry.log_event("session_start", {
-			"age_band": player_model.age_band,
-			"experience": player_model.experience,
-			"mu": player_model.mu,
-			"sigma": sqrt(player_model.sigma2)
-		})
+		telemetry.log_event(
+			"session_start",
+			{
+				"age_band": player_model.age_band,
+				"experience": player_model.experience,
+				"mu": player_model.mu,
+				"sigma": sqrt(player_model.sigma2)
+			}
+		)
 	if hud and hud.has_method("update_profile_display"):
 		hud.update_profile_display(player_model.age_band, player_model.experience)
+
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST and telemetry != null:
@@ -1249,11 +1704,22 @@ func _notification(what: int) -> void:
 			var elapsed := float(Time.get_ticks_msec() - level_started_ms) / 1000.0
 			if adaptive_enabled and player_model != null:
 				var obs: Dictionary = player_model.observe_abandon(elapsed)
-				telemetry.log_event("abandon", {"level": level, "time_s": elapsed, "hits": hits_this_level, "mu": obs["mu"], "reward": obs["reward"], "completed": false})
+				telemetry.log_event(
+					"abandon",
+					{
+						"level": level,
+						"time_s": elapsed,
+						"hits": hits_this_level,
+						"mu": obs["mu"],
+						"reward": obs["reward"],
+						"completed": false
+					}
+				)
 			else:
 				telemetry.log_event("abandon", {"level": level, "time_s": elapsed, "hits": hits_this_level, "completed": false})
 		telemetry.log_event("session_end", {"level": level})
 		_save_profile()
+
 
 # Вороги (чортики, москалі) повертаються через час, обернено пропорційний K (частота; K ≈ 1: без повернення)
 func _schedule_enemy_respawn(kind: FolkloreEnemy.EnemyType) -> void:
@@ -1263,14 +1729,16 @@ func _schedule_enemy_respawn(kind: FolkloreEnemy.EnemyType) -> void:
 	if delay < 0.0 or is_transitioning_level:
 		return
 	var for_level := level
-	get_tree().create_timer(delay).timeout.connect(func():
-		if is_transitioning_level or level != for_level or not enemies_node:
-			return
-		if enemies_node.get_child_count() >= _Difficulty.MAX_ALIVE_ENEMIES:
-			return
-		var spots := [Vector2(120, 135), Vector2(840, 135), Vector2(480, 215)]
-		_create_enemy(spots[randi() % spots.size()], kind)
+	get_tree().create_timer(delay).timeout.connect(
+		func():
+			if is_transitioning_level or level != for_level or not enemies_node:
+				return
+			if enemies_node.get_child_count() >= _Difficulty.MAX_ALIVE_ENEMIES:
+				return
+			var spots := [Vector2(120, 135), Vector2(840, 135), Vector2(480, 215)]
+			_create_enemy(spots[randi() % spots.size()], kind)
 	)
+
 
 func _on_enemy_defeated(enemy: FolkloreEnemy, points: int) -> void:
 	if telemetry_engine:
@@ -1285,10 +1753,11 @@ func _on_enemy_defeated(enemy: FolkloreEnemy, points: int) -> void:
 	hud.update_score(score)
 	hud.show_message("НЕЧИСТЬ РОЗІГНАНО! +%d" % points, 1.4, Color(1.0, 0.92, 0.25))
 
+
 func _spawn_bomb_grid() -> void:
 	var stage_key := ((level - 1) % 20) + 1
 	var bomb_positions: Array = LEVEL_BOMBS.get(stage_key, LEVEL_BOMBS[1])
-	
+
 	for pos in bomb_positions:
 		var bomb = bomb_scene.instantiate() as BombItem
 		bomb.chain_chance = BombItem.chain_chance_for_level(level)
@@ -1297,34 +1766,36 @@ func _spawn_bomb_grid() -> void:
 		bomb.exploded.connect(_on_bomb_exploded)
 		bomb.fizzled.connect(_on_bomb_fizzled)
 		bombs_node.add_child(bomb)
-	
+
 	hud.update_bombs(bomb_positions.size(), bomb_positions.size())
+
 
 func _light_next_bomb() -> void:
 	var remaining_bombs: Array[BombItem] = []
 	for child in bombs_node.get_children():
 		if child is BombItem and not child.is_queued_for_deletion():
 			remaining_bombs.append(child)
-	
+
 	if remaining_bombs.is_empty():
 		return
-	
+
 	# Pick a random unlit bomb to light up
 	var unlit_bombs = remaining_bombs.filter(func(b): return not b.is_lit)
 	if not unlit_bombs.is_empty():
 		var chosen: BombItem = unlit_bombs.pick_random()
 		chosen.is_lit = true
 
+
 func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 	if is_transitioning_level:
 		return
-	
+
 	bombs_collected_on_level += 1
 	if telemetry_engine:
 		telemetry_engine.record_bomb_picked(was_lit)
 	if telemetry != null:
 		telemetry.log_event("bomb", {"level": level, "lit": was_lit, "streak": lit_streak})
-	
+
 	var bonus := 0
 	var bomb_pos := bomb.global_position
 	if was_lit:
@@ -1342,7 +1813,7 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 			player.say("Козацькому роду нема переводу!", 1.8)
 		elif lit_streak == 10:
 			player.say("Оце так вогонь!", 1.6)
-		
+
 		# Гарантована доставка чарівних підківок Вакули або цвіту папороті
 		if lit_streak >= 3 and _Difficulty.ally_available("VAKULA", level):
 			call_deferred("_spawn_vakula_horseshoe")
@@ -1354,29 +1825,29 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 		bonus = 100
 		score += bonus
 		_play_sfx_at(snd_bomb_regular, bomb_pos)
-		lit_streak = 1 # Reset chain multiplier
-	
+		lit_streak = 1  # Reset chain multiplier
+
 	# Прогресивне прибуття союзних NPC (Гуцула і Киримли) по мірі перших успіхів Джури та балансу сил!
 	_check_progressive_ally_arrival()
-	
+
 	if score > high_score:
 		high_score = score
 		hud.update_highscore(high_score)
-	
+
 	hud.update_score(score)
-	
+
 	# Count remaining
 	var remaining_count := 0
 	for child in bombs_node.get_children():
 		if child is BombItem and child != bomb and not child.is_queued_for_deletion():
 			remaining_count += 1
-	
+
 	hud.update_bombs(remaining_count, 24)
-	
+
 	# Доставка підківок Вакули після збору перших 3 ядер на рівнях, де відкритий коваль
 	if remaining_count == 21 and _Difficulty.ally_available("VAKULA", level):
 		call_deferred("_spawn_vakula_horseshoe")
-	
+
 	# Motivational folklore guidance cues for age 8+ clarity
 	if remaining_count == 10:
 		hud.show_message("ЗАЛИШИЛОСЯ 10 ЯДЕР! ТРИМАЙСЯ, ДЖУРО!", 2.2, Color(1.0, 0.85, 0.2))
@@ -1390,32 +1861,34 @@ func _on_bomb_collected(bomb: BombItem, was_lit: bool) -> void:
 		player.say("Усі ядра в арсеналі! Перемога!", 2.0)
 		_on_level_complete()
 
+
 func _on_bomb_exploded(bomb: BombItem) -> void:
 	if is_transitioning_level:
 		return
-	
+
 	# Скидання стріку серії палаючих бомб та штраф слави
 	lit_streak = 1
 	var penalty := 150
 	score = maxi(0, score - penalty)
 	hud.update_score(score)
 	hud.show_message("БОМБА ЗДЕТОНУВАЛА! -%d СЛАВИ!" % penalty, 2.0, Color(1.0, 0.35, 0.2))
-	
+
 	if player:
 		player.say("Ой лишенько, порох згорів!", 1.8)
-	
+
 	_play_sfx_at(snd_poof, bomb.global_position, 0.8)
-	
+
 	# Рахуємо залишок бомб
 	var remaining_count := 0
 	for child in bombs_node.get_children():
 		if child is BombItem and child != bomb and not child.is_queued_for_deletion():
 			remaining_count += 1
-	
+
 	hud.update_bombs(remaining_count, 24)
 	if remaining_count == 0:
 		hud.show_message("РІВЕНЬ ЗАВЕРШЕНО!", 3.0, Color(0.25, 1.0, 0.50))
 		_on_level_complete()
+
 
 func _on_bomb_fizzled(bomb: BombItem) -> void:
 	if is_transitioning_level:
@@ -1425,11 +1898,12 @@ func _on_bomb_fizzled(bomb: BombItem) -> void:
 		player.say("Хух, згасло! Пронесло!", 1.6)
 	_play_sfx_at(snd_poof, bomb.global_position, 1.5)
 
+
 func _on_level_complete() -> void:
 	if is_transitioning_level:
 		return
 	is_transitioning_level = true
-	
+
 	# Якість проходження → бонус і коефіцієнт складності наступного рівня (difficulty.gd, SHR-001 I-7)
 	var clear_time_s := float(Time.get_ticks_msec() - level_started_ms) / 1000.0
 	var level_quality: float = _Difficulty.quality(clear_time_s, hits_this_level, max_lit_streak_level)
@@ -1441,23 +1915,59 @@ func _on_level_complete() -> void:
 	if adaptive_enabled and player_model != null:
 		var obs: Dictionary = player_model.observe(level_quality, hits_this_level, clear_time_s, true, interest_bonus)
 		if telemetry != null:
-			telemetry.log_event("level_end", {"level": level, "k": difficulty_k, "time_s": clear_time_s, "hits": hits_this_level, "streak": max_lit_streak_level,
-				"quality": level_quality, "bonus": clear_bonus, "enemies": level_enemy_count_start, "mu": obs["mu"], "sigma": obs["sigma"], "p_pred": obs["p_pred"],
-				"reward": obs["reward"], "arm": obs["arm"], "frustration": obs["frustration"], "boredom": obs["boredom"], "completed": true,
-				"persona": ep_summary.get("persona", ""), "near_misses": ep_summary.get("near_misses", 0), "strikes": ep_summary.get("strikes", 0),
-				"rhythm_cv": ep_summary.get("rhythm_cv", 0.0), "idle_ratio": ep_summary.get("idle_ratio", 0.0)})
+			telemetry.log_event(
+				"level_end",
+				{
+					"level": level,
+					"k": difficulty_k,
+					"time_s": clear_time_s,
+					"hits": hits_this_level,
+					"streak": max_lit_streak_level,
+					"quality": level_quality,
+					"bonus": clear_bonus,
+					"enemies": level_enemy_count_start,
+					"mu": obs["mu"],
+					"sigma": obs["sigma"],
+					"p_pred": obs["p_pred"],
+					"reward": obs["reward"],
+					"arm": obs["arm"],
+					"frustration": obs["frustration"],
+					"boredom": obs["boredom"],
+					"completed": true,
+					"persona": ep_summary.get("persona", ""),
+					"near_misses": ep_summary.get("near_misses", 0),
+					"strikes": ep_summary.get("strikes", 0),
+					"rhythm_cv": ep_summary.get("rhythm_cv", 0.0),
+					"idle_ratio": ep_summary.get("idle_ratio", 0.0)
+				}
+			)
 		_save_profile()
 	elif telemetry != null:
-		telemetry.log_event("level_end", {"level": level, "k": difficulty_k, "time_s": clear_time_s, "hits": hits_this_level, "streak": max_lit_streak_level,
-			"quality": level_quality, "bonus": clear_bonus, "enemies": level_enemy_count_start, "completed": true,
-			"persona": ep_summary.get("persona", ""), "near_misses": ep_summary.get("near_misses", 0), "strikes": ep_summary.get("strikes", 0),
-			"rhythm_cv": ep_summary.get("rhythm_cv", 0.0), "idle_ratio": ep_summary.get("idle_ratio", 0.0)})
+		telemetry.log_event(
+			"level_end",
+			{
+				"level": level,
+				"k": difficulty_k,
+				"time_s": clear_time_s,
+				"hits": hits_this_level,
+				"streak": max_lit_streak_level,
+				"quality": level_quality,
+				"bonus": clear_bonus,
+				"enemies": level_enemy_count_start,
+				"completed": true,
+				"persona": ep_summary.get("persona", ""),
+				"near_misses": ep_summary.get("near_misses", 0),
+				"strikes": ep_summary.get("strikes", 0),
+				"rhythm_cv": ep_summary.get("rhythm_cv", 0.0),
+				"idle_ratio": ep_summary.get("idle_ratio", 0.0)
+			}
+		)
 	score += clear_bonus
 	if score > high_score:
 		high_score = score
 		hud.update_highscore(high_score)
 	hud.update_score(score)
-	
+
 	# Ворожі NPC-злодії не зникають миттєво, а танцюють свій комічний національний танок невдачі!
 	if enemies_node:
 		for child in enemies_node.get_children():
@@ -1466,46 +1976,50 @@ func _on_level_complete() -> void:
 	if items_node:
 		for child in items_node.get_children():
 			child.queue_free()
-	
+
 	# Мавка, Домовик, Кобзар і Вакула танцюють свій особистий переможний танок!
 	if (mavka_ally == null or not is_instance_valid(mavka_ally)) and _Difficulty.ally_available("MAVKA", level):
 		_spawn_mavka_ally()
 	if mavka_ally and is_instance_valid(mavka_ally) and mavka_ally.has_method("celebrate_victory"):
 		mavka_ally.celebrate_victory()
-	
+
 	# Qirimli ally joins the joyous celebration with Crimean Tatar Horan / Qaytarma dance!
 	if qirimli_ally and is_instance_valid(qirimli_ally) and qirimli_ally.has_method("celebrate_victory"):
 		qirimli_ally.celebrate_victory()
-	
+
 	# Carpathian Hutsul & Lytvyn band gathers and dances their personal Arkan / Liavonicha victory dance!
 	_ensure_hutsul_victory_dancers()
 	for h in hutsul_allies:
 		if h and is_instance_valid(h) and h.has_method("celebrate_victory"):
 			h.celebrate_victory()
-	
+
 	# 1. Stop space background music immediately
 	bgm_player.stop()
-	
+
 	# 2. Initiate Dzhura's victory sequence (lands on floor first if airborne)
 	player.celebrate_victory(4.10)
 	if player.hopak_waiting_for_floor:
 		await player.hopak_started
-	
+
 	# 3. Play authentic Ukrainian folklore Hopak celebration music & banner in sync with dance
 	_play_sfx(snd_hopak_music)
 	hud.show_message("ПЕРЕМОЖНИЙ БОЙОВИЙ ГОПАК!", 3.95, Color(0.25, 1.0, 0.50, 1.0))
-	
+
 	# 4. Wait until Dzhura completely finishes all 6 phases of the Combat Hopak
 	await player.hopak_finished
 	await get_tree().create_timer(0.15).timeout
-	
+
 	# 4.5. Бонус за швидке й якісне проходження
-	hud.show_message("БОНУС ЗА ПРОХОДЖЕННЯ +%d (ЯКІСТЬ %d%%, %d с)" % [clear_bonus, int(round(level_quality * 100.0)), int(round(clear_time_s))], 2.4, Color(0.55, 1.0, 0.65))
-	
+	hud.show_message(
+		"БОНУС ЗА ПРОХОДЖЕННЯ +%d (ЯКІСТЬ %d%%, %d с)" % [clear_bonus, int(round(level_quality * 100.0)), int(round(clear_time_s))],
+		2.4,
+		Color(0.55, 1.0, 0.65)
+	)
+
 	# 5. Reset Dzhura to clean normal state at starting position before spawning next level
 	var prev_lvl := level
 	level += 1
-	
+
 	if prev_lvl == 1:
 		player.unlock_champion_skill(JackPlayer.ChampionSkill.STEELHAMMER_JAB)
 		_queue_combat_hint_front("steelhammer_jab")
@@ -1525,18 +2039,18 @@ func _on_level_complete() -> void:
 	elif prev_lvl == 5:
 		player.unlock_kotyhoroshko_mace(12)
 		hud.show_message("РЕЛІКВІЯ КОТИГОРОШКА! ТИ ЗДОБУВ БОГАТИРСЬКУ БУЛАВУ!", 4.5, Color(1.0, 0.85, 0.2))
-	
+
 	# Булава Котигорошка — вічна реліквія: після здобуття (рівень 5) на кожному наступному рівні знову заряджається на повну
 	if prev_lvl > 5:
 		player.unlock_kotyhoroshko_mace(12)
 	player.reset_to_normal_state(Vector2(480, 494))
 	_setup_level()
-	
+
 	# Show comic story cards for the next level before launching gameplay
 	if story_cards and story_cards.has_story_for_level(level):
 		story_cards.show_story_for_level(level)
 		await story_cards.story_finished
-	
+
 	# 6. Resume stage background music & show classic center-screen level announcement with fade-out
 	bgm_player.play()
 	hud.announce_level(level, 2.5)
