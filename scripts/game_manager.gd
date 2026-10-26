@@ -40,6 +40,7 @@ const PROFILE_PATH: String = "user://player_profile.json"
 var adaptive_enabled: bool = true  # false: детермінована база difficulty.coefficient (для наборів тестів складу рівнів)
 var player_model = null
 var telemetry = null
+var profile_seed: int = -1  # -1: випадкове зерно
 var level_offset: float = 0.0
 var level_in_progress: bool = false
 const _TelemetryEngine = preload("res://scripts/telemetry_engine.gd")
@@ -1640,11 +1641,13 @@ func _init_adaptation() -> void:
 	player_model = _PlayerModel.new()
 	var age := "11-14"
 	var exp_level := "casual"
-	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--age="):
-			age = a.substr(6)
-		elif a.begins_with("--exp="):
-			exp_level = a.substr(6)
+	var explicit := _read_profile_params()
+	if explicit.has("age"):
+		age = explicit["age"]
+	if explicit.has("exp"):
+		exp_level = explicit["exp"]
+	if explicit.has("seed"):
+		profile_seed = int(explicit["seed"])
 	var loaded := false
 	if not _Telemetry.is_headless() and FileAccess.file_exists(PROFILE_PATH):
 		var f := FileAccess.open(PROFILE_PATH, FileAccess.READ)
@@ -1656,7 +1659,10 @@ func _init_adaptation() -> void:
 				loaded = true
 	telemetry = _Telemetry.new(player_model.player_id if loaded else "")
 	if not loaded:
-		player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id)
+		player_model.setup(age, exp_level, _profile_seed(), telemetry.player_id)
+		# ADP-01: без збереженого профілю й без явних параметрів не вгадуємо вік, а питаємо дорослого
+		if not explicit.has("age") and not _Telemetry.is_headless() and hud and hud.has_method("open_profile_dialog"):
+			hud.call_deferred("open_profile_dialog")
 	telemetry.log_event(
 		"session_start",
 		{
@@ -1668,6 +1674,40 @@ func _init_adaptation() -> void:
 	)
 	if hud and hud.has_method("update_profile_display"):
 		hud.update_profile_display(player_model.age_band, player_model.experience)
+
+
+# Явні параметри профілю: CLI (`--age= --exp= --seed=`) або, у веб-збірці, query-рядок URL (`?age=8-10&exp=novice&seed=7`).
+# Невалідні значення відкидаються. Повертає лише ті ключі, що задані.
+func _read_profile_params() -> Dictionary:
+	var raw := {}
+	for a in OS.get_cmdline_user_args():
+		for key in ["age", "exp", "seed"]:
+			if a.begins_with("--%s=" % key):
+				raw[key] = a.substr(key.length() + 3)
+	if OS.has_feature("web"):
+		for key in ["age", "exp", "seed"]:
+			var v = JavaScriptBridge.eval("new URLSearchParams(window.location.search).get('%s')" % key)
+			if v is String and v != "":
+				raw[key] = v
+	return _validate_profile_params(raw)
+
+
+static func _validate_profile_params(raw: Dictionary) -> Dictionary:
+	var out := {}
+	if str(raw.get("age", "")) in ["8-10", "11-14", "15+"]:
+		out["age"] = raw["age"]
+	if str(raw.get("exp", "")) in ["novice", "casual", "experienced"]:
+		out["exp"] = raw["exp"]
+	if str(raw.get("seed", "")).is_valid_int():
+		out["seed"] = int(raw["seed"])
+	return out
+
+
+# ADP-06: `--seed=N` робить поведінку бандита відтворюваною
+func _profile_seed() -> int:
+	if profile_seed >= 0:
+		return profile_seed
+	return int(Time.get_unix_time_from_system()) % 100000
 
 
 func _save_profile() -> void:
@@ -1682,7 +1722,7 @@ func _save_profile() -> void:
 func set_player_profile(age: String, exp_level: String) -> void:
 	if player_model == null:
 		player_model = _PlayerModel.new()
-	player_model.setup(age, exp_level, int(Time.get_unix_time_from_system()) % 100000, telemetry.player_id if telemetry != null else "")
+	player_model.setup(age, exp_level, _profile_seed(), telemetry.player_id if telemetry != null else "")
 	_save_profile()
 	if telemetry != null:
 		telemetry.log_event(
@@ -1718,6 +1758,7 @@ func _notification(what: int) -> void:
 			else:
 				telemetry.log_event("abandon", {"level": level, "time_s": elapsed, "hits": hits_this_level, "completed": false})
 		telemetry.log_event("session_end", {"level": level})
+		telemetry.flush()
 		_save_profile()
 
 

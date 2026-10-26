@@ -16,3 +16,4 @@ sprite_pipeline 1
 telemetry_engine 1
 smoke_main 3
 scenes_load 1
+adaptation_params 3
