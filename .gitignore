@@ -36,6 +36,6 @@ docs/tasks.md
 *TASKS*.md
 *backlog*
 
-# Turnaround raw frame dumps
+# Turnaround raw frame dumps and source 3D archives
 reports/turnarounds/*/*.png
-reports/sketches/*/*.glb
+sources/sketches/*/*.glb
