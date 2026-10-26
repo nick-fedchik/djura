@@ -48,9 +48,9 @@ func _check_stage1_compositions() -> void:
 		assert(c.get(T.MOSKAL, 0) == 0, "Level %d: no Moskals in Stage 2" % lvl)
 	# Киримли-союзник розблокований з рівня 7
 	assert(not D.ally_available("QIRIMLI", 6) and D.ally_available("QIRIMLI", 7), "Qirimli unlocks at level 7")
-	# Ланцюгова реакція ядер: 20% на рівнях 1–2, 50% далі
-	assert(is_equal_approx(BombItem.chain_chance_for_level(1), 0.20) and is_equal_approx(BombItem.chain_chance_for_level(2), 0.20), "Chain chance 0.20 on levels 1-2")
-	assert(is_equal_approx(BombItem.chain_chance_for_level(3), 0.50), "Chain chance 0.50 from level 3")
+	# Ланцюгова реакція ядер скасована за рішенням власника (0.0 на всіх рівнях)
+	assert(is_equal_approx(BombItem.chain_chance_for_level(1), 0.0) and is_equal_approx(BombItem.chain_chance_for_level(2), 0.0), "Chain chance 0.0 on levels 1-2")
+	assert(is_equal_approx(BombItem.chain_chance_for_level(3), 0.0), "Chain chance 0.0 from level 3")
 	# Булава — вічна реліквія: після рівня 5 відновлюється до 12 на кожному рівні
 	var p = JackPlayer.new()
 	p.unlock_kotyhoroshko_mace(12)
