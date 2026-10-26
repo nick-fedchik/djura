@@ -1,7 +1,7 @@
 # 🛠️ Інструкція зі встановлення та налаштування робочого середовища розробника (INSTALL.md)
 
 **Проєкт:** «Джура: початок шляху козака» (*Djura: Path of the Cossack*)  
-**Рушій:** Godot Engine 4.x (рекомендовано 4.3+ або 4.7 Standard, 64-bit, без .NET)  
+**Рушій:** Godot Engine 4.7.x (перевірено на 4.7.2 Standard, 64-bit, без .NET)  
 **Мова скриптів:** GDScript 2.0 + Python 3.13 / 3.14+ (проєкт верифіковано на Python 3.14)  
 **Репозиторій:** [https://github.com/nick-fedchik/djura.git](https://github.com/nick-fedchik/djura.git)
 
@@ -37,10 +37,10 @@ sudo apt update && sudo apt install -y git python3 python3-pip curl unzip
   # Створюємо папку для користувацьких бінарників у PATH
   mkdir -p ~/.local/bin
 
-  # Завантажуємо офіційний реліз Godot 4 (наприклад, 4.3-stable або 4.7)
-  curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+  # Завантажуємо офіційний реліз Godot 4.7 (4.7.2-stable)
+  curl -L -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_linux.x86_64.zip
   unzip -q /tmp/godot.zip -d ~/.local/bin/
-  mv ~/.local/bin/Godot_v4.3-stable_linux.x86_64 ~/.local/bin/godot
+  mv ~/.local/bin/Godot_v4.7.2-stable_linux.x86_64 ~/.local/bin/godot
   chmod +x ~/.local/bin/godot
 
   # Перевіряємо версію

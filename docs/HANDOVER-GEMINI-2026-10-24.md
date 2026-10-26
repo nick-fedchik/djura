@@ -1,4 +1,9 @@
-# Промпт для Gemini: Geek Jack, адаптація складності та кампанія з 20 рівнів
+# [АРХІВ / ІСТОРИЧНИЙ ДОКУМЕНТ] Промпт для Gemini: Geek Jack (2026-10-24)
+
+> [!NOTE]
+> **Історичний документ від 2026-10-24.**
+> Актуальні робочі регламенти зафіксовані в `AGENTS.md` та `docs/HANDOVER-CLAUDE.md`.
+> Активний каталог розробки: `/home/mfedchyk/Godot/djura-1/` (симлінк `~/Godot/djura-1`).
 
 Ти працюєш у репозиторії `~/geek-jack` (Godot 4.7, проєкт «Geek Jack: Джура», гра для дітей 8+). Паралельно в тому ж репозиторії працював Claude. Нижче стан, межі відповідальності й що робити далі. Прочитай спершу `docs/TASKS.md`, `docs/SHR-001-game-rules-as-verifiable-invariants.md`, `docs/SHR-003-adaptive-difficulty-and-independent-telemetry.md`, `docs/SWR-002-adaptive-model-and-telemetry.md`, `docs/ADR-002-bayesian-flow-adaptation.md`, `docs/LEVEL_PROGRESSION_STORY_8PLUS.md`.
 

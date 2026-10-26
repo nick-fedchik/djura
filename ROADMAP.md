@@ -30,7 +30,7 @@ flowchart LR
   - **I-3 (Zero-Horror):** без кривавого насилля, комічні реакції ворогів;
   - **I-4 (Anti-Clipping):** прив'язка підошов до $Z = 0$ (`y = 16`).
 - [x] Кампанія з 20 рівнів із 4 актами оточення (`LEVEL_COMPOSITIONS`, `LEVEL_PLATFORMS`, `LEVEL_BOMBS`).
-- [x] Headless-набір автоматизованих тестів (`tools/run_tests.sh`, 14/14 PASS).
+- [x] Headless-набір автоматизованих тестів (`tools/run_tests.sh`, 19/19 PASS, 100% успішно).
 
 ---
 
