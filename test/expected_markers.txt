@@ -17,3 +17,4 @@ telemetry_engine 1
 smoke_main 3
 scenes_load 1
 adaptation_params 3
+player_pose 2
