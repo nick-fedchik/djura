@@ -1,0 +1,18 @@
+# Мінімальна кількість маркерів успіху (PASSED або [OK]) у виводі кожного тесту.
+# tools/run_tests.sh падає, якщо тест надрукував менше: так передчасний quit(0) не проходить непомітно (TST-03).
+# Формат: <ім'я тесту без test_ і .gd> <мінімум>. Збільшуйте число, коли додаєте перевірки.
+adaptive_model 1
+anti_clipping 1
+difficulty_coefficient 1
+difficulty_curve 1
+djura_sprites 1
+engineers 3
+jump_to_top_beam 3
+level_reachability 1
+levels 30
+pantheon_bestiary 1
+progression 1
+sprite_pipeline 1
+telemetry_engine 1
+smoke_main 3
+scenes_load 1

@@ -6,6 +6,8 @@ Usage:
     blender -b -P tools/blender/setup_render_stage.py
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
 import math
 import os
 import sys
@@ -76,5 +78,5 @@ def setup_render_stage(output_blend_path: str):
     print(f"Render stage template saved successfully to: {output_blend_path}")
 
 if __name__ == "__main__":
-    blend_path = os.path.abspath("/home/mfedchyk/Godot/djura-1/templates/render_stage.blend")
+    blend_path = os.path.abspath(os.path.join(_PROJECT_ROOT, "templates", "render_stage.blend"))
     setup_render_stage(blend_path)

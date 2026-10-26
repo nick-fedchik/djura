@@ -6,6 +6,8 @@ and authentic Cossack Victory Hopak (Переможний Гопак) animations
 """
 
 import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
+import os
 import sys
 import math
 import subprocess
@@ -15,7 +17,7 @@ def run():
 import bpy, math, os, sys
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
-glb_path = "/home/mfedchyk/Godot/djura-1/assets/models/djura_meshy.glb"
+glb_path = os.path.join(_PROJECT_ROOT, "sources", "models", "djura_meshy.glb")
 bpy.ops.import_scene.gltf(filepath=glb_path)
 
 m = bpy.data.objects.get("Mesh_0")
@@ -174,7 +176,7 @@ fill = bpy.data.objects.new(name='FillSun', object_data=fill_data)
 scene.collection.objects.link(fill)
 fill.rotation_euler = (math.radians(45), math.radians(-40), math.radians(-110))
 
-tmp_dir = "/home/mfedchyk/Godot/djura-1/build/render_tmp/djura_smooth"
+tmp_dir = os.path.join(_PROJECT_ROOT, "build", "render_tmp", "djura_smooth")
 os.makedirs(tmp_dir, exist_ok=True)
 
 bpy.ops.object.mode_set(mode='POSE')
@@ -413,12 +415,12 @@ for anim_name, frames in anims.items():
 print("All frames rendered successfully!")
 
 # Pack into spritesheet
-sys.path.insert(0, "/home/mfedchyk/Godot/djura-1/tools/blender")
+sys.path.insert(0, os.path.join(_PROJECT_ROOT, "tools", "blender"))
 import pack_spritesheet
 
-out_png = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_sheet.png"
-out_tres = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_frames.tres"
-out_json = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_manifest.json"
+out_png = os.path.join(_PROJECT_ROOT, "assets", "sprites", "djura_sheet.png")
+out_tres = os.path.join(_PROJECT_ROOT, "assets", "sprites", "djura_frames.tres")
+out_json = os.path.join(_PROJECT_ROOT, "assets", "sprites", "djura_manifest.json")
 
 pack_spritesheet.pack_spritesheet(
     frames_by_anim=frames_by_anim,

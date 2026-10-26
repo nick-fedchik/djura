@@ -173,6 +173,8 @@ func _init_animated_sprite() -> void:
 			return
 
 func _play_sfx(stream: AudioStream, pitch_scale: float = 1.0) -> void:
+	if not is_inside_tree():
+		return
 	var sfx := AudioStreamPlayer2D.new()
 	sfx.bus = "Master"
 	sfx.stream = stream

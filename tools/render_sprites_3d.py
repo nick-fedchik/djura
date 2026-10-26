@@ -9,6 +9,8 @@ or via Blender:
     blender -b templates/render_stage.blend -P tools/render_sprites_3d.py -- --model path/to/model.glb --name cossack_hero
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
 import argparse
 import glob
 import math
@@ -189,7 +191,7 @@ def render_in_blender(args):
 def main():
     args = parse_args()
 
-    project_root = os.path.abspath("/home/mfedchyk/Godot/djura-1")
+    project_root = os.path.abspath(_PROJECT_ROOT)
     template_path = os.path.join(project_root, args.template)
 
     if not os.path.isfile(template_path):

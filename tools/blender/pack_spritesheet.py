@@ -8,6 +8,8 @@ Takes rendered frame folders and produces:
 3. Metadata JSON manifest (<character_name>_manifest.json).
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
 import json
 import math
 import os
@@ -123,7 +125,7 @@ def pack_spritesheet(
     # Generate Godot 4 SpriteFrames .tres resource
     # Godot path relative to project root
     # e.g., res://assets/sprites/<basename>.png
-    rel_png_path = os.path.relpath(output_png, "/home/mfedchyk/Godot/djura-1")
+    rel_png_path = os.path.relpath(output_png, _PROJECT_ROOT)
     godot_tex_res = f"res://{rel_png_path}"
 
     generate_godot_spriteframes_tres(

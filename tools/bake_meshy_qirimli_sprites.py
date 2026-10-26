@@ -7,6 +7,8 @@ Generates:
 """
 
 import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
+import os
 import sys
 import math
 import subprocess
@@ -18,7 +20,7 @@ def run_blender_render():
 import bpy, math, os
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
-glb_path = "/home/mfedchyk/Godot/djura-1/assets/models/qirimli.glb"
+glb_path = os.path.join(_PROJECT_ROOT, "sources", "models", "qirimli.glb")
 bpy.ops.import_scene.gltf(filepath=glb_path)
 
 scene = bpy.context.scene
@@ -66,13 +68,13 @@ fill = bpy.data.objects.new(name="FillSun", object_data=fill_data)
 scene.collection.objects.link(fill)
 fill.rotation_euler = (math.radians(45), math.radians(-40), math.radians(-110))
 
-tmp_dir = "/home/mfedchyk/Godot/djura-1/build/render_tmp/qirimli_meshy"
+tmp_dir = os.path.join(_PROJECT_ROOT, "build", "render_tmp", "qirimli_meshy")
 os.makedirs(tmp_dir, exist_ok=True)
 
 # 1. Render close-up Portrait for story cards
 cam_data.ortho_scale = 0.85
 cam.location = (0, -2.5, height * 0.78)
-portrait_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/qirimli_portrait.png"
+portrait_path = os.path.join(_PROJECT_ROOT, "assets", "sprites", "qirimli_portrait.png")
 scene.render.filepath = portrait_path
 bpy.ops.render.render(write_still=True)
 print("Rendered Qirimli portrait:", portrait_path)
@@ -126,10 +128,10 @@ print("Blender Qirimli rendering complete!")
     subprocess.check_call(cmd)
 
 def pack_sheet():
-    sys.path.insert(0, "/home/mfedchyk/Godot/djura-1/tools/blender")
+    sys.path.insert(0, os.path.join(_PROJECT_ROOT, "tools", "blender"))
     import pack_spritesheet
 
-    tmp_dir = "/home/mfedchyk/Godot/djura-1/build/render_tmp/qirimli_meshy"
+    tmp_dir = os.path.join(_PROJECT_ROOT, "build", "render_tmp", "qirimli_meshy")
     frames_by_anim = {}
     for anim_dir in sorted(os.listdir(tmp_dir)):
         full_path = os.path.join(tmp_dir, anim_dir)
@@ -138,9 +140,9 @@ def pack_sheet():
             if frames:
                 frames_by_anim[anim_dir] = frames
 
-    output_png = "/home/mfedchyk/Godot/djura-1/assets/sprites/qirimli_sheet.png"
-    output_tres = "/home/mfedchyk/Godot/djura-1/assets/sprites/qirimli_frames.tres"
-    output_json = "/home/mfedchyk/Godot/djura-1/assets/sprites/qirimli_manifest.json"
+    output_png = os.path.join(_PROJECT_ROOT, "assets", "sprites", "qirimli_sheet.png")
+    output_tres = os.path.join(_PROJECT_ROOT, "assets", "sprites", "qirimli_frames.tres")
+    output_json = os.path.join(_PROJECT_ROOT, "assets", "sprites", "qirimli_manifest.json")
 
     print("Packing Qirimli frames into:", output_png)
     pack_spritesheet.pack_spritesheet(

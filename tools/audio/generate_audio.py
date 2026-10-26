@@ -5,7 +5,7 @@ import wave
 import os
 
 SAMPLE_RATE = 44100
-OUT_DIR = "/home/mfedchyk/geek-jack/assets/audio"
+OUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "audio"))
 
 def write_wav_mono(filename, samples, sample_rate=SAMPLE_RATE):
     filepath = os.path.join(OUT_DIR, filename)

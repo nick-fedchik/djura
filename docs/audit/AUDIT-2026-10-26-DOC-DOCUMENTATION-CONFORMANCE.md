@@ -1,0 +1,61 @@
+# АУДИТ DOC: Відповідність документації коду
+
+- **Код аудиту:** `DOC` (`DOC-01..DOC-06`)
+- **Дата:** 2026-10-26
+- **Аудитор:** Claude Sonnet 5.5 (лише читання)
+- **Об'єкт:** `README.md`, `CONTRIBUTING.md`, `INSTALL.md`, `ROADMAP.md`, `CLAUDE.md`, `docs/TASKS.md`, `docs/HANDOVER-*.md` (звірка з кодом і `project.godot`)
+- **Коміт:** `92174da`; `git status --short`: 34 записи
+- **Інструменти:** grep, `tools/run_tests.sh`
+
+---
+
+## 1. Підсумок
+
+Інженерні документи (SHR/SWR/ADR, `TASKS.md`, `CLAUDE.md`) докладні й переважно відповідають коду. Вхідна документація для нових учасників (`README.md`, `CONTRIBUTING.md`, `INSTALL.md`) відстає від проєкту на кілька ітерацій: твердження «100% процедурна графіка» суперечить 26 МБ спрайтів і 3D-конвеєру, команда перевірки покриває один тест із 13, а версія рушія вказана 4.3, тоді як проєкт створено на 4.7. Новачок, що слідує README, матиме неправильну картину.
+
+## 2. Що в порядку
+
+| Перевірка | Результат | Команда |
+|---|---|---|
+| Посилання на документи в README існують | `docs/MEMO_FOLKLORE_CHARACTERS.md`, `docs/MEMO_BOXING_SUPERHEROES_PROGRESSION.md` присутні | `ls docs` |
+| `ROADMAP.md` фази відповідають `TASKS.md` | 20 рівнів, адаптивність, headless-тести позначені виконаними, що збігається з `TASKS.md` (T-021…T-031 `done`) | читання |
+| `CLAUDE.md` відповідає реальним командам | `tools/run_tests.sh`, `gdparse`, таймаути; працює | виконання `tools/run_tests.sh` |
+| Структура кодової бази в `INSTALL.md` (розділ «Структура») | каталоги `scripts/`, `scenes/`, `test/`, `docs/`, `tools/` існують | `ls` |
+| Приватність: документ ризиків SHR-003 відповідає коду | «мережі немає» підтверджено (ADP, розділ 2) | grep по `scripts/` |
+
+## 3. Реєстр дефектів
+
+| ID | Серйозність | Суть | Доказ | Статус |
+|---|---|---|---|---|
+| `DOC-01` | HIGH | «100% процедурна векторна графіка… не потрібно малювати спрайти» (`README.md:79`) і «Жодних зовнішніх PNG-спрайтів не потрібно!» (`CONTRIBUTING.md:12`) суперечать коду: у `assets/sprites/` 26 МБ, у `scripts/` і `scenes/` 24 посилання на `res://assets/sprites`, є ADR-003 і SHR-004 про конвеєр 3D→2D. Правило задано як «золоте правило 2» у `CONTRIBUTING.md`, а ADR-003 фактично змінив його (SHR-001 такого інваріанта I-1…I-7 не містить), без оновлення вхідних документів | `grep -rhn "res://assets/sprites" scripts scenes \| wc -l` → 24; `du -sh assets/sprites` | open |
+| `DOC-02` | MEDIUM | Команда перевірки застаріла: `README.md:81` і `CONTRIBUTING.md:16, 51` рекомендують `godot --headless --script test/test_levels.gd` («за 2 секунди», очікуваний рядок `ALL LEVEL 1 & LEVEL 2 TESTS PASSED`), хоча повний набір запускається `tools/run_tests.sh` (13 GDScript + 2 Python тести, 19,6 с). `ROADMAP.md:33` каже «14/14 PASS», фактично 15 перевірок | `tools/run_tests.sh`; `grep -n "14/14" ROADMAP.md` | open |
+| `DOC-03` | MEDIUM | Версія рушія: `README.md:13` («4.3+ / 4.7») і `INSTALL.md:4, 41–43` ведуть до завантаження `4.3-stable`, тоді як `project.godot` має `config/features=PackedStringArray("4.7", ...)`, а всі перевірки виконано на 4.7.2. Те, що 4.3 відкриє проєкт чи пройде тести, не підтверджено | `grep -n "4.3" README.md INSTALL.md`; `godot --version` → `4.7.2.stable` | open |
+| `DOC-04` | MEDIUM | Невизначена назва проєкту: `project.godot` `config/name="Geek Jack"`, репозиторій `djura`, `README` називає гру «Козак Джура: Вогняні Ядра Січі (Geek-Jack)», `ROADMAP` — «Джура: початок шляху козака». Крок 2 в README каже «відкрийте папку `geek-jack`» (така папка існує лише як стара копія, див. ORG-08). У `*.md` 23 згадки «Geek Jack/Geek-Jack/geek-jack» | `grep -rn "Geek Jack\|Geek-Jack\|geek-jack" --include=*.md . \| wc -l` | open |
+| `DOC-05` | LOW | `docs/TASKS.md` має заголовок «Задачі (2026-10-24)», а містить записи від 2026-10-25; немає колонки з датою оновлення. Дубль ID `T-021` описано в ORG-04 | `head -1 docs/TASKS.md`; `grep -c "2026-10-25" docs/TASKS.md` | open |
+| `DOC-06` | LOW | Передавальні документи без позначки актуальності: `docs/HANDOVER-GEMINI-2026-10-24.md:3, 6` посилається на репозиторій `~/geek-jack` і вимагає «Нічого не комітити», що суперечить поточному процесу (`HANDOVER-CLAUDE.md` вказує коректний `~/Godot/djura-1`). Новий агент може виконати застарілі інструкції | `grep -n "geek-jack\|Нічого не комітити" docs/HANDOVER-*.md` (лише GEMINI) | open |
+
+## 4. Пропозиції
+
+1. **Переписати «Чому вайб-кодити» (DOC-01).** Замінити пункт 1 на: «Гра головним чином процедурна (`_draw()`), але для персонажів допускається 3D→2D конвеєр (ADR-003); див. `docs/ADR-003…`». Зафіксувати зміну як виняток у «золотих правилах» `CONTRIBUTING.md`.
+   *EARS:* WHEN the architecture changes an invariant, the change SHALL update the README and CONTRIBUTING sentences that quote it in the same pull request. *Приймання:* `grep -n "Жодних зовнішніх PNG" CONTRIBUTING.md` порожньо.
+2. **Єдина команда тестів (DOC-02).** У README і CONTRIBUTING: `tools/run_tests.sh`; прибрати посилання на «2 секунди»; число перевірок брати з виводу, а не жорстко прописувати («14/14» → «усі перевірки пройшли»).
+3. **Версія рушія (DOC-03).** «Godot 4.7.x; перевірено на 4.7.2»; посилання на 4.3 замінити на 4.7.2.
+   *EARS:* The documentation SHALL name the engine version listed in `project.godot`. *Приймання:* `grep -c "4.3-stable" README.md INSTALL.md` = 0.
+4. **Назва (DOC-04).** Рішення власника: офіційна назва та repo-slug. Після цього `sed`-заміна в `*.md`; `config/name` у `project.godot` (вікно та назва веб-сторінки).
+5. **Індекс та дата (DOC-05).** Рядок «Оновлено: <дата>» у `TASKS.md`; перевірка в `tools/test_tools.py` на унікальність ID (див. ORG-04).
+6. **Архівувати передачі (DOC-06).** Перенести `HANDOVER-*.md` у `docs/archive/` із заголовком «Історичний документ, не інструкція».
+
+## 5. План хвилями
+
+| Хвиля | Строк | Зміст | Приймання |
+|---|---|---|---|
+| 1 | день | DOC-02, DOC-03, DOC-05, DOC-06 | grep-перевірки приймання порожні |
+| 2 | тиждень | DOC-01 (погодити з власником виняток з правила 2 та ADR-003) | README узгоджений з ADR-003 |
+| 3 | місяць | DOC-04 (назва проєкту) | єдина назва у `project.godot` і `*.md` |
+
+## 6. Межі валідності
+
+- Я не перевіряв, чи Godot 4.3 відкриває цей проєкт; DOC-03 стверджує лише розбіжність версій.
+- Командний рядок `godot --headless --script test/test_levels.gd` з README я не запускав; DOC-02 каже, що він не покриває весь набір, а не що він не працює.
+- DOC-01: у `docs/SHR-001` (I-1…I-7) інваріанта про заборону спрайтів немає; джерелом правила я вважаю `CONTRIBUTING.md:12`.
+- Зовнішні посилання (GitHub, godotengine.org) не відкривались.

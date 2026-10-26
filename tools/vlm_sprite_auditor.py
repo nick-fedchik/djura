@@ -15,7 +15,9 @@ import urllib.error
 import urllib.request
 
 
-OLLAMA_DEFAULT_URL = "http://192.168.68.68:11434/api/generate"
+# Вузол J501 за замовчуванням; задайте OLLAMA_HOST (напр. http://host:11434), щоб використати інший (TLS-03)
+J501_DEFAULT_HOST = "http://192.168.68.68:11434"
+OLLAMA_DEFAULT_URL = os.environ.get("OLLAMA_HOST", J501_DEFAULT_HOST).rstrip("/") + "/api/generate"
 DEFAULT_MODEL = "gemma3:12b"
 
 
@@ -130,6 +132,8 @@ def main():
     parser.add_argument("--model", default=DEFAULT_MODEL, help="VLM model name")
     parser.add_argument("--out-report", default="", help="Path to save output JSON report")
     args = parser.parse_args()
+    if "OLLAMA_HOST" not in os.environ and args.url == OLLAMA_DEFAULT_URL:
+        print(f"[Warning] OLLAMA_HOST не задано, використовується вузол J501 за замовчуванням ({J501_DEFAULT_HOST})", file=sys.stderr)
 
     out_rep = args.out_report or f"reports/sprite_audit_{args.name}.json"
     result = audit_sprite(

@@ -3,6 +3,8 @@ Creates a stylized test Cossack 3D model (.glb) for pipeline testing.
 Follows Ukrainian Cossack folklore proportions (large cartoon head, wide sharovary, oseledets).
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
 import math
 import os
 import bpy
@@ -94,5 +96,5 @@ def create_cossack_model(out_glb_path: str):
 
 
 if __name__ == "__main__":
-    out_path = os.path.abspath("/home/mfedchyk/Godot/djura-1/assets/models/test_cossack.glb")
+    out_path = os.path.abspath(os.path.join(_PROJECT_ROOT, "assets", "models", "test_cossack.glb"))
     create_cossack_model(out_path)

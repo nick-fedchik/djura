@@ -1,0 +1,4 @@
+# Залежності Python-інструментів (TLS-07). Встановлення: pip install -r tools/requirements.txt
+# bpy/mathutils постачає сам Blender (5.0.1, див. INSTALL.md); окремо їх ставити не треба.
+numpy>=2.0
+Pillow>=11.0

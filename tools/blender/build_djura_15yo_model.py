@@ -4,6 +4,8 @@ Follows Gemini 360-degree turnaround reference, SHR-004, SWR-003, and Invariant 
 Uses subdivision-surface modeling (SubD), clean quad topology, and EEVEE Next toon materials.
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
 import math
 import os
 import bmesh
@@ -549,12 +551,12 @@ def main():
     setup_lighting_and_camera()
 
     # Save native .blend
-    blend_path = "/home/mfedchyk/Godot/djura-1/assets/models/djura_15yo.blend"
+    blend_path = os.path.join(_PROJECT_ROOT, "assets", "models", "djura_15yo.blend")
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     print(f"Saved native Blender project: {blend_path}")
 
     # Export GLB
-    glb_path = "/home/mfedchyk/Godot/djura-1/assets/models/djura_15yo.glb"
+    glb_path = os.path.join(_PROJECT_ROOT, "assets", "models", "djura_15yo.glb")
     bpy.ops.export_scene.gltf(
         filepath=glb_path,
         export_format='GLB',
@@ -564,7 +566,7 @@ def main():
     print(f"Exported GLB: {glb_path}")
 
     # Render turntable preview
-    preview_path = "/home/mfedchyk/Godot/djura-1/reports/djura_15yo_preview.png"
+    preview_path = os.path.join(_PROJECT_ROOT, "reports", "djura_15yo_preview.png")
     render_preview(preview_path)
 
 

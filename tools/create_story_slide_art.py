@@ -6,6 +6,8 @@ All portraits are rendered as crisp, uncorrupted, gold-framed badges.
 """
 
 import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
+import os
 import math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import numpy as np
@@ -37,7 +39,7 @@ def create_gold_badge(src_img, target_w, target_h, radius=24, flip_h=False):
     return badge
 
 def get_mentor_badge(target_w=175, target_h=215):
-    p_port = "/home/mfedchyk/Godot/djura-1/assets/sprites/mentor_portrait.png"
+    p_port = os.path.join(_PROJECT_ROOT, "assets", "sprites", "mentor_portrait.png")
     if os.path.exists(p_port):
         im = Image.open(p_port).convert("RGBA")
         crop = im.crop((15, 15, 497, 505))
@@ -47,9 +49,9 @@ def get_mentor_badge(target_w=175, target_h=215):
     return create_gold_badge(fallback, target_w, target_h, radius=22)
 
 def get_djura_badge(target_w=175, target_h=215, flip_h=False):
-    p_src = "/home/mfedchyk/Godot/djura-1/assets/sprites/djura_v2_02_threequarter_l.png"
+    p_src = os.path.join(_PROJECT_ROOT, "assets", "sprites", "djura_v2_02_threequarter_l.png")
     if not os.path.exists(p_src):
-        p_src = "/home/mfedchyk/Godot/djura-1/reports/sketches/djura_15yo/djura_02_threequarter_l.png"
+        p_src = os.path.join(_PROJECT_ROOT, "sources", "sketches", "djura_15yo", "djura_02_threequarter_l.png")
     if os.path.exists(p_src):
         im = Image.open(p_src).convert("RGBA")
         # Bust crop: head to belt (vyshyvanka with red embroidery, face, chub, sash)
@@ -150,7 +152,7 @@ def create_slide_1_meeting():
     draw.rectangle([0, 0, w - 1, h - 1], outline=(235, 195, 65, 255), width=3)
     draw.rectangle([3, 3, w - 4, h - 4], outline=(65, 45, 18, 200), width=1)
     
-    out_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/story/slide_level1_1_meeting.png"
+    out_path = os.path.join(_PROJECT_ROOT, "assets", "sprites", "story", "slide_level1_1_meeting.png")
     bg.save(out_path)
     print(f"Saved Slide 1 to {out_path}")
 
@@ -235,7 +237,7 @@ def create_slide_2_pledge():
     draw.rectangle([0, 0, w - 1, h - 1], outline=(235, 195, 65, 255), width=3)
     draw.rectangle([3, 3, w - 4, h - 4], outline=(65, 45, 18, 200), width=1)
     
-    out_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/story/slide_level1_2_pledge.png"
+    out_path = os.path.join(_PROJECT_ROOT, "assets", "sprites", "story", "slide_level1_2_pledge.png")
     bg.save(out_path)
     print(f"Saved Slide 2 to {out_path}")
 
@@ -275,7 +277,7 @@ def create_slide_3_mission():
     draw.rounded_rectangle([170, 52, 582, 262], radius=16, fill=(16, 20, 34, 230), outline=(235, 195, 65, 255), width=2)
     
     # Enemy 1: Vohnyk (Level 1)
-    vohnyk_path = "/home/mfedchyk/Godot/djura-1/reports/sketches/vognyk/vohnyk_concept_meshy.jpg"
+    vohnyk_path = os.path.join(_PROJECT_ROOT, "sources", "sketches", "vognyk", "vohnyk_concept_meshy.jpg")
     vx, vy = 235, 135
     if os.path.exists(vohnyk_path):
         v_img = Image.open(vohnyk_path).convert("RGBA")
@@ -291,7 +293,7 @@ def create_slide_3_mission():
     draw.polygon([(vx + 98, vy - 7), (vx + 108, vy), (vx + 98, vy + 7)], fill=(255, 215, 60, 255))
     
     # Enemy 2: Chort (Level 3)
-    chort_path = "/home/mfedchyk/Godot/djura-1/reports/sketches/chort/chort_concept_meshy.jpg"
+    chort_path = os.path.join(_PROJECT_ROOT, "sources", "sketches", "chort", "chort_concept_meshy.jpg")
     cx, cy = 375, 135
     if os.path.exists(chort_path):
         c_img = Image.open(chort_path).convert("RGBA")
@@ -307,7 +309,7 @@ def create_slide_3_mission():
     draw.polygon([(cx + 98, cy - 7), (cx + 108, cy), (cx + 98, cy + 7)], fill=(255, 215, 60, 255))
     
     # Enemy 3: Vidma (Level 5)
-    vidma_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/vidma_calm.png"
+    vidma_path = os.path.join(_PROJECT_ROOT, "assets", "sprites", "vidma_calm.png")
     wix, wiy = 515, 135
     if os.path.exists(vidma_path):
         vi_img = Image.open(vidma_path).convert("RGBA")
@@ -328,7 +330,7 @@ def create_slide_3_mission():
     draw.rectangle([0, 0, w - 1, h - 1], outline=(235, 195, 65, 255), width=3)
     draw.rectangle([3, 3, w - 4, h - 4], outline=(65, 45, 18, 200), width=1)
     
-    out_path = "/home/mfedchyk/Godot/djura-1/assets/sprites/story/slide_level1_3_mission.png"
+    out_path = os.path.join(_PROJECT_ROOT, "assets", "sprites", "story", "slide_level1_3_mission.png")
     bg.save(out_path)
     print(f"Saved Slide 3 to {out_path}")
 

@@ -4,6 +4,8 @@ Renders a 3D model (.glb / .blend) from 12 orbital camera angles (every 30 degre
 Generates individual PNG frames and a stitched 12-angle composite turnaround sheet.
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
 import argparse
 import math
 import os
@@ -23,7 +25,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Render 12-angle turnaround for Meshy 3D models")
     parser.add_argument("--model", type=str, required=True, help="Path to .glb or .blend model")
     parser.add_argument("--name", type=str, default="character", help="Character identifier")
-    parser.add_argument("--out-dir", type=str, default="/home/mfedchyk/Godot/djura-1/reports/turnarounds", help="Output directory")
+    parser.add_argument("--out-dir", type=str, default=os.path.join(_PROJECT_ROOT, "reports", "turnarounds"), help="Output directory")
     parser.add_argument("--resolution", type=int, default=512, help="Resolution per view")
 
     if is_running_in_blender():

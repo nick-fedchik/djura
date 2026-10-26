@@ -1,11 +1,13 @@
+import os
 import wave
 import struct
 import math
 import random
 
 SAMPLE_RATE = 44100
+OUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "audio"))
 
-def generate_vakula_sfx(filename="assets/audio/vakula_anvil.wav"):
+def generate_vakula_sfx(filename=os.path.join(OUT_DIR, "vakula_anvil.wav")):
     duration = 1.6
     total_samples = int(duration * SAMPLE_RATE)
     data = []

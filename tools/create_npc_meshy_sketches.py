@@ -9,10 +9,12 @@ for Level 1 and 2 NPCs:
 """
 
 import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
+import os
 from PIL import Image, ImageDraw, ImageFont
 
-OUT_DIR = "/home/mfedchyk/Godot/djura-1/reports/sketches"
-SPRITES_DIR = "/home/mfedchyk/Godot/djura-1/assets/sprites"
+OUT_DIR = os.path.join(_PROJECT_ROOT, "sources", "sketches")
+SPRITES_DIR = os.path.join(_PROJECT_ROOT, "assets", "sprites")
 os.makedirs(OUT_DIR, exist_ok=True)
 
 def create_character_sheet(char_id, title, age_role, prompt_summary, palette_colors, sprite_calm, sprite_alt):

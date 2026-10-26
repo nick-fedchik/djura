@@ -4,7 +4,7 @@ import struct
 import wave
 import os
 
-OUT_DIR = "/home/mfedchyk/geek-jack/assets/audio"
+OUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "audio"))
 SAMPLE_RATE = 44100
 
 def generate_roll():

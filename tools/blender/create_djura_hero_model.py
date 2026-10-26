@@ -4,6 +4,8 @@ Follows Ukrainian Cossack folklore canon, SHR-004, SWR-003, and Invariant I-3 (Z
 Compatible with Blender 5.0.1+.
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
 import math
 import os
 import bpy
@@ -459,5 +461,5 @@ def create_djura_character(out_glb_path: str):
 
 
 if __name__ == "__main__":
-    out_path = os.path.abspath("/home/mfedchyk/Godot/djura-1/assets/models/djura_hero.glb")
+    out_path = os.path.abspath(os.path.join(_PROJECT_ROOT, "assets", "models", "djura_hero.glb"))
     create_djura_character(out_path)

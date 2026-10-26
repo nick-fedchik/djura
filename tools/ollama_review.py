@@ -16,7 +16,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import analyze_telemetry as at  # noqa: E402
 import tuning_validator as tv  # noqa: E402
 
-HOST = os.environ.get("OLLAMA_HOST", "http://192.168.68.68:11434")
+J501_DEFAULT_HOST = "http://192.168.68.68:11434"  # вузол J501; інший задайте через OLLAMA_HOST (TLS-03)
+HOST = os.environ.get("OLLAMA_HOST", J501_DEFAULT_HOST)
 MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:12b")
 
 SCHEMA_HINT = {
@@ -71,6 +72,8 @@ def main(argv=None):
     ap.add_argument("--dry-run", action="store_true", help="лише показати запит до моделі")
     ap.add_argument("--out-dir", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "docs", "reports"))
     a = ap.parse_args(argv)
+    if "OLLAMA_HOST" not in os.environ and not a.dry_run:
+        print(f"[Warning] OLLAMA_HOST не задано, використовується вузол J501 за замовчуванням ({J501_DEFAULT_HOST})", file=sys.stderr)
     events = at.load_events(a.paths)
     if not events:
         print("Телеметрії ще немає.", file=sys.stderr)

@@ -185,6 +185,8 @@ def main():
     parser.add_argument("--bind", "-b", default="0.0.0.0", help="IP інтерфейсу для прослуховування")
     parser.add_argument("--dir", "-d", default=None, help="Каталог з файлами веб-збірки (за замовчуванням: build/web)")
     args = parser.parse_args()
+    if args.bind == "0.0.0.0":
+        print("[Увага] Сервер слухає всі інтерфейси (0.0.0.0) з самопідписаним сертифікатом: не запускайте в публічних мережах. Обмежте адресою LAN через --bind.", file=sys.stderr)
 
     repo_root = Path(__file__).resolve().parent.parent
     serve_dir = Path(args.dir) if args.dir else repo_root / "build" / "web"

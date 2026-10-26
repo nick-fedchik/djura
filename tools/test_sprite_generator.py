@@ -4,6 +4,8 @@ Unit and integration tests for the 3D-to-2D Sprite Generator pipeline.
 Follows SWR-003-07 and ADR-003.
 """
 
+import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))  # корінь репозиторію (TLS-02)
 import json
 import os
 import sys
@@ -17,9 +19,9 @@ import vlm_sprite_auditor
 
 class TestSpriteGeneratorPipeline(unittest.TestCase):
     def setUp(self):
-        self.project_root = "/home/mfedchyk/Godot/djura-1"
+        self.project_root = _PROJECT_ROOT
         self.sprites_dir = os.path.join(self.project_root, "assets", "sprites")
-        self.models_dir = os.path.join(self.project_root, "assets", "models")
+        self.models_dir = os.path.join(self.project_root, "sources", "models")
 
     def test_model_glb_exists(self):
         glb_path = os.path.join(self.models_dir, "test_cossack.glb")

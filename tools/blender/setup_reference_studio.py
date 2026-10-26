@@ -4,6 +4,8 @@ Places Front, Side, and Back orthographic reference blueprints aligned to Z=0.
 """
 
 import os
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))  # корінь репозиторію (TLS-02)
+import os
 import bpy
 
 
@@ -11,7 +13,7 @@ def setup_studio():
     # Reset to clean empty scene
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    base_dir = "/home/mfedchyk/Godot/djura-1/assets/sprites"
+    base_dir = os.path.join(_PROJECT_ROOT, "assets", "sprites")
     front_path = os.path.join(base_dir, "djura_v2_front.png")
     side_path = os.path.join(base_dir, "djura_v2_side.png")
     back_path = os.path.join(base_dir, "djura_v2_back.png")
@@ -46,7 +48,7 @@ def setup_studio():
     plane = bpy.context.active_object
     plane.name = "Ground_Reference"
 
-    out_blend = "/home/mfedchyk/Godot/djura-1/assets/models/djura_reference_studio.blend"
+    out_blend = os.path.join(_PROJECT_ROOT, "assets", "models", "djura_reference_studio.blend")
     os.makedirs(os.path.dirname(out_blend), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=out_blend)
     print(f"Djura 15yo reference studio scene saved to: {out_blend}")
