@@ -6,31 +6,67 @@ const SCHEMA_VERSION: int = 1
 const MAX_FILE_BYTES: int = 2_000_000
 const MAX_STRING_LEN: int = 32
 const PATH: String = "user://telemetry/events.jsonl"
-const ALLOWED_TYPES: Array[String] = ["session_start", "level_start", "hit", "bomb", "enemy_defeated", "level_end", "abandon", "session_end"]
+const ALLOWED_TYPES: Array[String] = [
+	"session_start", "level_start", "hit", "bomb", "enemy_defeated", "level_end", "abandon", "session_end"
+]
 # Єдиний білий список ключів події; усе інше відкидається (захист від випадкового витоку даних)
 const ALLOWED_KEYS: Array[String] = [
-	"v", "t", "sid", "pid", "type", "level", "k", "time_s", "hits", "streak", "quality", "bonus", "enemies",
-	"age_band", "experience", "mu", "sigma", "p_pred", "reward", "arm", "target", "lit", "points", "enemy",
-	"frustration", "boredom", "completed", "reason", "persona", "near_misses", "strikes", "rhythm_cv", "idle_ratio",
+	"v",
+	"t",
+	"sid",
+	"pid",
+	"type",
+	"level",
+	"k",
+	"time_s",
+	"hits",
+	"streak",
+	"quality",
+	"bonus",
+	"enemies",
+	"age_band",
+	"experience",
+	"mu",
+	"sigma",
+	"p_pred",
+	"reward",
+	"arm",
+	"target",
+	"lit",
+	"points",
+	"enemy",
+	"frustration",
+	"boredom",
+	"completed",
+	"reason",
+	"persona",
+	"near_misses",
+	"strikes",
+	"rhythm_cv",
+	"idle_ratio",
 ]
 
 var enabled: bool = true
 var session_id: String = ""
 var player_id: String = ""
-var events: Array[Dictionary] = []   # останні події в пам'яті (для тестів і звітів)
+var events: Array[Dictionary] = []  # останні події в пам'яті (для тестів і звітів)
 var _t0_ms: int = 0
+
 
 func _init(pid: String = "") -> void:
 	player_id = pid if pid != "" else _random_id()
 	session_id = _random_id()
 	_t0_ms = Time.get_ticks_msec()
 
+
 static func _random_id() -> String:
 	var c := Crypto.new()
 	return c.generate_random_bytes(8).hex_encode()
 
+
 static func is_headless() -> bool:
 	return DisplayServer.get_name() == "headless"
+
 
 # Залишає лише дозволені ключі й прості типи; рядки обрізає
 static func sanitize(event: Dictionary) -> Dictionary:
@@ -48,6 +84,7 @@ static func sanitize(event: Dictionary) -> Dictionary:
 				out[key] = String(v).substr(0, MAX_STRING_LEN)
 	return out
 
+
 func log_event(type: String, fields: Dictionary = {}) -> Dictionary:
 	if not (type in ALLOWED_TYPES):
 		return {}
@@ -60,6 +97,7 @@ func log_event(type: String, fields: Dictionary = {}) -> Dictionary:
 	if enabled and not is_headless():
 		_append_to_file(e)
 	return e
+
 
 func _append_to_file(e: Dictionary) -> void:
 	DirAccess.make_dir_recursive_absolute(PATH.get_base_dir())

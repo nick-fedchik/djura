@@ -5,20 +5,20 @@ extends RefCounted
 
 const D = preload("res://scripts/difficulty.gd")
 
-const TARGETS: Dictionary = {"novice": 0.78, "casual": 0.70, "experienced": 0.62}   # цільове очікуване виконання p*
-const AGE_PRIOR: Dictionary = {"8-10": -0.6, "11-14": 0.0, "15+": 0.3}              # апріорне вміння за віком (логіти)
+const TARGETS: Dictionary = {"novice": 0.78, "casual": 0.70, "experienced": 0.62}  # цільове очікуване виконання p*
+const AGE_PRIOR: Dictionary = {"8-10": -0.6, "11-14": 0.0, "15+": 0.3}  # апріорне вміння за віком (логіти)
 const EXP_PRIOR: Dictionary = {"novice": -0.5, "casual": 0.0, "experienced": 0.8}
-const AGE_K_MAX: Dictionary = {"8-10": 1.8, "11-14": 2.2, "15+": 2.5}             # стеля складності за віком (SHR-003 A-7)
-const BASE_PRIOR: float = 0.85          # logit(0.70): «середній» гравець 11–14 років починає з K = 1,0
-const FIRST_LEVEL_K: Vector2 = Vector2(0.7, 1.3)   # перший рівень — навчальний: без різких стартів
+const AGE_K_MAX: Dictionary = {"8-10": 1.8, "11-14": 2.2, "15+": 2.5}  # стеля складності за віком (SHR-003 A-7)
+const BASE_PRIOR: float = 0.85  # logit(0.70): «середній» гравець 11–14 років починає з K = 1,0
+const FIRST_LEVEL_K: Vector2 = Vector2(0.7, 1.3)  # перший рівень — навчальний: без різких стартів
 const SIGMA2_0: float = 1.0
 const SIGMA2_MAX: float = 1.5
-const PROCESS_NOISE: float = 0.06       # дисперсія навчання гравця за рівень (швидше стежимо за зростанням вміння)
+const PROCESS_NOISE: float = 0.06  # дисперсія навчання гравця за рівень (швидше стежимо за зростанням вміння)
 const MIN_VAR_P: float = 0.02
-const SLEW: float = 0.25                # макс. зміна K за рівень
-const CURRICULUM_BETA: float = 0.3      # вага повільної навчальної кривої (база серії)
-const ARMS: Array[float] = [-0.5, 0.0, 0.5]   # зсув цілі (логіти): м'якше / як є / складніше
-const BANDIT_DISCOUNT: float = 0.97     # забування (нестаціонарність інтересу)
+const SLEW: float = 0.25  # макс. зміна K за рівень
+const CURRICULUM_BETA: float = 0.3  # вага повільної навчальної кривої (база серії)
+const ARMS: Array[float] = [-0.5, 0.0, 0.5]  # зсув цілі (логіти): м'якше / як є / складніше
+const BANDIT_DISCOUNT: float = 0.97  # забування (нестаціонарність інтересу)
 const FLOW_Q_LOW: float = 0.30
 const FLOW_Q_HIGH: float = 0.92
 
@@ -27,7 +27,7 @@ var experience: String = "casual"
 var player_id: String = ""
 var mu: float = 0.0
 var sigma2: float = SIGMA2_0
-var k_prev: float = -1.0        # <0: ще не рекомендували
+var k_prev: float = -1.0  # <0: ще не рекомендували
 var k_before: float = -1.0
 var levels_played: int = 0
 var consecutive_up: int = 0
@@ -40,12 +40,15 @@ var level_offset_prev: float = 0.0
 var rng_seed: int = 1
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+
 static func logistic(x: float) -> float:
 	return 1.0 / (1.0 + exp(-x))
+
 
 static func logit(p: float) -> float:
 	var q := clampf(p, 0.001, 0.999)
 	return log(q / (1.0 - q))
+
 
 func setup(age: String, exp_level: String, seed_value: int = 1, pid: String = "") -> void:
 	age_band = age if AGE_PRIOR.has(age) else "11-14"
@@ -56,12 +59,15 @@ func setup(age: String, exp_level: String, seed_value: int = 1, pid: String = ""
 	rng_seed = seed_value
 	_rng.seed = seed_value
 
+
 func k_cap() -> float:
 	return minf(D.K_MAX, float(AGE_K_MAX[age_band]))
+
 
 # Ціль виконання: за профілем, з поправкою на нудьгу (складніше) й фрустрацію (легше)
 func target_success() -> float:
 	return clampf(float(TARGETS[experience]) + 0.08 * frustration - 0.06 * boredom, 0.5, 0.9)
+
 
 func _gamma(shape: float) -> float:
 	if shape < 1.0:
@@ -78,10 +84,12 @@ func _gamma(shape: float) -> float:
 			return d * v
 	return d
 
+
 func _beta_sample(a: float, b: float) -> float:
 	var ga := _gamma(a)
 	var gb := _gamma(b)
 	return ga / maxf(ga + gb, 1e-12)
+
 
 # Thompson sampling: вибір руки (зсуву цілі) за постеріорами винагороди «потоку»
 func choose_arm() -> int:
@@ -95,10 +103,11 @@ func choose_arm() -> int:
 	arm = best
 	return arm
 
+
 # Рекомендований коефіцієнт складності рівня. level_offset — статичний зсув рівня в логітах (level_difficulty.gd).
 func recommend(level: int, level_offset: float = 0.0) -> float:
 	if levels_played == 0:
-		arm = 1   # без даних не експериментуємо: нейтральна рука
+		arm = 1  # без даних не експериментуємо: нейтральна рука
 	else:
 		choose_arm()
 	var b_star := mu - logit(target_success()) + ARMS[arm] + CURRICULUM_BETA * (log(D.series_base(level)) / log(2.0))
@@ -110,7 +119,7 @@ func recommend(level: int, level_offset: float = 0.0) -> float:
 	if k_prev > 0.0:
 		k = clampf(k, k_prev - SLEW, k_prev + SLEW)
 		if consecutive_up >= 2 and frustration > 0.5:
-			k = minf(k, k_prev)   # не підвищувати втретє поспіль, поки гравець фрустрований
+			k = minf(k, k_prev)  # не підвищувати втретє поспіль, поки гравець фрустрований
 	k = clampf(k, D.K_MIN, cap)
 	if age_band == "8-10" and level <= D.KID_COMFORT_LEVELS:
 		# Плавний вхід (T-C02): помилка м'яко тягне K до низу зони комфорту, але не нижче (без каральних спадів і без стрибків угору)
@@ -124,17 +133,20 @@ func recommend(level: int, level_offset: float = 0.0) -> float:
 	level_offset_prev = level_offset
 	return k
 
+
 # Індекси нудьги й фрустрації з результату рівня (детерміновані, 0..1)
 static func frustration_index(hits: int, time_s: float, par_s: float, completed: bool) -> float:
 	# Один удар і помірна повільність — норма; фрустрація — повторні удари й дуже довге проходження
 	var f := 0.5 * clampf(float(hits - 1) / 2.0, 0.0, 1.0) + 0.5 * clampf((time_s / par_s - 1.4) / 0.8, 0.0, 1.0)
 	return clampf(f + (0.0 if completed else 0.4), 0.0, 1.0)
 
+
 static func boredom_index(quality: float, hits: int, time_s: float, par_s: float) -> float:
 	if hits > 0:
 		return 0.0
 	var fast := clampf((0.8 - time_s / par_s) / 0.3, 0.0, 1.0)
 	return clampf((quality - 0.85) / 0.15, 0.0, 1.0) * fast
+
 
 # Спостереження результату рівня: оновлення вміння, індексів і бандита (interest_bonus — ознака інтересу з telemetry_engine.gd)
 func observe(quality: float, hits: int, time_s: float, completed: bool = true, interest_bonus: float = 0.0) -> Dictionary:
@@ -158,14 +170,33 @@ func observe(quality: float, hits: int, time_s: float, completed: bool = true, i
 	levels_played += 1
 	return {"p_pred": p_pred, "mu": mu, "sigma": sqrt(sigma2), "reward": reward, "frustration": frustration, "boredom": boredom, "arm": arm}
 
+
 # Гравець залишив рівень: сильний негативний сигнал (низька якість, фрустрація, нульова винагорода)
 func observe_abandon(elapsed_s: float) -> Dictionary:
 	return observe(0.1, 3, maxf(elapsed_s, D.PAR_TIME_S), false)
 
+
 func to_dict() -> Dictionary:
-	return {"v": 1, "age_band": age_band, "experience": experience, "player_id": player_id, "mu": mu, "sigma2": sigma2,
-		"k_prev": k_prev, "levels_played": levels_played, "consecutive_up": consecutive_up, "frustration": frustration, "boredom": boredom,
-		"arm": arm, "arm_alpha": arm_alpha, "arm_beta": arm_beta, "rng_seed": rng_seed, "rng_state": str(_rng.state), "level_offset_prev": level_offset_prev}
+	return {
+		"v": 1,
+		"age_band": age_band,
+		"experience": experience,
+		"player_id": player_id,
+		"mu": mu,
+		"sigma2": sigma2,
+		"k_prev": k_prev,
+		"levels_played": levels_played,
+		"consecutive_up": consecutive_up,
+		"frustration": frustration,
+		"boredom": boredom,
+		"arm": arm,
+		"arm_alpha": arm_alpha,
+		"arm_beta": arm_beta,
+		"rng_seed": rng_seed,
+		"rng_state": str(_rng.state),
+		"level_offset_prev": level_offset_prev
+	}
+
 
 func from_dict(d: Dictionary) -> void:
 	setup(str(d.get("age_band", "11-14")), str(d.get("experience", "casual")), int(d.get("rng_seed", 1)), str(d.get("player_id", "")))

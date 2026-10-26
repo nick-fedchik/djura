@@ -34,16 +34,26 @@ var current_age: String = "11-14"
 var current_exp: String = "casual"
 var is_profile_dialog_open: bool = false
 
+
 func _ready() -> void:
-	if btn_age_8_10: btn_age_8_10.pressed.connect(func(): _select_age("8-10"))
-	if btn_age_11_14: btn_age_11_14.pressed.connect(func(): _select_age("11-14"))
-	if btn_age_15_plus: btn_age_15_plus.pressed.connect(func(): _select_age("15+"))
-	if btn_exp_novice: btn_exp_novice.pressed.connect(func(): _select_exp("novice"))
-	if btn_exp_casual: btn_exp_casual.pressed.connect(func(): _select_exp("casual"))
-	if btn_exp_master: btn_exp_master.pressed.connect(func(): _select_exp("experienced"))
-	if btn_apply: btn_apply.pressed.connect(_apply_profile)
-	if btn_cancel: btn_cancel.pressed.connect(close_profile_dialog)
+	if btn_age_8_10:
+		btn_age_8_10.pressed.connect(func(): _select_age("8-10"))
+	if btn_age_11_14:
+		btn_age_11_14.pressed.connect(func(): _select_age("11-14"))
+	if btn_age_15_plus:
+		btn_age_15_plus.pressed.connect(func(): _select_age("15+"))
+	if btn_exp_novice:
+		btn_exp_novice.pressed.connect(func(): _select_exp("novice"))
+	if btn_exp_casual:
+		btn_exp_casual.pressed.connect(func(): _select_exp("casual"))
+	if btn_exp_master:
+		btn_exp_master.pressed.connect(func(): _select_exp("experienced"))
+	if btn_apply:
+		btn_apply.pressed.connect(_apply_profile)
+	if btn_cancel:
+		btn_cancel.pressed.connect(close_profile_dialog)
 	_update_dialog_ui()
+
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -85,11 +95,13 @@ func _input(event: InputEvent) -> void:
 			close_profile_dialog()
 			get_viewport().set_input_as_handled()
 
+
 func toggle_profile_dialog() -> void:
 	if is_profile_dialog_open:
 		close_profile_dialog()
 	else:
 		open_profile_dialog()
+
 
 func open_profile_dialog() -> void:
 	if not profile_overlay:
@@ -99,6 +111,7 @@ func open_profile_dialog() -> void:
 	get_tree().paused = true
 	_update_dialog_ui()
 
+
 func close_profile_dialog() -> void:
 	if not profile_overlay:
 		return
@@ -106,13 +119,16 @@ func close_profile_dialog() -> void:
 	profile_overlay.visible = false
 	get_tree().paused = false
 
+
 func _select_age(age: String) -> void:
 	current_age = age
 	_update_dialog_ui()
 
+
 func _select_exp(exp_level: String) -> void:
 	current_exp = exp_level
 	_update_dialog_ui()
+
 
 func _update_dialog_ui() -> void:
 	var exp_ukr := "Звичайний"
@@ -127,14 +143,21 @@ func _update_dialog_ui() -> void:
 
 	if status_label:
 		status_label.text = "Обрано: %s років | %s (ціль успіху: %s)" % [current_age, exp_ukr, target_p]
-	
-	if btn_age_8_10: btn_age_8_10.modulate = Color(1.3, 1.3, 1.0) if current_age == "8-10" else Color(0.7, 0.7, 0.7)
-	if btn_age_11_14: btn_age_11_14.modulate = Color(1.3, 1.3, 1.0) if current_age == "11-14" else Color(0.7, 0.7, 0.7)
-	if btn_age_15_plus: btn_age_15_plus.modulate = Color(1.3, 1.3, 1.0) if current_age == "15+" else Color(0.7, 0.7, 0.7)
 
-	if btn_exp_novice: btn_exp_novice.modulate = Color(1.3, 1.3, 1.0) if current_exp == "novice" else Color(0.7, 0.7, 0.7)
-	if btn_exp_casual: btn_exp_casual.modulate = Color(1.3, 1.3, 1.0) if current_exp == "casual" else Color(0.7, 0.7, 0.7)
-	if btn_exp_master: btn_exp_master.modulate = Color(1.3, 1.3, 1.0) if current_exp == "experienced" else Color(0.7, 0.7, 0.7)
+	if btn_age_8_10:
+		btn_age_8_10.modulate = Color(1.3, 1.3, 1.0) if current_age == "8-10" else Color(0.7, 0.7, 0.7)
+	if btn_age_11_14:
+		btn_age_11_14.modulate = Color(1.3, 1.3, 1.0) if current_age == "11-14" else Color(0.7, 0.7, 0.7)
+	if btn_age_15_plus:
+		btn_age_15_plus.modulate = Color(1.3, 1.3, 1.0) if current_age == "15+" else Color(0.7, 0.7, 0.7)
+
+	if btn_exp_novice:
+		btn_exp_novice.modulate = Color(1.3, 1.3, 1.0) if current_exp == "novice" else Color(0.7, 0.7, 0.7)
+	if btn_exp_casual:
+		btn_exp_casual.modulate = Color(1.3, 1.3, 1.0) if current_exp == "casual" else Color(0.7, 0.7, 0.7)
+	if btn_exp_master:
+		btn_exp_master.modulate = Color(1.3, 1.3, 1.0) if current_exp == "experienced" else Color(0.7, 0.7, 0.7)
+
 
 func _apply_profile() -> void:
 	update_profile_display(current_age, current_exp)
@@ -142,22 +165,27 @@ func _apply_profile() -> void:
 	close_profile_dialog()
 	show_message("ПРОФІЛЬ ЗБЕРЕЖЕНО: %s | %s" % [current_age, current_exp], 2.2, Color(0.4, 1.0, 0.5))
 
+
 func update_profile_display(age: String, exp_level: String) -> void:
 	current_age = age
 	current_exp = exp_level
 	var exp_short := "ЗВИЧАЙНИЙ"
 	match exp_level:
-		"novice": exp_short = "НОВАЧОК"
-		"experienced": exp_short = "БУВАЛИЙ"
+		"novice":
+			exp_short = "НОВАЧОК"
+		"experienced":
+			exp_short = "БУВАЛИЙ"
 	if profile_value_label:
 		profile_value_label.text = "%s | %s" % [age, exp_short]
 	_update_dialog_ui()
+
 
 func _process(delta: float) -> void:
 	if is_hint_active and not is_showing_completion_flash and combat_hint_label and combat_hint_label.visible:
 		hint_pulse_time += delta * 4.5
 		var pulse_alpha := 0.86 + sin(hint_pulse_time) * 0.14
 		combat_hint_label.modulate = Color(1.0, 1.0, 1.0, pulse_alpha)
+
 
 func show_persistent_combat_hint(text: String) -> void:
 	if not combat_hint_label:
@@ -177,6 +205,7 @@ func show_persistent_combat_hint(text: String) -> void:
 	combat_hint_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	combat_hint_label.visible = true
 
+
 func complete_combat_hint(completed_title: String, next_hint_text: String = "") -> void:
 	if not combat_hint_label:
 		combat_hint_label = get_node_or_null("CombatHintLabel")
@@ -189,21 +218,23 @@ func complete_combat_hint(completed_title: String, next_hint_text: String = "") 
 	combat_hint_label.text = "ОСВОЄНО: %s!" % completed_title
 	combat_hint_label.add_theme_color_override("font_color", Color(0.30, 1.0, 0.55, 1.0))
 	combat_hint_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	
+
 	hint_tween = create_tween()
 	hint_tween.tween_interval(1.25)
-	hint_tween.tween_callback(func():
-		show_persistent_combat_hint(next_hint_text)
-	)
+	hint_tween.tween_callback(func(): show_persistent_combat_hint(next_hint_text))
+
 
 func update_score(score: int) -> void:
 	score_label.text = "%06d" % score
 
+
 func update_highscore(highscore: int) -> void:
 	highscore_label.text = "%06d" % highscore
 
+
 func update_bombs(count: int, total: int = 24) -> void:
 	bombs_label.text = "%d / %d" % [count, total]
+
 
 const HISTORICAL_STAGES: Array[Dictionary] = [
 	{"epoch": "XVII ст.", "loc": "ЗАПОРОЗЬКА СІЧ НА ХОРТИЦІ", "lore": "ОСНОВИ ПАРКУРУ ТА МАЛІ ЧОРТИКИ"},
@@ -211,6 +242,7 @@ const HISTORICAL_STAGES: Array[Dictionary] = [
 	{"epoch": "XVII-XVIII ст.", "loc": "КАМ'ЯНЕЦЬКА ТВЕРДИНЯ", "lore": "СТЕПОВЕ ПОБРАТИМСТВО ТА МОСКАЛІ"},
 	{"epoch": "XVIII ст.", "loc": "ГЕТЬМАНСЬКИЙ БАТУРИН", "lore": "ЗАХИСТ СКАРБНИЦІ ТА КЛЕЙНОДІВ"}
 ]
+
 
 func show_combo(multiplier: int, bonus: int) -> void:
 	if combo_tween and combo_tween.is_valid():
@@ -222,41 +254,45 @@ func show_combo(multiplier: int, bonus: int) -> void:
 	combo_tween.tween_property(combo_label, "modulate:a", 0.0, 1.2)
 	combo_tween.tween_callback(func(): combo_label.visible = false)
 
+
 func show_message(text: String, duration: float = 2.0, color: Color = Color(0.25, 1.0, 0.45, 1.0)) -> void:
 	if message_tween and message_tween.is_valid():
 		message_tween.kill()
-	
+
 	message_label.text = text
 	message_label.add_theme_color_override("font_color", color)
 	message_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	message_label.scale = Vector2(0.85, 0.85)
 	message_label.visible = true
-	
+
 	var fade_time: float = clamp(duration * 0.35, 0.35, 1.1)
 	var hold_time: float = max(0.1, duration - fade_time - 0.18)
-	
+
 	message_tween = create_tween()
 	message_tween.tween_property(message_label, "scale", Vector2(1.0, 1.0), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	message_tween.tween_interval(hold_time)
 	message_tween.tween_property(message_label, "modulate:a", 0.0, fade_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	message_tween.tween_callback(func(): message_label.visible = false)
 
+
 func announce_level(level_num: int, duration: float = 2.7) -> void:
 	if message_tween and message_tween.is_valid():
 		message_tween.kill()
-	
+
 	var stage_idx := (level_num - 1) % HISTORICAL_STAGES.size()
 	var stage_info: Dictionary = HISTORICAL_STAGES[stage_idx]
-	message_label.text = "РІВЕНЬ %d: %s\n%s • (%s)" % [level_num, stage_info["loc"], stage_info.get("lore", "ГОТУЙСЯ, ДЖУРО!"), stage_info["epoch"]]
+	message_label.text = (
+		"РІВЕНЬ %d: %s\n%s • (%s)" % [level_num, stage_info["loc"], stage_info.get("lore", "ГОТУЙСЯ, ДЖУРО!"), stage_info["epoch"]]
+	)
 	message_label.add_theme_color_override("font_color", Color(1.0, 0.90, 0.22, 1.0))
 	message_label.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	message_label.scale = Vector2(0.70, 0.70)
 	message_label.visible = true
-	
+
 	var pop_time: float = 0.25
 	var hold_time: float = max(0.4, duration * 0.45)
 	var fade_time: float = max(0.65, duration - pop_time - hold_time)
-	
+
 	message_tween = create_tween()
 	message_tween.tween_property(message_label, "scale", Vector2(1.0, 1.0), pop_time).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	message_tween.tween_interval(hold_time)

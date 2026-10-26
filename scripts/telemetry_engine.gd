@@ -13,13 +13,7 @@ class_name TelemetryEngine
 signal episode_summarized(summary: Dictionary)
 signal mamay_tip_ready(tip: String)
 
-enum PlayerPersona {
-	YOUNG_COSSACK_8PLUS, # Юний козачок (8–10 років): досліджує світ, потребує ранньої підмоги друзів
-	STORY_EXPLORER,      # Сімейний мандрівник: помірний темп, любить сюжет і фольклорних союзників
-	COMBAT_BRAWLER,      # Богатир Гопака: активно б'є ворогів руками й ногами, любить поєдинки
-	COMBO_STRATEGIST,    # Майстер Вогняних Комбо: планує маршрут суворо за запаленими ядрами
-	ARCADE_SPEEDRUNNER   # Віртуоз-Характерник: блискавичне бездоганне проходження на високій швидкості
-}
+enum PlayerPersona { YOUNG_COSSACK_8PLUS, STORY_EXPLORER, COMBAT_BRAWLER, COMBO_STRATEGIST, ARCADE_SPEEDRUNNER }  # Юний козачок (8–10 років): досліджує світ, потребує ранньої підмоги друзів  # Сімейний мандрівник: помірний темп, любить сюжет і фольклорних союзників  # Богатир Гопака: активно б'є ворогів руками й ногами, любить поєдинки  # Майстер Вогняних Комбо: планує маршрут суворо за запаленими ядрами  # Віртуоз-Характерник: блискавичне бездоганне проходження на високій швидкості
 
 var current_persona: PlayerPersona = PlayerPersona.STORY_EXPLORER
 var last_mamay_tip: String = ""
@@ -45,6 +39,7 @@ var _near_misses_count: int = 0
 var _idle_time_s: float = 0.0
 var _near_miss_cooldown: float = 0.0
 
+
 ## Скидання та старт збору лічильників на початку рівня
 func begin_level_tracking(level: int) -> void:
 	_current_level = level
@@ -68,6 +63,7 @@ func begin_level_tracking(level: int) -> void:
 	_idle_time_s = 0.0
 	_near_miss_cooldown = 0.0
 
+
 ## Поframe-трекінг кінематичної активності, простою (idle) та гострих розминань із ворогами (near-miss)
 func sample_frame(delta: float, player: Node2D, enemies_node: Node2D) -> void:
 	if _near_miss_cooldown > 0.0:
@@ -88,16 +84,46 @@ func sample_frame(delta: float, player: Node2D, enemies_node: Node2D) -> void:
 					_near_miss_cooldown = 0.85
 					break
 
-func record_jump() -> void: _jumps_count += 1
-func record_glide() -> void: _glides_count += 1
-func record_fast_drop() -> void: _fast_drops_count += 1
-func record_roll() -> void: _rolls_count += 1
-func record_punch() -> void: _punches_count += 1
-func record_kick() -> void: _kicks_count += 1
-func record_ceiling_bonk() -> void: _bonks_count += 1
-func record_enemy_defeated() -> void: _enemies_defeated += 1
-func record_artifact_collected() -> void: _artifacts_collected += 1
-func record_artifact_stolen() -> void: _artifacts_stolen += 1
+
+func record_jump() -> void:
+	_jumps_count += 1
+
+
+func record_glide() -> void:
+	_glides_count += 1
+
+
+func record_fast_drop() -> void:
+	_fast_drops_count += 1
+
+
+func record_roll() -> void:
+	_rolls_count += 1
+
+
+func record_punch() -> void:
+	_punches_count += 1
+
+
+func record_kick() -> void:
+	_kicks_count += 1
+
+
+func record_ceiling_bonk() -> void:
+	_bonks_count += 1
+
+
+func record_enemy_defeated() -> void:
+	_enemies_defeated += 1
+
+
+func record_artifact_collected() -> void:
+	_artifacts_collected += 1
+
+
+func record_artifact_stolen() -> void:
+	_artifacts_stolen += 1
+
 
 func record_bomb_picked(was_lit: bool) -> void:
 	var now := Time.get_ticks_msec()
@@ -107,6 +133,7 @@ func record_bomb_picked(was_lit: bool) -> void:
 	_total_bombs_collected += 1
 	if was_lit:
 		_lit_bombs_collected += 1
+
 
 ## Коефіцієнт варіації темпу збору ядер (CV = sigma / mean) та індекс ритмічності:
 static func compute_rhythm_metrics(intervals: Array) -> Dictionary:
@@ -124,6 +151,7 @@ static func compute_rhythm_metrics(intervals: Array) -> Dictionary:
 	var cv := std_v / maxf(0.1, mean_v)
 	var rhythm_score := clampf(1.0 - cv * 0.55, 0.0, 1.0)
 	return {"mean_s": mean_v, "std_s": std_v, "cv": cv, "rhythm_score": rhythm_score}
+
 
 ## Детермінований класифікатор типу гравця (PlayerPersona) за поведінковими ознаками рівня:
 static func classify_player_persona(features: Dictionary) -> PlayerPersona:
@@ -145,6 +173,7 @@ static func classify_player_persona(features: Dictionary) -> PlayerPersona:
 		return PlayerPersona.COMBO_STRATEGIST
 	return PlayerPersona.STORY_EXPLORER
 
+
 ## Оцінка поведінкового інтересу [-0.20, +0.20] як додаткова ознака для винагороди бандита в player_model.gd:
 ## Ритмічний рух, гострі розминання (near-miss thrill), активні удари й збір вогняних ядер підвищують інтерес;
 ## тривалий простій і часті удари головою об склепіння знижують.
@@ -157,6 +186,7 @@ static func interest_signal(features: Dictionary) -> float:
 	var bonus := 0.10 * (rhythm_score - 0.5) + 0.08 * thrill + 0.06 * (lit_ratio - 0.35) - 0.15 * idle_ratio
 	return clampf(bonus, -0.20, 0.20)
 
+
 ## Контекстна порада Наставника щодо механік Етапу 1 (рівні 1–5); порожній рядок, якщо поради немає:
 ## Вогник-палій (7 с до «БАХ!»), ширяння на крилатій киреї, шлях до Булави Котигорошка.
 static func mamay_mechanic_tip(level: int, features: Dictionary) -> String:
@@ -168,6 +198,7 @@ static func mamay_mechanic_tip(level: int, features: Dictionary) -> String:
 	if level >= 5:
 		return "Богатир Котигорошко лишив нам Булаву! Здолай Солоху, збережи ядра від підпалу — і спадщина роду стане твоєю!"
 	return ""
+
 
 ## Детермінована лицарська порада Козака-Шабельника (Наставника) відповідно до типу гравця та дій на рівні (GDD §3.2):
 static func mamay_tip_for_episode(persona: PlayerPersona, features: Dictionary) -> String:
@@ -191,6 +222,7 @@ static func mamay_tip_for_episode(persona: PlayerPersona, features: Dictionary) 
 			return "Блискавичний, мов степовий сокіл! Сила Котигорошка не в поспіху: чергуй удари Гопака з ухилами і не випереджай побратимів!"
 		_:
 			return "Хто стоїть поруч плечем до плеча — той тобі рідний брат! Стеж за ґнотами Вогника, а в скрутну мить пригадай удар Гопака — сила Котигорошка в тобі!"
+
 
 ## Підсумок дій за рівень: повертає словник поведінкових ознак для `player_model.observe()` і `telemetry.log_event("level_end", ...)`
 func summarize_level_episode(clear_time_s: float, hits: int) -> Dictionary:
